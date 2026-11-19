@@ -18,6 +18,20 @@ export class BootScene extends Phaser.Scene {
     fishColors.forEach((color, i) =>
       this.makeTexture(`fish-${i}`, 8, 5, (g) => drawFish(g, color)),
     );
+    this.makeTexture('octopus', 16, 16, (g) => {
+      // top-down octopus: round mantle, two eyes, eight arms
+      g.fillStyle(0x9b3f5a, 1);
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2;
+        g.fillRect(Math.round(8 + Math.cos(a) * 5) - 1, Math.round(8 + Math.sin(a) * 5) - 1, 2, 2);
+        g.fillRect(Math.round(8 + Math.cos(a) * 7) - 1, Math.round(8 + Math.sin(a) * 7) - 1, 1, 1);
+      }
+      g.fillStyle(0xc4566f, 1);
+      g.fillCircle(8, 8, 4);
+      g.fillStyle(0xfff2c8, 1);
+      g.fillRect(9, 6, 2, 1);
+      g.fillRect(9, 9, 2, 1);
+    });
     this.makeTexture('px', 1, 1, (g) => {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);

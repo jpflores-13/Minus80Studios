@@ -4,6 +4,7 @@ import type { Rng } from '../utils/rng';
 import { shouldFlee, stepAwareness } from './escape';
 import { stepMetabolic, swimPerformance, type MetabolicState } from './metabolic';
 import { isImmobilized, stepNeural, type NeuralState } from './neural';
+import { wrap } from './predator';
 
 export type FishMode =
   'roaming' | 'alert' | 'fleeing' | 'impaired' | 'immobilized' | 'tethered' | 'captured';
@@ -119,15 +120,15 @@ export function stepFish(
     fish.heading += rng.range(-1, 1) * p.wanderRate * dt;
     let dir = { x: Math.cos(fish.heading), y: Math.sin(fish.heading) };
     dir = add(dir, schoolingSteer(fish, school));
-    dir = add(dir, edgeSteer(fish.pos, arena));
     // Alert fish slow down and watch; impaired fish drift slowly.
     const speedFactor = fish.mode === 'alert' ? 0.5 : 1;
     desired = scale(normalize(dir), fish.baseSpeed * performance * speedFactor);
   }
 
   fish.vel = approach(fish.vel, desired, p.agility * dt);
-  fish.pos.x = Math.min(arena.width, Math.max(0, fish.pos.x + fish.vel.x * dt));
-  fish.pos.y = Math.min(arena.height, Math.max(0, fish.pos.y + fish.vel.y * dt));
+  // The reef wraps around: swim off one edge and you come back on the other.
+  fish.pos.x = wrap(fish.pos.x + fish.vel.x * dt, arena.width);
+  fish.pos.y = wrap(fish.pos.y + fish.vel.y * dt, arena.height);
   if (length(fish.vel) > 1) fish.heading = Math.atan2(fish.vel.y, fish.vel.x);
 }
 
@@ -153,14 +154,6 @@ function schoolingSteer(fish: Fish, school: readonly Fish[]): Vec2 {
   if (n === 0) return sep;
   const cohesion = normalize({ x: cx / n - fish.pos.x, y: cy / n - fish.pos.y });
   return add(scale(cohesion, p.cohesionWeight), sep);
-}
-
-function edgeSteer(pos: Vec2, arena: Arena): Vec2 {
-  const m = TUNING.fish.edgeMargin;
-  return {
-    x: pos.x < m ? 2 : pos.x > arena.width - m ? -2 : 0,
-    y: pos.y < m ? 2 : pos.y > arena.height - m ? -2 : 0,
-  };
 }
 
 const add = (a: Vec2, b: Vec2): Vec2 => ({ x: a.x + b.x, y: a.y + b.y });

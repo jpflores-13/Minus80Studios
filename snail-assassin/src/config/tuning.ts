@@ -67,6 +67,24 @@ export const TUNING = {
     missStartle: 0.8,
     hitStartle: 0.65,
   },
+  predator: {
+    // Octopus. Faster than the snail when chasing, so holding still is the way out.
+    patrolSpeed: 35,
+    chaseSpeed: 62,
+    agility: 120,
+    sightRadius: 200,
+    /** How visible a motionless snail is (0 = invisible, 1 = as visible as a moving one). */
+    stillVisibility: 0.08,
+    gain: 1.4,
+    decay: 0.5,
+    chaseAbove: 0.55,
+    loseInterestBelow: 0.2,
+    grabRadius: 34,
+    retreatSeconds: 7,
+    /** What a grab costs the snail. */
+    stunSeconds: 2.5,
+    venomLost: 25,
+  },
   capture: {
     /** Fish are catchable when vulnerability ≥ this. */
     vulnerabilityThreshold: 0.7,

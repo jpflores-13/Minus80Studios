@@ -15,7 +15,9 @@ export type SfxName =
   | 'confirm'
   | 'win'
   | 'lose'
-  | 'reveal';
+  | 'reveal'
+  | 'warn'
+  | 'grab';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -153,6 +155,14 @@ class SoundEngine {
         break;
       case 'lose':
         [392, 330, 262].forEach((f, i) => this.tone(t + i * 0.18, 'triangle', f, 0, 0.4, 0.1));
+        break;
+      case 'warn':
+        this.tone(t, 'square', 330, 0, 0.12, 0.06);
+        this.tone(t + 0.16, 'square', 330, 0, 0.12, 0.06);
+        break;
+      case 'grab':
+        this.noiseBurst(t, 0.3, 300, 0.3);
+        this.tone(t, 'sawtooth', 160, 60, 0.4, 0.12);
         break;
       case 'reveal':
         this.tone(t, 'sine', 196, 0, 2.5, 0.1);

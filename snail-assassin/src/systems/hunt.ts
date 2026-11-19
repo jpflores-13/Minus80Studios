@@ -15,6 +15,7 @@ import { currentAt } from './current';
 import { createFish, dampen, stepFish, vulnerability, type Arena, type Fish } from './fish';
 import { expose } from './metabolic';
 import { stepVelocity } from './movement';
+import { createPredator, stepPredator, wrap, type Predator } from './predator';
 import { createVenom, refund, stepVenom, tryUse, type AbilitySlot, type VenomState } from './venom';
 
 // The hunt as plain data plus a step function. No Phaser in here, so whole hunts can run in tests.
@@ -38,6 +39,7 @@ export interface HuntStats {
   strikesHit: number;
   strikesMissed: number;
   tethersBroken: number;
+  timesGrabbed: number;
 }
 
 export interface HuntState {
@@ -46,7 +48,8 @@ export interface HuntState {
   seed: number;
   rng: Rng;
   time: number;
-  snail: { pos: Vec2; vel: Vec2; heading: number };
+  snail: { pos: Vec2; vel: Vec2; heading: number; stunned: number };
+  predator: Predator;
   fish: Fish[];
   clouds: Cloud[];
   tether: Tether | null;
@@ -78,6 +81,8 @@ export type HuntEvent =
   | { type: 'capture'; fishIds: number[] }
   | { type: 'capture-miss' }
   | { type: 'denied'; slot: AbilitySlot; reason: DenyReason }
+  | { type: 'predator-chase' }
+  | { type: 'grabbed' }
   | { type: 'won' }
   | { type: 'lost' };
 
@@ -119,14 +124,16 @@ export function createHunt(
       pos: { x: arena.width * 0.12, y: arena.height * 0.5 },
       vel: { x: 0, y: 0 },
       heading: 0,
+      stunned: 0,
     },
+    predator: createPredator(arena, rng),
     fish,
     clouds: [],
     tether: null,
     venom: createVenom(TUNING.venom.max, TUNING.venom.regenPerSecond),
     captured: 0,
     capturedIds: [],
-    stats: { abilitiesUsed: 0, strikesHit: 0, strikesMissed: 0, tethersBroken: 0 },
+    stats: { abilitiesUsed: 0, strikesHit: 0, strikesMissed: 0, tethersBroken: 0, timesGrabbed: 0 },
     outcome: 'playing',
     nextId: 1,
   };
@@ -138,18 +145,16 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   const events: HuntEvent[] = [];
   state.time += dt;
 
-  // Snail movement (slower while reeling in prey).
+  // Snail movement. Slower while reeling in prey; frozen while stunned by the octopus.
+  const snail = state.snail;
+  snail.stunned = Math.max(0, snail.stunned - dt);
   const reeling = state.tether?.reeling === true;
   const params = { maxSpeed: state.character.snailSpeed * (reeling ? 0.3 : 1), ...TUNING.snail };
-  state.snail.vel = stepVelocity(state.snail.vel, input.move, params, dt);
-  state.snail.pos.x = clamp(state.snail.pos.x + state.snail.vel.x * dt, 16, state.arena.width - 16);
-  state.snail.pos.y = clamp(
-    state.snail.pos.y + state.snail.vel.y * dt,
-    16,
-    state.arena.height - 16,
-  );
-  if (length(state.snail.vel) > 2)
-    state.snail.heading = Math.atan2(state.snail.vel.y, state.snail.vel.x);
+  const move = snail.stunned > 0 ? { x: 0, y: 0 } : input.move;
+  snail.vel = stepVelocity(snail.vel, move, params, dt);
+  snail.pos.x = wrap(snail.pos.x + snail.vel.x * dt, state.arena.width);
+  snail.pos.y = wrap(snail.pos.y + snail.vel.y * dt, state.arena.height);
+  if (length(snail.vel) > 2) snail.heading = Math.atan2(snail.vel.y, snail.vel.x);
 
   // Abilities.
   stepVenom(state.venom, dt);
@@ -159,15 +164,15 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
     ['capture', input.capture],
   ];
   for (const [slot, pressed] of slots) {
-    if (pressed)
+    if (pressed && snail.stunned <= 0)
       events.push(...useAbility(state, slot, state.character.abilities[slot], input.aim));
   }
 
   // Clouds drift with the current, spread, and fade.
   for (const c of state.clouds) {
     const flow = currentAt(c.pos, state.time);
-    c.pos.x += flow.x * dt;
-    c.pos.y += flow.y * dt;
+    c.pos.x = wrap(c.pos.x + flow.x * dt, state.arena.width);
+    c.pos.y = wrap(c.pos.y + flow.y * dt, state.arena.height);
     c.age += dt;
     c.radius += 4 * dt;
   }
@@ -199,6 +204,21 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   }
 
   events.push(...stepTether(state, dt));
+
+  // The octopus.
+  const o = state.predator;
+  const wasChasing = o.mode === 'chase';
+  const snailMotionNow = length(snail.vel) / state.character.snailSpeed;
+  if (stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt)) {
+    snail.stunned = TUNING.predator.stunSeconds;
+    snail.vel = { x: 0, y: 0 };
+    state.venom.reserve = Math.max(0, state.venom.reserve - TUNING.predator.venomLost);
+    if (state.tether) releaseTether(state, true);
+    state.stats.timesGrabbed++;
+    events.push({ type: 'grabbed' });
+  } else if (!wasChasing && o.mode === 'chase') {
+    events.push({ type: 'predator-chase' });
+  }
 
   if (state.captured >= TUNING.hunt.objectiveCaptures) {
     state.outcome = 'won';

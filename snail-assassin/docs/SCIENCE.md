@@ -72,6 +72,12 @@ otherwise. Fish flee with hysteresis.
 - Ziconotide facts for the ending: verify the source species and approval details against an authoritative review.
 - Image sourcing: licensed photographs of each species (e.g., Wikimedia Commons, with per-file license checks).
 
+## Predators (for the octopus)
+
+The abstract of Dutertre 2014 mentions cephalopods (octopus and relatives) and fish as predators that cone snails
+defend themselves against. Cone snails that hunt other snails also eat cone snails. The game's octopus, and how it
+spots and chases the snail, are gameplay inventions.
+
 ## Links used in the game
 
 Every link shown in the game (`src/content/science.ts`) must appear here (enforced by `tests/content.test.ts`).

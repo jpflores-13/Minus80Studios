@@ -13,6 +13,11 @@ reef hunt (capture 3 fish in 3:00) → results → **Did You Know?** → replay,
 | ATLAS · _Conus geographus_  | Glucose Crash (cloud)                   | System Override (cloud)         | Engulf (2 at once)                   | Metabolic area control; the combo is required  |
 | NIGHTSHADE · _Conus tulipa_ | Ghost Signal (escape-dampening cloud)   | Silent Tide (cloud)             | Phantom Net (unaware, weakened fish) | Stealthy close approach; both clouds required  |
 
+## Hazards
+
+An octopus patrols the reef and chases the snail when it sees it move; holding still hides you. A grab stuns the
+snail and costs venom but never ends the hunt. The reef wraps around at every edge.
+
 ## Pitch
 
 You are a cone snail: slow, patient, and armed with one of nature's most sophisticated venoms.

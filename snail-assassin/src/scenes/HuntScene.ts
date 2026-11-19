@@ -29,6 +29,8 @@ export class HuntScene extends Phaser.Scene {
   private reef!: Reef;
   private hud!: Hud;
   private snail!: Phaser.GameObjects.Image;
+  private octopus!: Phaser.GameObjects.Image;
+  private octopusIcon!: Phaser.GameObjects.Text;
   private fishSprites = new Map<number, Phaser.GameObjects.Image>();
   private fishIcons = new Map<number, Phaser.GameObjects.Text>();
   private fx!: Phaser.GameObjects.Graphics;
@@ -103,6 +105,12 @@ export class HuntScene extends Phaser.Scene {
       () => this.pauseHunt(),
       this.character.palette.accent,
     );
+    const o = this.state.predator;
+    this.octopus = this.add.image(o.pos.x, o.pos.y, 'octopus').setScale(PIXEL).setDepth(11);
+    this.octopusIcon = this.add
+      .text(o.pos.x, o.pos.y, '', { ...TEXT_STYLES.hud, color: '#ffb3c1' })
+      .setOrigin(0.5)
+      .setDepth(12);
     this.controls = new HuntControls(this);
     this.touch = this.sys.game.device.input.touch
       ? new TouchControls(this, this.character, () => this.state)
@@ -166,6 +174,7 @@ export class HuntScene extends Phaser.Scene {
     return [
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
       ...lines,
+      'Watch out for the octopus: it spots you when you move. Hold still to hide.',
       this.touch
         ? 'Touch: use MOVE (bottom left) or press and hold on the reef to crawl there · quick tap to aim · buttons on the right'
         : 'Move WASD / arrows · aim with the mouse · Pause Esc · Restart R · Help H · Mute M',
@@ -248,6 +257,15 @@ export class HuntScene extends Phaser.Scene {
               : 'Strike a fish first (Q)',
         );
         break;
+      case 'predator-chase':
+        this.sfx('warn');
+        this.hud.say('An octopus spotted you! Hold still or get away.', 2500);
+        break;
+      case 'grabbed':
+        this.sfx('grab');
+        if (!settings().reducedEffects) this.cameras.main.shake(250, 0.006);
+        this.hud.say('Grabbed by the octopus! Stunned, and you lost some venom.', 2500);
+        break;
       case 'won':
       case 'lost':
         this.finish(e.type === 'won');
@@ -264,6 +282,13 @@ export class HuntScene extends Phaser.Scene {
     const s = this.state;
     const reduced = settings().reducedEffects;
     this.snail.setPosition(s.snail.pos.x, s.snail.pos.y).setRotation(s.snail.heading);
+    this.snail.setAlpha(s.snail.stunned > 0 && Math.floor(time / 120) % 2 === 0 ? 0.4 : 1);
+    const o = s.predator;
+    this.octopus.setPosition(o.pos.x, o.pos.y).setRotation(o.heading + Math.PI / 2);
+    this.octopus.setAlpha(o.mode === 'retreat' ? 0.6 : 1);
+    this.octopusIcon
+      .setPosition(o.pos.x, o.pos.y - 34)
+      .setText(o.mode === 'chase' ? '!!' : o.awareness > 0.3 ? '?' : '');
 
     const g = this.fx;
     g.clear();
