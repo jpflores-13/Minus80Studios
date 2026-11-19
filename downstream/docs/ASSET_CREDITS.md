@@ -1,4 +1,4 @@
-# Asset Attribution — Downstream!
+# Asset Credits — Downstream!
 
 Every non-code asset in `public/assets/` (or elsewhere in the build) must be listed here **in the same commit that adds it**.
 

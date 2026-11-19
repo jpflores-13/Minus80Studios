@@ -13,7 +13,7 @@ where do you intercept it?
 - **Feel:** a satisfying systems puzzle, closer to tower-defense or flow puzzles than to a lecture.
 - **Audience:** general players, classrooms, and museum visitors. No prior knowledge needed.
 
-## Core loop (proposal)
+## Core loop
 
 1. **Read the river:** observe where and how debris travels.
 2. **Place interventions:** barriers, traps, cleanups, or upstream prevention, each with a cost.
@@ -29,9 +29,15 @@ where do you intercept it?
 | Events change transport                 | Storm surge levels                                 | To validate      |
 | Interception vs. prevention             | Upstream investments pay off later                 | To validate      |
 
-## Current prototype
+## Current build (v0.2: Level 1 playable)
 
-Debris spawns upstream (left) and drifts right. Clicking or tapping a piece intercepts it. A HUD tracks intercepted vs. escaped.
+Three phases: **Investigate** (click neighbourhoods to see qualitative litter level and where they drain; F toggles
+flow arrows) → **Deploy** (drag bins and the trap onto highlighted slots, or click a tool then a slot; drag placed
+items to move them, or off the map to return them) → **Release the Flow** (litter runs off land, floats downstream,
+gets prevented or intercepted, or reaches the ocean; remaining equipment can still be placed, but placed items are
+locked; pause, ×3 speed, restart). Then a results screen with transparent bookkeeping and stars.
+
+Controls: mouse/touch for everything · 1/2 select tools · Enter advance phase · P/Space pause · X speed · R restart · F flow arrows.
 
 ## Open questions
 
