@@ -107,6 +107,13 @@ export class HuntScene extends Phaser.Scene {
     this.touch = this.sys.game.device.input.touch
       ? new TouchControls(this, this.character, () => this.state)
       : null;
+    // Some browsers don't report touch support up front; switch on at the first touch.
+    this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (p.wasTouch && !this.touch) {
+        this.touch = new TouchControls(this, this.character, () => this.state);
+        this.helpCard.setText(this.helpText());
+      }
+    });
     this.hud = new Hud(this, this.character);
     this.helpCard = this.add
       .text(this.scale.width / 2, 170, this.helpText(), { ...TEXT_STYLES.small, lineSpacing: 6 })
@@ -140,9 +147,9 @@ export class HuntScene extends Phaser.Scene {
   override update(time: number, deltaMs: number): void {
     // Clamp dt so a backgrounded tab doesn't simulate a giant time step.
     const dt = Math.min(deltaMs / 1000, 0.1);
+    this.touch?.update();
     const keyboard = this.controls.read();
     const input = this.touch ? this.touch.apply(keyboard) : keyboard;
-    this.touch?.update();
     const events = stepHunt(this.state, input, dt);
     for (const e of events) this.react(e);
     this.reef.update(time, dt);
@@ -160,7 +167,7 @@ export class HuntScene extends Phaser.Scene {
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
       ...lines,
       this.touch
-        ? 'Touch: drag on the left to move · tap the reef to aim · use the buttons on the right'
+        ? 'Touch: use MOVE (bottom left) or press and hold on the reef to crawl there · quick tap to aim · buttons on the right'
         : 'Move WASD / arrows · aim with the mouse · Pause Esc · Restart R · Help H · Mute M',
     ].join('\n');
   }
