@@ -19,8 +19,8 @@ The studio's shared brain: vision, process, catalog, roadmap, and brand.
 ## Games
 | Game | Repo | Status |
 |---|---|---|
-| Snail Assassin | `snail-assassin` | Foundation (v0.1) |
-| Downstream! | `downstream` | Foundation (v0.1) |
+| Snail Assassin | `snail-assassin` | v0.2: Atlas vertical slice |
+| Downstream! | `downstream` | v0.2: Level 1 playable |
 
 ## Local workspace
 ```
