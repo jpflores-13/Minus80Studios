@@ -18,7 +18,7 @@ npm run check       # typecheck, lint, format, tests
 npm run build       # static files in dist/
 ```
 
-Open `Minus80Studio.code-workspace` in VS Code for the multi-folder workspace. See [CONTRIBUTING.md](CONTRIBUTING.md) for the house rules.
+Open `-80Studios.code-workspace` in VS Code for the multi-folder workspace. See [CONTRIBUTING.md](CONTRIBUTING.md) for the house rules.
 
 **Play the latest builds:** https://jpflores-13.github.io/-80Studios/
 

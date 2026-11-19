@@ -27,8 +27,8 @@ The studio's shared brain: vision, process, catalog, roadmap, and brand.
 ## Local workspace
 
 ```
-~/Developer/Minus80Studio/          ← the monorepo (github.com/jpflores-13/minus80studios)
-├── Minus80Studio.code-workspace   ← open this in VS Code
+~/Developer/-80Studios/              ← the monorepo (github.com/jpflores-13/-80Studios)
+├── -80Studios.code-workspace   ← open this in VS Code
 ├── .github/workflows/             ← one CI workflow per game
 ├── studio/  snail-assassin/  downstream/
 ```
