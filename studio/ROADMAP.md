@@ -1,23 +1,27 @@
 # Studio Roadmap
 
 ## Phase 0: Foundation ✅ (Nov 2026)
-- [x] Workspace, three repos, shared tooling and CI
+
+- [x] Workspace, shared tooling and CI
 - [x] Studio vision, playbook, catalog
-- [ ] GitHub organization `minus80studio` and remote repos
+- [x] Public monorepo on GitHub (`jpflores-13/minus80studios`)
 - [ ] GitHub Project "Minus 80 Studio — Development"
 
 ## Phase 1: First playable demos
+
 - [ ] Snail Assassin: 2–3 minute vertical slice with character select and "The Science Is Real" ending
 - [ ] Downstream!: first puzzle level
 - [ ] First round of playtests (5 per game)
 - [ ] Scientist conversations and validation for both games
 
 ## Phase 2: Public demos
+
 - [ ] Choose hosting (decide public vs. private repos, GitHub Pages / itch.io / other)
 - [ ] Studio landing page with both demos and science pages
 - [ ] Branding v1 (logo, palette, typography)
 
 ## Phase 3: Expansion
+
 - [ ] Touch/iPad optimisation, arcade-cabinet build profile
 - [ ] Extract shared studio code (ending sequence, accessibility, UI) into a package, if it's genuinely duplicated
 - [ ] Next game from the idea backlog
