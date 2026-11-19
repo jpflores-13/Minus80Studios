@@ -1,14 +1,14 @@
-/**
- * Litter ledger. Each ordinary litter item is in exactly ONE state at a time,
- * and every state change is appended to its history (an audit trail, like
- * provenance tracking for samples in a pipeline). Scoring reads current states
- * only, so an item can never be counted twice.
- *
- *   generated ─┬─> prevented                                  (stopped at source)
- *              └─> onLand ─> floating ─┬─> intercepted ─> removed
- *                                      ├─> retained ─> floating (remobilized)
- *                                      └─> escaped            (reached the outlet)
- */
+// Every piece of litter has exactly one state, and each change is logged, so nothing
+// can be scored twice.
+//
+//   generated -> prevented                      (bin)
+//   generated -> onLand -> intercepted          (drain filter)
+//                       -> floating -> intercepted    (trap)
+//                                   -> retained -> floating (washed loose) or removed (crew)
+//                                   -> escaped        (reached the ocean)
+//   intercepted -> removed when a crew empties the trap or filter.
+//
+// GPS bottles are tracked separately and never counted here.
 export type LitterState =
   | 'generated'
   | 'prevented'
@@ -29,10 +29,12 @@ export interface LitterItem {
   segmentId: string;
   /** Arc-length position along the current segment (px). */
   s: number;
-  /** Position across the channel, −1 (left bank) … 1 (right bank). */
+  /** Position across the channel, −1 … 1. */
   lateral: number;
   /** Seconds remaining on land before runoff carries it into the waterway. */
   landTimer: number;
+  /** Which trap, filter, or hotspot currently holds it (if intercepted or retained). */
+  holder: string;
   history: { t: number; to: LitterState }[];
 }
 
@@ -62,15 +64,18 @@ export function createLitter(
     s: 0,
     lateral: 0,
     landTimer: 0,
+    holder: '',
     history: [{ t, to: 'generated' }],
   };
 }
 
 /** Change state, enforcing the allowed transitions above. Throws on an illegal move (a bookkeeping bug). */
-export function transition(item: LitterItem, to: LitterState, t: number): void {
+export function transition(item: LitterItem, to: LitterState, t: number, holder = ''): void {
   if (!ALLOWED[item.state].includes(to)) {
     throw new Error(`Illegal litter transition #${item.id}: ${item.state} → ${to}`);
   }
   item.state = to;
+  if (to === 'intercepted' || to === 'retained') item.holder = holder;
+  else if (to !== 'removed') item.holder = '';
   item.history.push({ t, to });
 }

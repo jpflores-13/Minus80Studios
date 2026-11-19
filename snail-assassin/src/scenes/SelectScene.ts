@@ -4,6 +4,7 @@ import { CHARACTERS } from '../characters';
 import type { Attributes, CharacterConfig } from '../characters/types';
 import { PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
+import { Button } from '../ui/Button';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 export interface SelectData {
@@ -47,7 +48,7 @@ export class SelectScene extends Phaser.Scene {
     addCenteredText(
       this,
       44,
-      this.mode === 'hunt' ? 'CHOOSE YOUR ASSASSIN' : 'THE SCIENCE IS REAL',
+      this.mode === 'hunt' ? 'CHOOSE YOUR ASSASSIN' : 'DID YOU KNOW?',
       TEXT_STYLES.title,
     );
     addCenteredText(
@@ -57,6 +58,7 @@ export class SelectScene extends Phaser.Scene {
       TEXT_STYLES.hint,
     );
 
+    new Button(this, 70, height - 26, 110, 36, 'HOME', () => this.scene.start('Title'));
     const cardW = 400;
     CHARACTERS.forEach((c, i) => {
       const x = width / 2 + (i - 1) * (cardW + 16);

@@ -13,10 +13,7 @@ const SLOTS: { slot: AbilitySlot; key: string }[] = [
 
 type Tutorial = { primary: boolean; secondary: boolean; capture: boolean } | null;
 
-/**
- * Minimal hunt HUD: objective, captures, timer, venom, ability readiness, and the
- * first-hunt tutorial checklist. States use text and shapes, never colour alone.
- */
+// Hunt HUD: objective, timer, venom, ability status and the first-hunt checklist.
 export class Hud {
   private readonly objective: Phaser.GameObjects.Text;
   private readonly timer: Phaser.GameObjects.Text;

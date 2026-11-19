@@ -5,11 +5,7 @@ import { PALETTE } from '../config/gameConfig';
 
 type Draw = (g: Phaser.GameObjects.Graphics) => void;
 
-/**
- * Creates the placeholder pixel art in code (tiny textures, enlarged in-game).
- * When commissioned art arrives, load it in preload() instead and keep the keys.
- * Texture specs: docs/ART_DIRECTION.md.
- */
+// Placeholder pixel art drawn in code. Swap in real images later under the same keys.
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
@@ -37,10 +33,7 @@ export class BootScene extends Phaser.Scene {
     g.destroy();
   }
 
-  /**
-   * Dev-only shortcuts, e.g. http://localhost:8081/?scene=Hunt&char=catalyst
-   * or ?scene=Discovery&char=nightshade. Production always starts at the splash.
-   */
+  // Dev shortcuts like ?scene=Hunt&char=catalyst. Production always starts at the splash.
   private devStart(): { scene: string; data: object } {
     const params = new URLSearchParams(window.location.search);
     const requested = params.get('scene');
@@ -53,11 +46,7 @@ export class BootScene extends Phaser.Scene {
   }
 }
 
-/**
- * Top-down cone snail facing right (16×9 px): spire at the back, broad shoulder,
- * shell tapering forward, foot visible beneath, and siphon reaching ahead.
- * Deliberately conical, not a garden-snail spiral. Pattern differs per species.
- */
+// Top-down cone snail facing right: low spire, wide shoulder, tapered shell, siphon in front.
 function drawConeSnail(g: Phaser.GameObjects.Graphics, c: CharacterConfig): void {
   const { shell, pattern, body, accent } = c.palette;
   g.fillStyle(body, 1); // foot

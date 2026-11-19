@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { settings, updateSettings } from '../config/settings';
+import { Button } from '../ui/Button';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 /** Overlay shown while the hunt is paused. */
@@ -59,6 +60,15 @@ export class PauseScene extends Phaser.Scene {
       updateSettings({ reducedEffects: !settings().reducedEffects });
       render();
     });
-    this.input.once('pointerdown', () => close(() => this.scene.resume('Hunt')));
+    const by = height * 0.82;
+    new Button(this, width / 2 - 260, by, 220, 48, 'RESUME', () =>
+      close(() => this.scene.resume('Hunt')),
+    );
+    new Button(this, width / 2, by, 220, 48, 'RESTART', () =>
+      close(() => hunt().restart({ characterId: data.characterId })),
+    );
+    new Button(this, width / 2 + 260, by, 220, 48, 'HOME', () =>
+      close(() => hunt().start('Title')),
+    );
   }
 }

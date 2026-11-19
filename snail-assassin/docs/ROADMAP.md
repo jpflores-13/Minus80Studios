@@ -13,7 +13,7 @@ Tooling, CI, scenes, movable placeholder snail.
 
 ## v0.2: Vertical slice of the core loop (done)
 
-- [ ] One prey type with simple wandering AI
+- [ ] One prey type with simple wandering behaviour
 - [ ] Prey awareness / detection system (pure, tested, tunable)
 - [ ] Strike action (keyboard + touch)
 - [ ] Win/lose feedback for a single encounter

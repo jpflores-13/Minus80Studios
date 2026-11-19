@@ -62,7 +62,7 @@ export class TitleScene extends Phaser.Scene {
 
     const menu: MenuItem[] = [
       { label: () => 'HUNT', action: () => this.go('Select', { mode: 'hunt' }) },
-      { label: () => 'THE SCIENCE IS REAL', action: () => this.go('Select', { mode: 'science' }) },
+      { label: () => 'DID YOU KNOW?', action: () => this.go('Select', { mode: 'science' }) },
       {
         label: () =>
           `SOUND: ${settings().muted ? 'OFF' : `${Math.round(settings().volume * 100)}%`}   (M to mute, − / + volume)`,
@@ -88,7 +88,7 @@ export class TitleScene extends Phaser.Scene {
     addCenteredText(
       this,
       height * 0.95,
-      '↑ ↓ choose · ENTER select   ·   A -80 Studio game',
+      '↑ ↓ choose · ENTER select   ·   A -80 Studios game',
       TEXT_STYLES.hint,
     );
 

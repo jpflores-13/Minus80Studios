@@ -3,15 +3,8 @@ import { clamp } from '../utils/math';
 
 export type EscapeParams = typeof TUNING.escape;
 
-/**
- * Escape-responsiveness module. Awareness a ∈ [0, 1]:
- *
- *   stimulus = proximity · (still + (1 − still) · snailMotion)   within detectionRadius, else 0
- *   da/dt    = gain · stimulus · responsiveness · alertness − decay · a
- *
- * `responsiveness` (0–1) is the hook for escape-dampening abilities (Nightshade).
- * `alertness` (0–1) lets metabolic impairment dull reactions.
- */
+// How alert a fish is to the snail. Awareness rises when the snail is close (more if it's moving)
+// and fades otherwise. `responsiveness` is what Ghost Signal lowers; `alertness` drops when the fish is weak.
 export function stepAwareness(
   awareness: number,
   distanceToSnail: number,
@@ -28,7 +21,7 @@ export function stepAwareness(
   return clamp(awareness + da * dt, 0, 1);
 }
 
-/** Flee with hysteresis: start above `fleeAbove`, keep fleeing until below `calmBelow`. */
+// Start fleeing above fleeAbove, keep going until below calmBelow.
 export function shouldFlee(
   awareness: number,
   currentlyFleeing: boolean,

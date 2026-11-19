@@ -1,38 +1,74 @@
 import Phaser from 'phaser';
 import { PALETTE, PIXEL, TOOLBAR_HEIGHT } from '../config/gameConfig';
+import { progress } from '../config/progress';
 import { TUNING } from '../config/tuning';
-import type { EquipmentKind, LevelConfig, Slot } from '../levels/types';
-import type { Deployment } from '../systems/equipment';
-import type { LitterItem } from '../systems/litter';
-import { pointAt, segmentLength, worldPosition } from '../systems/network';
+import type { EquipmentKind, Hotspot, LevelConfig, PollutionSource, Slot } from '../levels/types';
+import type { Deployment, Orientations } from '../systems/equipment';
+import type { Track } from '../systems/gps';
+import { pointAt, segmentLength, worldPosition, type Segment } from '../systems/network';
 import type { SimState } from '../systems/sim';
-import { prefersReducedMotion } from '../utils/accessibility';
-import { createRng } from '../utils/rng';
+import type { Conditions } from '../systems/weather';
 import { TEXT_STYLES } from '../ui/text';
+import { createRng } from '../utils/rng';
 
-/** Everything drawn on the watershed map: terrain, creek, sources, slots, equipment, and litter. */
+const SOURCE_SPRITES: Record<PollutionSource['look'], string> = {
+  houses: 'house',
+  store: 'store',
+  school: 'school',
+  park: 'tree',
+  apartments: 'apartments',
+  lot: 'lot',
+  market: 'market',
+};
+
+interface TrackView {
+  track: Track;
+  shownUntil: number; // seconds of the track revealed so far
+  bottle: Phaser.GameObjects.Image;
+}
+
+// Everything drawn on the map: terrain, water, buildings, equipment, litter, GPS trails, rain.
 export class MapView {
-  private readonly flowFx: Phaser.GameObjects.Graphics;
-  private readonly slotFx: Phaser.GameObjects.Graphics;
+  showFlowArrows = false;
+  showTrails = true;
+
+  private readonly water: Phaser.GameObjects.Graphics;
+  private readonly overlay: Phaser.GameObjects.Graphics;
+  private readonly trails: Phaser.GameObjects.Graphics;
+  private readonly rainFx: Phaser.GameObjects.Graphics;
+  private readonly rainShade: Phaser.GameObjects.Rectangle;
   private readonly equipment = new Map<
     string,
     { sprite: Phaser.GameObjects.Image; label?: Phaser.GameObjects.Text }
   >();
   private readonly litter = new Map<number, Phaser.GameObjects.Image>();
-  private readonly still = prefersReducedMotion();
-  showFlowArrows = false;
+  private readonly hotspotLabels = new Map<string, Phaser.GameObjects.Text>();
+  private readonly tracks: TrackView[] = [];
+  private readonly segs: Map<string, Segment>;
+  private rainDrops: { x: number; y: number }[] = [];
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly level: LevelConfig,
   ) {
+    this.segs = new Map(level.segments.map((s) => [s.id, s]));
     this.paintTerrain();
-    this.flowFx = scene.add.graphics().setDepth(2);
-    this.slotFx = scene.add.graphics().setDepth(3);
+    this.drawHotspots();
+    this.water = scene.add.graphics().setDepth(2);
+    this.overlay = scene.add.graphics().setDepth(3);
+    this.trails = scene.add.graphics().setDepth(7);
     this.drawSources();
+    const mapH = scene.scale.height - TOOLBAR_HEIGHT;
+    this.rainShade = scene.add
+      .rectangle(0, 0, scene.scale.width, mapH, 0x1c2a3a, 0)
+      .setOrigin(0)
+      .setDepth(30);
+    this.rainFx = scene.add.graphics().setDepth(31);
+    const rng = createRng(7);
+    for (let i = 0; i < 160; i++)
+      this.rainDrops.push({ x: rng.range(0, scene.scale.width), y: rng.range(0, mapH) });
   }
 
-  /** Slot nearest to a point, within `radius` px. */
   slotAt(x: number, y: number, radius = 34): Slot | undefined {
     let best: Slot | undefined;
     let bestD = radius;
@@ -46,29 +82,52 @@ export class MapView {
     return best;
   }
 
-  sourceAt(x: number, y: number): LevelConfig['sources'][number] | undefined {
+  sourceAt(x: number, y: number): PollutionSource | undefined {
     return this.level.sources.find((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 50);
   }
 
-  /** Redraw equipment sprites from the deployment (cheap; called after any change). */
-  syncEquipment(dep: Deployment): void {
+  hotspotAt(x: number, y: number): Hotspot | undefined {
+    return this.level.hotspots.find((h) => {
+      const p = this.hotspotCenter(h);
+      return Math.hypot(p.x - x, p.y - y) < 60;
+    });
+  }
+
+  addTrack(track: Track): void {
+    const src = this.level.sources.find((s) => s.id === track.sourceId);
+    const start = track.points[0]?.pos ?? src?.pos ?? { x: 0, y: 0 };
+    const bottle = this.scene.add.image(start.x, start.y, 'gps').setScale(PIXEL).setDepth(9);
+    this.tracks.push({ track, shownUntil: 0, bottle });
+  }
+
+  // Rebuild equipment sprites from the deployment. Cheap; call after any change.
+  syncEquipment(dep: Deployment, orient: Orientations): void {
     for (const [slotId, view] of this.equipment) {
-      if (!dep[slotId]) {
-        view.sprite.destroy();
-        view.label?.destroy();
-        this.equipment.delete(slotId);
-      }
+      if (dep[slotId]) continue;
+      view.sprite.destroy();
+      view.label?.destroy();
+      this.equipment.delete(slotId);
     }
     for (const [slotId, kind] of Object.entries(dep)) {
-      if (this.equipment.has(slotId)) continue;
       const slot = this.level.slots.find((s) => s.id === slotId);
       if (!slot) continue;
-      const sprite = this.scene.add.image(slot.pos.x, slot.pos.y, kind).setScale(PIXEL).setDepth(6);
-      let label: Phaser.GameObjects.Text | undefined;
+      const existing = this.equipment.get(slotId);
+      if (existing) {
+        if (kind === 'boom') existing.sprite.setRotation(this.boomAngle(slot, orient));
+        continue;
+      }
+      const pos = kind === 'trap' ? this.trapCenter(slot) : slot.pos;
+      const sprite = this.scene.add.image(pos.x, pos.y, kind).setScale(PIXEL).setDepth(6);
       if (kind === 'trap') {
-        sprite.setRotation(this.trapAngle(slot));
+        sprite.setRotation(this.channelAngle(slot) + Math.PI / 2);
+        const seg = this.segs.get(slot.segmentId ?? '');
+        if (seg) sprite.setDisplaySize((slot.coverage ?? 0.8) * 2 * seg.halfWidth + 8, 6 * PIXEL);
+      }
+      if (kind === 'boom') sprite.setRotation(this.boomAngle(slot, orient));
+      let label: Phaser.GameObjects.Text | undefined;
+      if (kind === 'trap' || kind === 'filter') {
         label = this.scene.add
-          .text(slot.pos.x, slot.pos.y - 34, '', TEXT_STYLES.label)
+          .text(pos.x, pos.y - 30, '', TEXT_STYLES.label)
           .setOrigin(0.5)
           .setDepth(8)
           .setBackgroundColor('#2d2a26cc')
@@ -76,122 +135,233 @@ export class MapView {
       }
       this.scene.tweens.add({
         targets: sprite,
-        scale: { from: PIXEL * 1.4, to: PIXEL },
+        scale: { from: sprite.scale * 1.4, to: sprite.scale },
         duration: 180,
       });
       this.equipment.set(slotId, label ? { sprite, label } : { sprite });
     }
   }
 
-  /** Per-frame drawing: animated water, slot highlights, trap gauges, litter. */
   update(
     time: number,
+    dt: number,
     dep: Deployment,
+    orient: Orientations,
     highlight: EquipmentKind | null,
-    sim: SimState | undefined,
+    sim?: SimState,
+    conditions: Conditions = 'dry',
   ): void {
-    this.drawFlow(time);
-    this.drawSlots(time, dep, highlight);
-    if (sim) {
-      for (const trap of sim.traps) {
-        const label = this.equipment.get(trap.slotId)?.label;
-        label?.setText(
-          trap.count >= trap.capacity
-            ? `FULL ${trap.count}/${trap.capacity}`
-            : `${trap.count}/${trap.capacity}`,
-        );
-        label?.setBackgroundColor(trap.count >= trap.capacity ? '#b5452bdd' : '#2d2a26cc');
+    const reduced = progress().reducedEffects;
+    this.drawWater(reduced ? 0 : time);
+    this.drawSlots(time, dep, orient, highlight);
+    this.drawTrails(dt);
+    this.drawRain(dt, conditions, reduced);
+    if (!sim) {
+      for (const [slotId, view] of this.equipment) {
+        const kind = dep[slotId];
+        const cap = kind === 'filter' ? TUNING.filter.capacity : TUNING.trap.capacity;
+        view.label?.setText(`0/${cap}`);
       }
-      this.drawLitter(sim);
-    } else {
-      for (const view of this.equipment.values()) view.label?.setText(`0/${TUNING.trap.capacity}`);
+      return;
     }
+    for (const c of sim.containers) {
+      const label = this.equipment.get(c.slotId)?.label;
+      const full = c.count >= c.capacity;
+      label?.setText(full ? `FULL ${c.count}/${c.capacity}` : `${c.count}/${c.capacity}`);
+      label?.setBackgroundColor(full ? '#b5452bdd' : '#2d2a26cc');
+    }
+    for (const h of this.level.hotspots) {
+      const n = sim.items.filter((i) => i.state === 'retained' && i.holder === h.id).length;
+      this.hotspotLabels.get(h.id)?.setText(n > 0 ? `${h.label}: ${n} stuck` : h.label);
+    }
+    this.drawLitter(sim);
+  }
+
+  // Short-lived feedback when a cleanup crew works a spot.
+  showCrew(x: number, y: number): void {
+    const crew = this.scene.add
+      .image(x, y - 10, 'crew')
+      .setScale(PIXEL)
+      .setDepth(40);
+    this.scene.tweens.add({
+      targets: crew,
+      y: y - 30,
+      alpha: 0,
+      duration: 1400,
+      onComplete: () => crew.destroy(),
+    });
+  }
+
+  containerPosition(slotId: string): { x: number; y: number } {
+    const slot = this.level.slots.find((s) => s.id === slotId);
+    if (!slot) return { x: 0, y: 0 };
+    return slot.kind === 'trap' ? this.trapCenter(slot) : slot.pos;
+  }
+
+  hotspotCenter(h: Hotspot): { x: number; y: number } {
+    const seg = this.segs.get(h.segmentId);
+    return seg ? worldPosition(seg, (h.sFrom + h.sTo) / 2, h.side * 1.4) : { x: 0, y: 0 };
+  }
+
+  private trapCenter(slot: Slot): { x: number; y: number } {
+    const seg = this.segs.get(slot.segmentId ?? '');
+    return seg && slot.s !== undefined ? worldPosition(seg, slot.s, slot.offset ?? 0) : slot.pos;
+  }
+
+  private channelAngle(slot: Slot): number {
+    const seg = this.segs.get(slot.segmentId ?? '');
+    if (!seg || slot.s === undefined) return 0;
+    const { tangent } = pointAt(seg, slot.s);
+    return Math.atan2(tangent.y, tangent.x);
+  }
+
+  // A boom lies diagonally, angled toward the bank it pushes litter to.
+  private boomAngle(slot: Slot, orient: Orientations): number {
+    return this.channelAngle(slot) + (orient[slot.id] ?? 1) * 0.6;
   }
 
   private drawLitter(sim: SimState): void {
     const visible = new Set<number>();
     for (const item of sim.items) {
-      if (item.state !== 'floating') continue;
-      visible.add(item.id);
+      if (item.state !== 'floating' && item.state !== 'retained') continue;
       const seg = sim.segments.get(item.segmentId);
       if (!seg) continue;
-      const p = worldPosition(seg, item.s, item.lateral);
+      visible.add(item.id);
+      const lateral = item.state === 'retained' ? Math.sign(item.lateral || 1) * 1.1 : item.lateral;
+      const p = worldPosition(seg, item.s, lateral);
       let sprite = this.litter.get(item.id);
       if (!sprite) {
         sprite = this.scene.add.image(p.x, p.y, item.category).setScale(PIXEL).setDepth(5);
         sprite.setRotation((item.id * 1.7) % Math.PI);
         this.litter.set(item.id, sprite);
       }
-      sprite.setPosition(p.x, p.y);
+      sprite.setPosition(p.x, p.y).setAlpha(item.state === 'retained' ? 0.7 : 1);
     }
     for (const [id, sprite] of this.litter) {
       if (visible.has(id)) continue;
       this.litter.delete(id);
       const item = sim.items.find((i) => i.id === id);
-      this.retire(sprite, item);
-    }
-  }
-
-  /** Feedback as litter leaves the water: snapped into a trap, or lost to the ocean. */
-  private retire(sprite: Phaser.GameObjects.Image, item: LitterItem | undefined): void {
-    if (item?.state === 'intercepted') {
+      const caught = item?.state === 'intercepted' || item?.state === 'removed';
       this.scene.tweens.add({
         targets: sprite,
-        scale: PIXEL * 1.8,
+        scale: caught ? PIXEL * 1.8 : PIXEL,
+        x: caught ? sprite.x : sprite.x + 40,
         alpha: 0,
-        duration: 260,
-        onComplete: () => sprite.destroy(),
-      });
-    } else {
-      this.scene.tweens.add({
-        targets: sprite,
-        x: sprite.x + 40,
-        alpha: 0,
-        duration: 500,
+        duration: caught ? 260 : 500,
         onComplete: () => sprite.destroy(),
       });
     }
   }
 
-  private trapAngle(slot: Slot): number {
-    const seg = this.level.segments.find((s) => s.id === slot.segmentId);
-    if (!seg || slot.s === undefined) return 0;
-    const { tangent } = pointAt(seg, slot.s);
-    return Math.atan2(tangent.y, tangent.x) + Math.PI / 2;
-  }
-
-  private drawSlots(time: number, dep: Deployment, highlight: EquipmentKind | null): void {
-    const g = this.slotFx;
+  private drawSlots(
+    time: number,
+    dep: Deployment,
+    orient: Orientations,
+    highlight: EquipmentKind | null,
+  ): void {
+    const g = this.overlay;
     g.clear();
     const pulse = 0.5 + 0.5 * Math.sin(time / 250);
     for (const slot of this.level.slots) {
       if (dep[slot.id]) continue;
       const active = highlight === slot.kind;
-      const alpha = highlight === null ? 0.5 : active ? 0.6 + 0.4 * pulse : 0.15;
-      g.lineStyle(active ? 3 : 2, slot.kind === 'trap' ? 0xffffff : PALETTE.cream, alpha);
-      if (slot.kind === 'trap') {
-        // Show the trap's footprint across the channel, including the uncovered bank margins.
-        const seg = this.level.segments.find((s) => s.id === slot.segmentId);
-        if (seg && slot.s !== undefined) {
-          const cover = slot.coverage ?? 0.8;
-          const a = worldPosition(seg, slot.s, -cover);
-          const b = worldPosition(seg, slot.s, cover);
-          g.lineBetween(a.x, a.y, b.x, b.y);
-          g.strokeCircle(slot.pos.x, slot.pos.y, seg.halfWidth + 8);
-        }
+      const alpha = highlight === null ? 0.45 : active ? 0.6 + 0.4 * pulse : 0.12;
+      g.lineStyle(
+        active ? 3 : 2,
+        slot.kind === 'bin' || slot.kind === 'filter' ? PALETTE.cream : 0xffffff,
+        alpha,
+      );
+      const seg = this.segs.get(slot.segmentId ?? '');
+      if (slot.kind === 'trap' && seg && slot.s !== undefined) {
+        // the part of the channel this trap would span
+        const off = slot.offset ?? 0;
+        const cov = slot.coverage ?? 0.8;
+        const a = worldPosition(seg, slot.s, off - cov);
+        const b = worldPosition(seg, slot.s, off + cov);
+        g.lineBetween(a.x, a.y, b.x, b.y);
+        g.strokeCircle(slot.pos.x, slot.pos.y, seg.halfWidth + 8);
+      } else if (slot.kind === 'boom' && seg && slot.s !== undefined) {
+        const a = worldPosition(seg, slot.s - 14, -1);
+        const b = worldPosition(seg, slot.s + 14, 1);
+        g.lineBetween(a.x, a.y, b.x, b.y);
+        g.strokeCircle(slot.pos.x, slot.pos.y, seg.halfWidth + 6);
+      } else if (slot.kind === 'filter') {
+        g.strokeRect(slot.pos.x - 18, slot.pos.y - 14, 36, 28);
+        g.lineBetween(slot.pos.x - 10, slot.pos.y, slot.pos.x + 10, slot.pos.y);
       } else {
         g.strokeRect(slot.pos.x - 16, slot.pos.y - 18, 32, 36);
       }
     }
+    // Arrow on each placed boom showing which bank it pushes litter toward.
+    for (const [slotId, kind] of Object.entries(dep)) {
+      if (kind !== 'boom') continue;
+      const slot = this.level.slots.find((s) => s.id === slotId);
+      const seg = this.segs.get(slot?.segmentId ?? '');
+      if (!slot || !seg || slot.s === undefined) continue;
+      const side = orient[slotId] ?? 1;
+      const from = worldPosition(seg, slot.s + 10, 0);
+      const to = worldPosition(seg, slot.s + 22, side * 0.9);
+      g.lineStyle(3, 0xf2c94c, 0.9);
+      g.lineBetween(from.x, from.y, to.x, to.y);
+      g.fillStyle(0xf2c94c, 0.9);
+      g.fillCircle(to.x, to.y, 4);
+    }
   }
 
-  private drawFlow(time: number): void {
-    const g = this.flowFx;
+  private drawTrails(dt: number): void {
+    const g = this.trails;
+    g.clear();
+    if (!this.showTrails) {
+      for (const t of this.tracks) t.bottle.setVisible(false);
+      return;
+    }
+    for (const view of this.tracks) {
+      view.shownUntil = Math.min(
+        view.track.seconds,
+        view.shownUntil + dt * TUNING.gps.playbackSpeed,
+      );
+      const pts = view.track.points.filter((p) => p.t <= view.shownUntil);
+      g.lineStyle(3, PALETTE.gpsPink, 0.85);
+      g.beginPath();
+      pts.forEach((p, i) => (i === 0 ? g.moveTo(p.pos.x, p.pos.y) : g.lineTo(p.pos.x, p.pos.y)));
+      g.strokePath();
+      for (const stop of view.track.stops) {
+        g.lineStyle(2, PALETTE.gpsPink, 1);
+        g.strokeCircle(stop.pos.x, stop.pos.y, 10);
+      }
+      const last = pts.at(-1);
+      if (last) view.bottle.setPosition(last.pos.x, last.pos.y).setVisible(true);
+    }
+  }
+
+  private drawRain(dt: number, conditions: Conditions, reduced: boolean): void {
+    const g = this.rainFx;
+    g.clear();
+    const level = { dry: 0, light: 1, moderate: 2, heavy: 3 }[conditions];
+    this.rainShade.setFillStyle(0x1c2a3a, level * 0.08);
+    if (level === 0) return;
+    const mapH = this.scene.scale.height - TOOLBAR_HEIGHT;
+    const count = level * 50;
+    g.lineStyle(1, 0xcfe3f0, 0.5);
+    for (let i = 0; i < count; i++) {
+      const d = this.rainDrops[i]!;
+      if (!reduced) {
+        d.y += 500 * dt;
+        d.x += 60 * dt;
+        if (d.y > mapH) d.y -= mapH;
+        if (d.x > this.scene.scale.width) d.x -= this.scene.scale.width;
+      }
+      g.lineBetween(d.x, d.y, d.x + 3, d.y + 10);
+    }
+  }
+
+  private drawWater(time: number): void {
+    const g = this.water;
     g.clear();
     for (const seg of this.level.segments) {
       const len = segmentLength(seg);
       const spacing = 46;
-      const offset = this.still ? 0 : ((time / 1000) * seg.speed) % spacing;
+      const offset = ((time / 1000) * seg.speed) % spacing;
       for (let s = offset; s < len; s += spacing) {
         for (const lateral of [-0.45, 0.35]) {
           const a = worldPosition(seg, s + lateral * 10, lateral);
@@ -236,85 +406,112 @@ export class MapView {
         PIXEL,
       );
     }
-    // Estuary / ocean on the right edge: where escaped litter ends up.
     g.fillStyle(PALETTE.ocean, 1);
     g.fillRect(width - 70, 0, 70, mapH);
     g.fillStyle(0xe6d6a8, 1);
     g.fillRect(width - 82, 0, 12, mapH);
-    // Creek: bank, then water.
-    for (const seg of this.level.segments) {
-      for (const [color, extra] of [
-        [PALETTE.bank, 8],
-        [PALETTE.water, 0],
-      ] as const) {
+    for (const [color, extra] of [
+      [PALETTE.bank, 8],
+      [PALETTE.water, 0],
+    ] as const) {
+      for (const seg of this.level.segments) {
         g.lineStyle((seg.halfWidth + extra) * 2, color, 1);
         g.beginPath();
         seg.points.forEach((p, i) => (i === 0 ? g.moveTo(p.x, p.y) : g.lineTo(p.x, p.y)));
         g.strokePath();
-        for (const p of seg.points) {
-          g.fillStyle(color, 1);
-          g.fillCircle(p.x, p.y, seg.halfWidth + extra);
-        }
+        g.fillStyle(color, 1);
+        for (const p of seg.points) g.fillCircle(p.x, p.y, seg.halfWidth + extra);
       }
     }
     this.scene.add
-      .text(width - 35, mapH / 2, 'TO THE OCEAN', { ...TEXT_STYLES.label, align: 'center' })
+      .text(width - 35, mapH / 2, 'TO THE OCEAN', TEXT_STYLES.label)
       .setOrigin(0.5)
       .setRotation(-Math.PI / 2)
       .setDepth(1);
-    // Trees for life and colour.
-    for (let i = 0; i < 26; i++) {
+    for (let i = 0; i < 30; i++) {
       const x = rng.range(20, width - 110);
-      const y = rng.range(20, mapH - 20);
-      const nearWater = this.level.segments.some((seg) => {
-        const len = segmentLength(seg);
-        for (let s = 0; s < len; s += 20) {
-          const p = pointAt(seg, s).pos;
-          if (Math.hypot(p.x - x, p.y - y) < seg.halfWidth + 18) return true;
-        }
-        return false;
-      });
-      const nearSource = this.level.sources.some((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 80);
-      if (!nearWater && !nearSource) this.scene.add.image(x, y, 'tree').setScale(PIXEL).setDepth(1);
+      const y = rng.range(80, mapH - 20);
+      if (
+        this.nearWater(x, y, 20) ||
+        this.level.sources.some((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 90)
+      )
+        continue;
+      if (this.level.slots.some((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 40)) continue;
+      this.scene.add.image(x, y, 'tree').setScale(PIXEL).setDepth(1);
+    }
+  }
+
+  private nearWater(x: number, y: number, margin: number): boolean {
+    return this.level.segments.some((seg) => {
+      const len = segmentLength(seg);
+      for (let s = 0; s < len; s += 20) {
+        const p = pointAt(seg, s).pos;
+        if (Math.hypot(p.x - x, p.y - y) < seg.halfWidth + margin) return true;
+      }
+      return false;
+    });
+  }
+
+  private drawHotspots(): void {
+    for (const h of this.level.hotspots) {
+      const seg = this.segs.get(h.segmentId);
+      if (!seg) continue;
+      for (let s = h.sFrom; s <= h.sTo; s += 36) {
+        const p = worldPosition(seg, s, h.side * 0.9);
+        const sprite = this.scene.add
+          .image(p.x, p.y, h.look === 'log' ? 'log' : 'reeds')
+          .setScale(PIXEL)
+          .setDepth(4);
+        sprite.setRotation(Math.atan2(pointAt(seg, s).tangent.y, pointAt(seg, s).tangent.x));
+        if (h.look === 'log') break;
+      }
+      const c = this.hotspotCenter(h);
+      this.hotspotLabels.set(
+        h.id,
+        this.scene.add
+          .text(c.x, c.y, h.label, { ...TEXT_STYLES.label, fontSize: '13px' })
+          .setOrigin(0.5)
+          .setDepth(8)
+          .setBackgroundColor('#4f3a22cc')
+          .setPadding(4, 2, 4, 2),
+      );
     }
   }
 
   private drawSources(): void {
     for (const src of this.level.sources) {
       const { x, y } = src.pos;
-      if (src.look === 'houses') {
-        for (const [dx, dy] of [
-          [-22, -8],
-          [10, -14],
-          [-6, 14],
-          [24, 10],
-        ] as const)
+      const key = SOURCE_SPRITES[src.look];
+      if (src.look === 'houses' || src.look === 'park') {
+        const spots =
+          src.look === 'houses'
+            ? [
+                [-22, -8],
+                [10, -14],
+                [-6, 14],
+                [24, 10],
+              ]
+            : [
+                [-20, -6],
+                [0, 8],
+                [20, -4],
+              ];
+        for (const [dx, dy] of spots)
           this.scene.add
-            .image(x + dx, y + dy, 'house')
+            .image(x + dx!, y + dy!, key)
             .setScale(PIXEL)
             .setDepth(4);
-      } else if (src.look === 'park') {
-        for (const [dx, dy] of [
-          [-20, -6],
-          [0, 8],
-          [20, -4],
-        ] as const)
-          this.scene.add
-            .image(x + dx, y + dy, 'tree')
-            .setScale(PIXEL)
-            .setDepth(4);
-        this.scene.add.rectangle(x, y + 22, 50, 6, PALETTE.road).setDepth(3);
       } else {
-        this.scene.add.image(x, y, src.look).setScale(PIXEL).setDepth(4);
+        this.scene.add.image(x, y, key).setScale(PIXEL).setDepth(4);
       }
       this.scene.add
-        .text(x, y - 42, src.label, TEXT_STYLES.label)
+        .text(x, y - 44, src.label, TEXT_STYLES.label)
         .setOrigin(0.5)
         .setDepth(8)
         .setBackgroundColor('#2d2a26aa')
         .setPadding(5, 2, 5, 2);
-      // Runoff path: a dotted line from the neighbourhood to where it drains into the creek.
-      const seg = this.level.segments.find((s) => s.id === src.entry.segmentId);
+      // dotted runoff path down to where it drains into the water
+      const seg = this.segs.get(src.entry.segmentId);
       if (!seg) continue;
       const to = pointAt(seg, src.entry.s).pos;
       const g = this.scene.add.graphics().setDepth(1);

@@ -1,22 +1,46 @@
-import type { LevelConfig } from '../src/levels/types';
-import type { Deployment } from '../src/systems/equipment';
+import type { LevelConfig, SlotKind } from '../src/levels/types';
+import type { Orientations } from '../src/systems/equipment';
+import { simpleCleanupPolicy, type Strategy } from '../src/systems/sim';
 
-/** Every way to use a level's full inventory (bins and traps placed in distinct slots). */
-export function allFullDeployments(level: LevelConfig): Deployment[] {
-  const pick = <T>(arr: T[], k: number): T[][] =>
-    k === 0
-      ? [[]]
-      : arr.flatMap((x, i) => pick(arr.slice(i + 1), k - 1).map((rest) => [x, ...rest]));
-  const binSlots = level.slots.filter((s) => s.kind === 'bin').map((s) => s.id);
-  const trapSlots = level.slots.filter((s) => s.kind === 'trap').map((s) => s.id);
-  const out: Deployment[] = [];
-  for (const bins of pick(binSlots, Math.min(level.inventory.bin, binSlots.length))) {
-    for (const traps of pick(trapSlots, Math.min(level.inventory.trap, trapSlots.length))) {
-      const dep: Deployment = {};
-      for (const b of bins) dep[b] = 'bin';
-      for (const t of traps) dep[t] = 'trap';
-      out.push(dep);
+function choose<T>(items: T[], k: number): T[][] {
+  if (k === 0) return [[]];
+  return items.flatMap((x, i) => choose(items.slice(i + 1), k - 1).map((rest) => [x, ...rest]));
+}
+
+// Every way to place a level's full inventory, including both directions for each boom.
+export function allStrategies(level: LevelConfig): Strategy[] {
+  const kinds: SlotKind[] = ['bin', 'filter', 'trap', 'boom'];
+  let partial: Strategy[] = [{ deployment: {}, orientations: {} }];
+  for (const kind of kinds) {
+    const slots = level.slots.filter((s) => s.kind === kind).map((s) => s.id);
+    const n = Math.min(level.inventory[kind] ?? 0, slots.length);
+    const next: Strategy[] = [];
+    for (const base of partial) {
+      for (const pick of choose(slots, n)) {
+        const dirs: Orientations[] =
+          kind === 'boom'
+            ? choose(pick, 0).length && pick.length
+              ? directions(pick)
+              : [{}]
+            : [{}];
+        for (const dir of dirs) {
+          const deployment = { ...base.deployment };
+          for (const id of pick) deployment[id] = kind;
+          next.push({ deployment, orientations: { ...base.orientations, ...dir } });
+        }
+      }
     }
+    partial = next;
   }
+  return partial.map((s) => ({ ...s, policy: simpleCleanupPolicy }));
+}
+
+function directions(ids: string[]): Orientations[] {
+  let out: Orientations[] = [{}];
+  for (const id of ids)
+    out = out.flatMap((o) => [
+      { ...o, [id]: 1 as const },
+      { ...o, [id]: -1 as const },
+    ]);
   return out;
 }

@@ -2,13 +2,7 @@ import Phaser from 'phaser';
 import type { HuntInput } from '../systems/hunt';
 import { directionFromKeys } from '../systems/movement';
 
-/**
- * Maps physical devices to abstract hunt actions. The simulation only ever
- * sees a HuntInput, so touch or gamepad support later means adding another
- * mapper here, not changing game logic.
- *
- *   WASD / arrows: move · mouse: aim · Q: primary · E: secondary · Space: capture
- */
+// Turns keyboard and mouse into hunt actions. Touch or gamepad would be another mapper here.
 export class HuntControls {
   private readonly keys: Record<string, Phaser.Input.Keyboard.Key>;
 

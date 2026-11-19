@@ -14,11 +14,14 @@ deployment (choices matter), three stars achievable, and the best strategy robus
   decides how much of the rest is caught (the lower site covers more of the channel but also receives more litter).
 - **Balance snapshot (level seed):** 7 of 12 full deployments pass; the best is about 90%. Leaving the School without a bin always fails (56–69%).
 
-## Planned
+## Levels 2–5 (built)
 
-| #   | Name                       | New ideas                                                       | Inventory (preliminary)          | Goal |
-| --- | -------------------------- | --------------------------------------------------------------- | -------------------------------- | ---- |
-| 2   | Two Rivers                 | Confluence, multiple sources, GPS scouting, storm-drain filters | 2 bins, 2 traps, 1 filter, 1 GPS | 80%  |
-| 3   | Storm Warning              | Forecasts, storms, trap overload, booms, cleanup                | 2/2/1/2 GPS/1 boom/1 cleanup     | 85%  |
-| 4   | The Bottleneck             | Retention hotspots, remobilization, directional interception    | 2/1/1/2/2/1                      | 85%  |
-| 5   | Everything Flows Somewhere | Full watershed to estuary, major storm                          | 3/2/2/2/1/2                      | 90%  |
+| #   | Name                       | New ideas                                        | Kit                                                | Goal | Share of full strategies that pass* |
+| --- | -------------------------- | ------------------------------------------------ | -------------------------------------------------- | ---- | ----------------------------------- |
+| 2   | Two Rivers                 | Confluence, drain filters, light rain            | GPS 1, bins 2, filter 1, traps 2                   | 80%  | ~58%                                |
+| 3   | Storm Warning              | Forecast storm, overloaded traps, booms, cleanup | GPS 2, bins 2, filter 1, traps 2, boom 1, crew 1   | 85%  | ~30%                                |
+| 4   | The Bottleneck             | Snags, wash-out in rain, narrow trap site        | GPS 2, bins 2, filter 1, trap 1, booms 2, crew 1   | 85%  | ~12%                                |
+| 5   | Everything Flows Somewhere | Whole watershed, estuary, big storm              | GPS 2, bins 3, filters 2, traps 2, boom 1, crews 2 | 90%  | ~19%                                |
+
+*Measured by trying every full placement with a simple cleanup rule. Real players won't place perfectly, so
+these should feel harder than the numbers suggest. Check with playtests.

@@ -1,8 +1,4 @@
-/**
- * Small seeded random-number generator (mulberry32).
- * Like set.seed() in R: the same seed gives the same hunt, which makes tests
- * and balance experiments reproducible.
- */
+// Seeded random numbers (mulberry32) so a given seed always builds the same reef.
 export interface Rng {
   next(): number;
   range(min: number, max: number): number;

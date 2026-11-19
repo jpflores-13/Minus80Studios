@@ -7,6 +7,7 @@ import { markOnce, settings } from '../config/settings';
 import { Reef } from '../entities/Reef';
 import { HuntControls } from '../input/HuntControls';
 import { createHunt, isCatchable, stepHunt, type HuntEvent, type HuntState } from '../systems/hunt';
+import { Button } from '../ui/Button';
 import { Hud } from '../ui/Hud';
 import { TEXT_STYLES } from '../ui/text';
 
@@ -18,10 +19,7 @@ export interface HuntSceneData {
 const SLOT_KEYS = { primary: 'Q', secondary: 'E', capture: 'SPACE' } as const;
 const CLOUD_COLORS = { override: 0xe9dcc0 } as const;
 
-/**
- * Thin view over the pure hunt simulation: read input → stepHunt → draw state.
- * All rules live in src/systems/hunt.ts.
- */
+// Reads input, steps the hunt, draws the result. Rules live in systems/hunt.ts.
 export class HuntScene extends Phaser.Scene {
   private state!: HuntState;
   private character!: CharacterConfig;
@@ -83,6 +81,16 @@ export class HuntScene extends Phaser.Scene {
       .setScale(PIXEL)
       .setDepth(11);
 
+    new Button(
+      this,
+      this.scale.width - 130,
+      30,
+      90,
+      36,
+      'HOME',
+      () => this.scene.start('Title'),
+      this.character.palette.accent,
+    );
     this.controls = new HuntControls(this);
     this.hud = new Hud(this, this.character);
     this.helpCard = this.add

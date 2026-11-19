@@ -6,13 +6,7 @@ export interface MovementParams {
   deceleration: number;
 }
 
-/**
- * Advance a velocity by one frame of `dtSeconds`.
- *
- * Pure function (no Phaser, no side effects), so it can be unit-tested like any
- * numerical routine. With input, the velocity accelerates toward
- * `direction * maxSpeed`; without input, it decelerates toward zero.
- */
+// Move velocity toward the input direction (or toward zero with no input) for one frame.
 export function stepVelocity(
   velocity: Vec2,
   direction: Vec2,

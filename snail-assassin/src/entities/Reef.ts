@@ -4,11 +4,7 @@ import { TUNING } from '../config/tuning';
 import { prefersReducedMotion } from '../utils/accessibility';
 import { createRng } from '../utils/rng';
 
-/**
- * Top-down tropical reef backdrop: sand, ripples, rocks with crevices, coral
- * heads, seagrass beds, drifting particles, and soft moving light. The static
- * layer is painted once at 1/PIXEL resolution and enlarged for a pixel-art look.
- */
+// Reef background: sand, rocks, coral, seagrass, drifting specks and soft moving light.
 export class Reef {
   private snow: { dot: Phaser.GameObjects.Image; vx: number; vy: number }[] = [];
   private lights: Phaser.GameObjects.Ellipse[] = [];

@@ -1,10 +1,7 @@
 import type { Vec2 } from '../utils/math';
 
-/**
- * Waterway network: a directed graph of polyline segments (think of a river
- * network as a tree of reaches). Each segment hands floating debris to its
- * `downstream` segment, or to the outlet (the ocean) when `downstream` is null.
- */
+// Waterways as connected polyline segments. Each one flows into its `downstream` segment,
+// or into the ocean when that's null.
 export interface Segment {
   id: string;
   points: Vec2[];

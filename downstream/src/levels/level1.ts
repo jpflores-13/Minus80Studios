@@ -11,12 +11,17 @@ export const LEVEL_1: LevelConfig = {
   number: 1,
   name: 'The Neighborhood',
   intro: 'A small creek winds through town toward the sea. Where will you intervene?',
+  teaches: [
+    'Trash bins prevent litter at its source',
+    'Trash traps catch floating litter',
+    'GPS research bottles reveal where litter travels',
+  ],
   seed: 101,
   generationSeconds: 50,
   durationSeconds: 62,
   target: 0.75,
   stars: { one: 0.75, two: 0.8, three: 0.85 },
-  inventory: { bin: 3, trap: 1 },
+  inventory: { gps: 1, bin: 3, trap: 1 },
   segments: [
     {
       id: 'creek',
@@ -38,6 +43,7 @@ export const LEVEL_1: LevelConfig = {
   sources: [
     {
       id: 'store',
+      runoffResponse: 0.9,
       label: 'Corner Store',
       pos: { x: 230, y: 300 },
       rate: 0.7,
@@ -46,6 +52,7 @@ export const LEVEL_1: LevelConfig = {
     },
     {
       id: 'park',
+      runoffResponse: 0.3,
       label: 'Park',
       pos: { x: 520, y: 140 },
       rate: 0.4,
@@ -54,6 +61,7 @@ export const LEVEL_1: LevelConfig = {
     },
     {
       id: 'houses',
+      runoffResponse: 0.5,
       label: 'Houses',
       pos: { x: 640, y: 420 },
       rate: 0.3,
@@ -62,6 +70,7 @@ export const LEVEL_1: LevelConfig = {
     },
     {
       id: 'school',
+      runoffResponse: 0.7,
       label: 'School',
       pos: { x: 1060, y: 230 },
       rate: 0.6,
@@ -69,6 +78,8 @@ export const LEVEL_1: LevelConfig = {
       look: 'school',
     },
   ],
+  hotspots: [],
+  weather: [],
   slots: [
     { id: 'bin-store', kind: 'bin', pos: { x: 230, y: 370 }, sourceId: 'store' },
     { id: 'bin-park', kind: 'bin', pos: { x: 600, y: 140 }, sourceId: 'park' },

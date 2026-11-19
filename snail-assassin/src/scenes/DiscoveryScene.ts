@@ -23,11 +23,7 @@ export interface DiscoveryData {
 type Step = 'reveal' | 'meet' | 'discovery' | 'medicine' | 'more';
 const STEPS: Step[] = ['reveal', 'meet', 'discovery', 'medicine', 'more'];
 
-/**
- * "THE SCIENCE IS REAL": the -80 Studio discovery sequence (docs/ENDING_SEQUENCE.md).
- * B reveal → C discovery → D venom to medicine → E discover more + F studio signature.
- * Space/Enter/click advances; Esc jumps straight to the final screen.
- */
+// The "Did you know?" ending. Space/Enter/click moves on, Esc jumps to the last screen.
 export class DiscoveryScene extends Phaser.Scene {
   private character!: CharacterConfig;
   private step = 0;
@@ -109,7 +105,7 @@ export class DiscoveryScene extends Phaser.Scene {
   }
 
   private reveal(): void {
-    this.text(this.scale.height * 0.46, 'THE SCIENCE IS REAL.', {
+    this.text(this.scale.height * 0.46, 'DID YOU KNOW?', {
       ...TEXT_STYLES.display,
       fontSize: '72px',
     });
@@ -282,7 +278,7 @@ export class DiscoveryScene extends Phaser.Scene {
     });
     // Sequence F: studio signature.
     this.text(height * 0.74, '-80', { ...TEXT_STYLES.display, fontSize: '64px', color: '#cfe9ef' });
-    this.text(height * 0.84, '-80 STUDIO', { ...TEXT_STYLES.hud, color: '#9fc0c8' });
+    this.text(height * 0.84, '-80 STUDIOS', { ...TEXT_STYLES.hud, color: '#9fc0c8' });
     this.text(height * 0.9, 'Inspired by real discoveries.', TEXT_STYLES.warm);
   }
 }

@@ -5,7 +5,7 @@
 ## Current build (v0.3)
 
 Splash → title menu → **Choose Your Assassin** → species tutorial (checklist on each character's first hunt) →
-reef hunt (capture 3 fish in 3:00) → results → **The Science Is Real** → replay, switch character, or read the research.
+reef hunt (capture 3 fish in 3:00) → results → **Did You Know?** → replay, switch character, or read the research.
 
 | Character                   | Q                                       | E                               | SPACE                                | Strategy                                       |
 | --------------------------- | --------------------------------------- | ------------------------------- | ------------------------------------ | ---------------------------------------------- |

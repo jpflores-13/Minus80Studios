@@ -1,13 +1,5 @@
-/**
- * Shared gameplay tuning (the game's `params.yaml`).
- *
- * Every constant here is a GAMEPLAY BALANCING PARAMETER chosen for feel. None
- * of them is a calibrated biological measurement. Character-specific numbers
- * (ability costs, radii) live in src/characters/*.ts.
- *
- * The object is deliberately mutable so the dev-only debug panel can tune it live.
- * Units: pixels, seconds, and dimensionless 0–1 state variables.
- */
+// Gameplay tuning. Balancing values chosen for feel, not biological measurements.
+// Character-specific numbers live in src/characters. Kept mutable so the dev panel can tweak them.
 export const TUNING = {
   hunt: {
     objectiveCaptures: 3,

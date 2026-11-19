@@ -1,18 +1,11 @@
 import { TUNING } from '../config/tuning';
 import { clamp } from '../utils/math';
 
-/**
- * Neural-signaling module (phenomenological, bounded to [0, 1]).
- *
- *   n  neural impairment   (1 = fully immobilized, 0 = normal)
- *   L  motor-lock effect   (suppresses recovery), decays with time constant τ_L
- *
- *   dn/dt = −recovery·(1 − L)·n
- *
- * A strike sets n = 1 instantly (rapid immobilization). Without a lock the fish
- * recovers within a few seconds; with a lock the capture window is much longer.
- * Gameplay rules only, not a model of nerve or muscle physiology.
- */
+// Immobilization model (game rules). n = how pinned the fish is, L = motor lock.
+//
+//   dn/dt = -recovery*(1 - L)*n
+//
+// A strike sets n to 1. Without a lock the fish shakes it off in a second or two.
 export interface NeuralState {
   neural: number;
   lock: number;

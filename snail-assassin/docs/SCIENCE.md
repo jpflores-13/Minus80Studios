@@ -2,7 +2,7 @@
 
 > **Integrity rule:** player-facing science text may only use statements marked **Verified** below, and only
 > after review by a cone-snail researcher. Never add findings, numbers, toxin assignments, citations, or
-> endorsements from memory or AI generation. Add an open question instead.
+> endorsements that aren't in a cited source. Add an open question instead.
 
 **Status (2026-11-19):** bibliographic details were checked against Crossref and PubMed. Biological statements are
 based on the papers' **abstracts only**. Full-text reading and expert review are pending.

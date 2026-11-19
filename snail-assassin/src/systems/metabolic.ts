@@ -1,21 +1,13 @@
 import { TUNING } from '../config/tuning';
 import { clamp } from '../utils/math';
 
-/**
- * Metabolic-regulation module (phenomenological, bounded to [0, 1]).
- *
- *   g  glucose state        (1 = normal)
- *   I  insulin-like effect  (0 = none), decays with time constant τ_I
- *   O  recovery override    (0 = none), decays with time constant τ_O
- *
- *   dg/dt = −drop·I·g + recovery·(1 − g)·(1 − O)
- *
- * Because O only scales the *recovery* term, it does almost nothing to a fish
- * whose glucose is already normal (1 − g ≈ 0), but it greatly extends the low-
- * glucose window after an insulin-like hit. The synergy falls out of the
- * equation rather than being special-cased. These are gameplay rules, not a
- * physiological model. See docs/SCIENCE.md.
- */
+// Blood-sugar model (game rules, not physiology). g = glucose, I = insulin-like effect,
+// O = recovery block. Values run from 0 to 1.
+//
+//   dg/dt = -drop*I*g + recovery*(1 - g)*(1 - O)
+//
+// O only slows recovery, so on its own it barely touches a healthy fish,
+// but after an insulin hit it keeps the fish weak for much longer.
 export interface MetabolicState {
   glucose: number;
   insulin: number;
@@ -36,12 +28,12 @@ export function stepMetabolic(
   s.override = clamp(s.override * Math.exp(-dt / p.overrideTau), 0, 1);
 }
 
-/** Add exposure from a venom cloud. `dose` is uptake·potency·falloff·dt. */
+// Add exposure from a cloud.
 export function expose(s: MetabolicState, effect: 'insulin' | 'override', dose: number): void {
   s[effect] = clamp(s[effect] + dose, 0, 1);
 }
 
-/** Relative swimming performance (0–1) as a function of glucose. */
+// Swim speed multiplier for a given glucose level.
 export function swimPerformance(glucose: number, p: MetabolicParams = TUNING.metabolic): number {
   return p.minPerformance + (1 - p.minPerformance) * glucose * glucose;
 }

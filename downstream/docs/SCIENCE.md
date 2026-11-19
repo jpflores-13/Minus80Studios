@@ -63,3 +63,12 @@ Public links mentioned in the sources (verify each before using in the ending):
 - Is the public tracker live or historical, and which link is canonical?
 - Which plain-language findings are you comfortable seeing in the ending (e.g., rainfall and travel distance)?
 - Is the "prevention vs. interception" framing a fair representation of the toolkit's goals?
+
+## Links used in the game
+
+Every link in the ending (`src/content/science.ts`) must appear here; a test checks this.
+
+- https://ncseagrant.ncsu.edu/reducing-litter-in-urban-waterways/ (NC Sea Grant project page)
+- https://www.pbsnc.org/blogs/science/tracking-trash-to-discover-the-path-of-plastic/ (PBS North Carolina story)
+- https://experience.arcgis.com/experience/278d52348842440ea00805a4cb0d470d (bottle tracker map linked from the NC Sea Grant page; whether it is live or historical is unclear)
+- https://raleighcleanup.org/ (Great Raleigh Cleanup, listed as a project partner)

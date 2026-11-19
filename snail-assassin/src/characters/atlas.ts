@@ -1,10 +1,6 @@
 import type { CharacterConfig } from './types';
 
-/**
- * ATLAS — Conus geographus. Fictional character; real species.
- * Ability inspirations and their evidence status: docs/SCIENCE.md.
- * All numbers are gameplay balancing values.
- */
+// ATLAS: fictional character, real species (Conus geographus). Numbers are balancing values.
 export const ATLAS: CharacterConfig = {
   id: 'atlas',
   name: 'ATLAS',

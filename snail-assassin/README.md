@@ -1,9 +1,9 @@
 # Snail Assassin
 
 _An atmospheric underwater stealth-and-hunting game inspired by venomous cone snails._
-A [-80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
+A [-80 Studios](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
 
-**Status:** v0.3, three playable assassins (Catalyst, Atlas, Nightshade), character select, tutorials, audio, and the full "The Science Is Real" ending.
+**Status:** v0.3, three playable assassins (Catalyst, Atlas, Nightshade), character select, tutorials, audio, and the full "Did You Know?" ending.
 
 ## Quick start
 
@@ -53,5 +53,5 @@ docs/              Design, science, art, playtesting, roadmap
 
 ## License
 
-Proprietary, © -80 Studio. All rights reserved (to be finalized before any public release).
+Proprietary, © -80 Studios. All rights reserved (to be finalized before any public release).
 Scaffolded from the official [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`).

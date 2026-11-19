@@ -1,8 +1,8 @@
 {
   "folders": [
-    { "name": "🏛  studio", "path": "studio" },
-    { "name": "🐌 snail-assassin", "path": "snail-assassin" },
-    { "name": "🌊 downstream", "path": "downstream" }
+    { "name": "studio", "path": "studio" },
+    { "name": "snail-assassin", "path": "snail-assassin" },
+    { "name": "downstream", "path": "downstream" }
   ],
   "settings": {
     "files.exclude": { "**/node_modules": true, "**/dist": true },

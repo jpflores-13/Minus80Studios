@@ -3,10 +3,7 @@ import type { Vec2 } from '../utils/math';
 
 type CurrentParams = { strength: number; bandWavelength: number; timeFrequency: number };
 
-/**
- * Gentle reef current at a point and time: horizontal bands that slowly shift.
- * A cheap analytic field, not fluid dynamics. Venom clouds drift with it.
- */
+// Slow horizontal bands of current that shift over time. Clouds drift with it.
 export function currentAt(pos: Vec2, timeSeconds: number, p: CurrentParams = TUNING.current): Vec2 {
   const phase = pos.y / p.bandWavelength + timeSeconds * p.timeFrequency;
   return {

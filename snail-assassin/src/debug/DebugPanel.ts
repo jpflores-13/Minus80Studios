@@ -2,14 +2,8 @@ import type Phaser from 'phaser';
 import { TUNING } from '../config/tuning';
 import type { HuntState } from '../systems/hunt';
 
-/**
- * DEVELOPMENT-ONLY balancing panel (never in production builds: HuntScene only
- * imports it inside `if (import.meta.env.DEV)`, which Vite strips from builds).
- *
- * Toggle with the backtick key (`). Sliders edit TUNING and the current
- * character's ability numbers live; the plot shows mean prey state over time;
- * "Export JSON" downloads the current configuration.
- */
+// Dev-only tuning panel (backtick to toggle). Only imported behind import.meta.env.DEV,
+// so it isn't in production builds.
 type Num = Record<string, number>;
 
 const SLIDERS: {

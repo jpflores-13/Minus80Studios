@@ -1,13 +1,7 @@
 import type { CharacterConfig } from './types';
 
-/**
- * NIGHTSHADE — Conus tulipa. Fictional character; real species.
- * Ghost Signal is inspired by a venom component that reduced escape responses of
- * zebrafish larvae in lab tests; Silent Tide by C. tulipa venom insulin. The two
- * act on DIFFERENT state variables (escape vs. glucose), so their combo is
- * complementary, not a claimed molecular synergy (docs/SCIENCE.md).
- * All numbers are gameplay balancing values.
- */
+// NIGHTSHADE: fictional character, real species (Conus tulipa). Its two clouds act on different
+// things (escape vs. blood sugar), so the combo is complementary rather than a claimed synergy.
 export const NIGHTSHADE: CharacterConfig = {
   id: 'nightshade',
   name: 'NIGHTSHADE',

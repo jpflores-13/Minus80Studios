@@ -1,14 +1,9 @@
-/**
- * Characters are data. Each one picks three reusable ability *kinds* and gives
- * them parameters, so adding a character means writing a config (plus, rarely,
- * one new ability kind), not a new game architecture.
- *
- *   cloud   area effect released at the aim point; drifts with the current
- *   engulf  capture all vulnerable fish near the snail
- *   strike  aimed single-target harpoon: immobilizes and tethers one fish
- *   lock    extends immobilization of the tethered fish
- *   reel    pull the tethered fish in and capture it
- */
+// Characters are plain data built from a few shared ability kinds:
+//   cloud  - area effect dropped at the cursor, drifts with the current
+//   engulf - swallow weakened fish near the snail
+//   strike - aimed harpoon that pins one fish
+//   lock   - stops the pinned fish from recovering
+//   reel   - pull the pinned fish in
 export type CloudEffect = 'insulin' | 'override' | 'dampen';
 
 interface AbilityBase {

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
-/** Studio splash: "-80 STUDIO". Any key or click skips. */
+/** Studio splash: "-80 STUDIOS". Any key or click skips. */
 export class SplashScene extends Phaser.Scene {
   constructor() {
     super('Splash');
@@ -16,7 +16,7 @@ export class SplashScene extends Phaser.Scene {
       fontSize: '140px',
       color: '#cfe9ef',
     }).setAlpha(0);
-    const studio = addCenteredText(this, height * 0.62, 'S T U D I O', {
+    const studio = addCenteredText(this, height * 0.62, 'S T U D I O S', {
       ...TEXT_STYLES.hud,
       color: '#9fc0c8',
     }).setAlpha(0);

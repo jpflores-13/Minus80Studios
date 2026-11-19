@@ -17,11 +17,7 @@ import { expose } from './metabolic';
 import { stepVelocity } from './movement';
 import { createVenom, refund, stepVenom, tryUse, type AbilitySlot, type VenomState } from './venom';
 
-/**
- * The whole hunt as plain data plus a step function: no Phaser here.
- * The scene reads this state to draw, and feeds player input in.
- * Tests run complete hunts headlessly (like running a simulation script).
- */
+// The hunt as plain data plus a step function. No Phaser in here, so whole hunts can run in tests.
 export interface Cloud {
   id: number;
   effect: CloudEffect;

@@ -1,10 +1,6 @@
 import { prefersReducedMotion } from '../utils/accessibility';
 
-/**
- * Player preferences, remembered in this browser only (localStorage).
- * Storage can be unavailable (private mode, blocked site data), so every access
- * is wrapped and the game works with defaults.
- */
+// Player settings, saved in this browser. Storage can be blocked, so every access is wrapped.
 export interface Settings {
   volume: number;
   muted: boolean;

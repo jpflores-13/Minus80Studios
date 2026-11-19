@@ -1,0 +1,185 @@
+import { bin, boom, filter, trap } from './helpers';
+import type { LevelConfig, PollutionSource } from './types';
+
+const sources: PollutionSource[] = [
+  {
+    id: 'hillside',
+    label: 'Hillside Homes',
+    pos: { x: 160, y: 200 },
+    rate: 0.56,
+    runoffResponse: 0.5,
+    entry: { segmentId: 'upper', s: 110 },
+    look: 'houses',
+  },
+  {
+    id: 'campus',
+    label: 'Campus',
+    pos: { x: 420, y: 150 },
+    rate: 0.69,
+    runoffResponse: 0.6,
+    entry: { segmentId: 'upper', s: 380 },
+    look: 'school',
+  },
+  {
+    id: 'market',
+    label: 'Market',
+    pos: { x: 230, y: 390 },
+    rate: 0.63,
+    runoffResponse: 0.7,
+    entry: { segmentId: 'middle', s: 170 },
+    look: 'market',
+  },
+  {
+    id: 'lot',
+    label: 'Arena Lot',
+    pos: { x: 470, y: 560 },
+    rate: 0.77,
+    runoffResponse: 1,
+    entry: { segmentId: 'south', s: 150 },
+    look: 'lot',
+  },
+  {
+    id: 'apartments',
+    label: 'Apartments',
+    pos: { x: 720, y: 540 },
+    rate: 0.63,
+    runoffResponse: 0.8,
+    entry: { segmentId: 'south', s: 360 },
+    look: 'apartments',
+  },
+  {
+    id: 'harbor',
+    label: 'Harbor Shops',
+    pos: { x: 1000, y: 230 },
+    rate: 0.49,
+    runoffResponse: 0.9,
+    entry: { segmentId: 'estuary', s: 140 },
+    look: 'store',
+  },
+];
+const [hillside, campus, market, lot, apartments, harbor] = sources as [
+  PollutionSource,
+  PollutionSource,
+  PollutionSource,
+  PollutionSource,
+  PollutionSource,
+  PollutionSource,
+];
+
+/**
+ * Level 5 — Everything Flows Somewhere. A whole urban watershed drains into a
+ * coastal estuary while a major storm approaches. Every mechanic returns.
+ */
+export const LEVEL_5: LevelConfig = {
+  id: 'level-5',
+  number: 5,
+  name: 'Everything Flows Somewhere',
+  intro: 'The whole city drains to the estuary, and a major storm is on its way.',
+  teaches: ['Upstream choices decide what reaches the sea'],
+  seed: 505,
+  generationSeconds: 54,
+  durationSeconds: 74,
+  target: 0.9,
+  stars: { one: 0.9, two: 0.94, three: 0.97 },
+  inventory: { gps: 2, bin: 3, filter: 2, trap: 2, boom: 1, cleanup: 2 },
+  segments: [
+    {
+      id: 'upper',
+      points: [
+        { x: 60, y: 110 },
+        { x: 260, y: 150 },
+        { x: 420, y: 220 },
+        { x: 560, y: 260 },
+      ],
+      speed: 60,
+      halfWidth: 18,
+      downstream: 'mid',
+    },
+    {
+      id: 'middle',
+      points: [
+        { x: 60, y: 330 },
+        { x: 260, y: 320 },
+        { x: 420, y: 290 },
+        { x: 560, y: 260 },
+      ],
+      speed: 58,
+      halfWidth: 18,
+      downstream: 'mid',
+    },
+    {
+      id: 'mid',
+      points: [
+        { x: 560, y: 260 },
+        { x: 720, y: 300 },
+        { x: 840, y: 330 },
+      ],
+      speed: 72,
+      halfWidth: 24,
+      downstream: 'estuary',
+    },
+    {
+      id: 'south',
+      points: [
+        { x: 300, y: 600 },
+        { x: 520, y: 520 },
+        { x: 700, y: 440 },
+        { x: 840, y: 330 },
+      ],
+      speed: 66,
+      halfWidth: 18,
+      downstream: 'estuary',
+    },
+    {
+      id: 'estuary',
+      points: [
+        { x: 840, y: 330 },
+        { x: 1000, y: 350 },
+        { x: 1200, y: 360 },
+      ],
+      speed: 50,
+      halfWidth: 36,
+      downstream: null,
+    },
+  ],
+  sources,
+  hotspots: [
+    {
+      id: 'marsh',
+      label: 'Salt marsh',
+      segmentId: 'estuary',
+      sFrom: 60,
+      sTo: 260,
+      side: 1,
+      look: 'reeds',
+    },
+    {
+      id: 'log',
+      label: 'Fallen log',
+      segmentId: 'middle',
+      sFrom: 230,
+      sTo: 330,
+      side: -1,
+      look: 'log',
+    },
+  ],
+  weather: [
+    { at: 14, duration: 8, intensity: 'light' },
+    { at: 32, duration: 18, intensity: 'heavy' },
+  ],
+  slots: [
+    bin(hillside, 0, 70),
+    bin(campus, 80, 0),
+    bin(market, 0, 70),
+    bin(lot, -80, 0),
+    bin(apartments, 80, 0),
+    bin(harbor, 80, 0),
+    filter(lot, 70, 40),
+    filter(apartments, -70, 50),
+    filter(market, 70, 40),
+    trap('mid', 'mid', 200, 0.85),
+    trap('south', 'south', 380, 0.85),
+    trap('estuary', 'estuary', 300, 0.5, -0.45),
+    boom('estuary', 'estuary', 230),
+  ],
+};

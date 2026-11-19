@@ -1,11 +1,6 @@
 import type { CharacterConfig } from './types';
 
-/**
- * CATALYST — Conus catus. Fictional character; real species.
- * Hunting style inspired by the fast radular harpoon strike and tether
- * (docs/SCIENCE.md). No specific toxin is named in-game until expert review.
- * All numbers are gameplay balancing values.
- */
+// CATALYST: fictional character, real species (Conus catus). No specific toxin is named in game.
 export const CATALYST: CharacterConfig = {
   id: 'catalyst',
   name: 'CATALYST',

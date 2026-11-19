@@ -46,4 +46,9 @@ export class Button {
     this.label.setVisible(visible);
     return this;
   }
+
+  destroy(): void {
+    this.bg.destroy();
+    this.label.destroy();
+  }
 }

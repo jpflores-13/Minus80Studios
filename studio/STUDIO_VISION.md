@@ -25,7 +25,7 @@ A player should first enjoy the game, and only afterwards realise: _"Wait, a rea
 - Grinding, unlocks, or progression padding.
 - Dark patterns, ads, or data collection inside games.
 
-## Signature: "The Science Is Real"
+## Signature: "Did You Know?"
 
 Every game ends with a short, skippable discovery sequence that reveals the real organism or phenomenon, the research
 behind it, and links to learn more. The reusable format is documented per game (`docs/ENDING_SEQUENCE.md`) and will be

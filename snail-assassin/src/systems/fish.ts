@@ -8,11 +8,7 @@ import { isImmobilized, stepNeural, type NeuralState } from './neural';
 export type FishMode =
   'roaming' | 'alert' | 'fleeing' | 'impaired' | 'immobilized' | 'tethered' | 'captured';
 
-/**
- * One fish: physical state plus bounded physiological state variables (all 0–1).
- * Three modules act on it: metabolic (glucose), neural (immobilization), and
- * escape (awareness × responsiveness).
- */
+// Physiology values (glucose, neural, awareness, ...) all run from 0 to 1.
 export interface Fish extends MetabolicState, NeuralState {
   id: number;
   school: number;
@@ -53,10 +49,7 @@ export function createFish(id: number, school: number, pos: Vec2, rng: Rng): Fis
   };
 }
 
-/**
- * Capture vulnerability (0–1+). Metabolic impairment always counts; `unawareBonus`
- * lets stealth hunters exploit fish that are both unaware and have dampened escape responses.
- */
+// How catchable a fish is. Stealth hunters get a bonus on fish that haven't noticed them.
 export function vulnerability(fish: Fish, unawareBonus = 0): number {
   return 1 - fish.glucose + unawareBonus * (1 - fish.awareness) * (1 - fish.responsiveness);
 }
@@ -67,11 +60,8 @@ export function dampen(fish: Fish, dose: number): void {
   fish.responsiveness = clamp(fish.responsiveness - dose, p.minResponsiveness, 1);
 }
 
-/**
- * Advance one fish by dt: physiology, awareness, mode transitions, and steering.
- * Steering = wander + schooling + edge avoidance, or flee directly away from the snail.
- * Tethered fish are moved by the hunt (reel), not by their own steering.
- */
+// One frame for one fish: physiology, awareness, mode, then steering.
+// Tethered fish don't steer themselves; the reel moves them.
 export function stepFish(
   fish: Fish,
   school: readonly Fish[],

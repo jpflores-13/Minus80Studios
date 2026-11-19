@@ -62,6 +62,16 @@ export class ResultsScene extends Phaser.Scene {
       { ...TEXT_STYLES.body, align: 'center', lineSpacing: 10 },
     );
 
+    new Button(
+      this,
+      70,
+      36,
+      110,
+      40,
+      'HOME  [T]',
+      () => this.scene.start('Title'),
+      c.palette.accent,
+    );
     const seen = settings().seenDiscovery.includes(c.id);
     const toScience = () => this.scene.start('Discovery', { characterId: c.id, mode: 'ending' });
     const again = () => this.scene.start('Hunt', { characterId: c.id });

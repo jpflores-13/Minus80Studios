@@ -1,13 +1,7 @@
 import { settings, updateSettings } from '../config/settings';
 
-/**
- * Tiny synthesized audio engine (Web Audio API): no audio files, so nothing to
- * license yet. Underwater ambience, ability sounds, and capture feedback.
- * Each character has a base pitch so they sound distinct.
- *
- * Browsers only allow audio after a user gesture, so `unlock()` is called on the
- * first key press or click.
- */
+// Synthesized sounds (Web Audio), so there are no audio files to license.
+// Browsers only allow audio after a click or key press, hence unlock().
 export type SfxName =
   | 'cloud'
   | 'strike'

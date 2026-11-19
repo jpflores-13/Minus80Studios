@@ -5,11 +5,11 @@
 - [x] Workspace, shared tooling and CI
 - [x] Studio vision, playbook, catalog
 - [x] Public monorepo on GitHub (`jpflores-13/minus80studios`)
-- [ ] GitHub Project "-80 Studio — Development"
+- [ ] GitHub Project "-80 Studios — Development"
 
 ## Phase 1: First playable demos
 
-- [ ] Snail Assassin: 2–3 minute vertical slice with character select and "The Science Is Real" ending
+- [ ] Snail Assassin: 2–3 minute vertical slice with character select and "Did You Know?" ending
 - [ ] Downstream!: first puzzle level
 - [ ] First round of playtests (5 per game)
 - [ ] Scientist conversations and validation for both games

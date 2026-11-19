@@ -4,6 +4,21 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-19
+
+### Added
+
+- Full five-level campaign: The Neighborhood, Two Rivers, Storm Warning, The Bottleneck, Everything Flows Somewhere.
+- GPS research bottles: release them while scouting and watch their pink trails (and where they get stuck).
+- Storm-drain filters, floating booms (click to flip direction), cleanup crews, and bank snags that hold
+  litter until high water washes it loose.
+- Weather with forecasts: light rain, moderate rain, and storms. Paved areas respond more than parks.
+- Level briefings, level select with unlocks and best scores, and a "Did you know?" ending that links to the
+  real NC State / NC Sea Grant research.
+- -80 Studios splash, title menu, synthesized sound (water, birds, rain), mute and volume, reduced effects, HOME buttons.
+- Dev-only balancing panel (backtick key).
+- Tests for every new mechanic, plus balance checks for all five levels.
+
 ## [0.2.0] - 2026-11-19
 
 ### Added

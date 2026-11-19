@@ -1,12 +1,7 @@
 import type { CharacterConfig } from '../characters/types';
 
-/**
- * Player-facing science content for the "The Science Is Real" ending.
- *
- * Every statement here must trace to docs/SCIENCE.md (tests enforce that each
- * link appears there). The text is a DRAFT until a cone-snail researcher
- * reviews it. Keep `REVIEW_STATUS` honest.
- */
+// Text and links for the ending. Must match docs/SCIENCE.md (a test checks the links).
+// Marked as a draft until a cone snail researcher has reviewed it.
 export interface Reference {
   label: string;
   url: string;
