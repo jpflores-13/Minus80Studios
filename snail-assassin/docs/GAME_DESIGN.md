@@ -2,6 +2,13 @@
 
 > Living document. Proposed ideas are marked **(proposal)** until the team agrees to them.
 
+## Current build (v0.2: Atlas vertical slice)
+
+Top-down reef hunt as **ATLAS** (_Conus geographus_). Capture 3 fish in 3:00. Q drops a Glucose Crash cloud,
+E drops a System Override cloud, and SPACE engulfs weakened fish (marked with [ ]). Clouds drift with the current. Fish roam
+in schools, notice a moving snail, and flee. Insulin alone slows fish but only the combo makes them catchable.
+Pause (Esc), restart (R), help (H), results screen.
+
 ## Pitch
 
 You are a cone snail: slow, patient, and armed with one of nature's most sophisticated venoms.

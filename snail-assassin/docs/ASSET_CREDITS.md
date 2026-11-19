@@ -1,4 +1,4 @@
-# Asset Attribution — Snail Assassin
+# Asset Credits — Snail Assassin
 
 Every non-code asset in `public/assets/` (or elsewhere in the build) must be listed here **in the same commit that adds it**.
 

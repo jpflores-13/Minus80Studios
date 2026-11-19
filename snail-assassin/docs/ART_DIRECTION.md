@@ -4,24 +4,26 @@
 
 Dark, quiet, bioluminescent. A deep-water night dive: mostly darkness, with color used sparingly for life and danger.
 
-## Current placeholder palette (`src/config/gameConfig.ts`)
+## Placeholder art specs (generated in `src/scenes/BootScene.ts`)
 
-| Name        | Hex       | Use                   |
-| ----------- | --------- | --------------------- |
-| abyss       | `#041a2b` | Background water      |
-| seabed      | `#0b2e3f` | Floor                 |
-| shell       | `#e8c07d` | Snail shell           |
-| shellStripe | `#7a4b24` | Shell pattern         |
-| body        | `#d7746f` | Snail body / siphon   |
-| snow        | `#bfe3ee` | Marine snow particles |
+| Asset                     | Source size (px)  | In-game scale | Notes / commission requirements                                                                        |
+| ------------------------- | ----------------- | ------------- | ------------------------------------------------------------------------------------------------------ |
+| Cone snail, per character | 16×9, faces right | ×4            | Top-down cone silhouette (spire, shoulder, taper, siphon). Needs idle, crawl, and strike/engulf frames |
+| Reef fish ×3              | 8×5, faces right  | ×4            | Needs swim, alert, impaired (wobble), and flee frames                                                  |
+| Reef backdrop             | 320×180           | ×4            | Sand, ripples, rocks with crevices, coral heads, and seagrass beds                                     |
+| Particles                 | 1×1               | ×2            | Marine snow                                                                                            |
+
+All pixel art renders with nearest-neighbour filtering (`pixelArt: true`).
+
+## Palette (`src/config/gameConfig.ts`, character palettes in `src/characters/*.ts`)
+
+Navy `#06192b`, deep `#0a2a3f`, sand `#cdb58a`, coral `#e0715a`, seagrass `#4f8a4a`.
+Atlas: shell `#e9dcc0`, pattern `#1f6f78`, accent `#5fd3c6`. Catalyst (amber/brown) and Nightshade (violet/lavender) to come.
 
 ## Principles
 
-- **Readable silhouettes first.** The player, prey, and threats must read at a glance, even on a small iPad.
-- **Contrast for accessibility.** Text must stay high-contrast, and never rely on colour alone to signal danger.
-- **Respect reduced motion.** Ambient motion is decorative and must stop when the OS asks.
-- **Original or licensed only.** Log every external asset in `ASSET_ATTRIBUTION.md`.
-
-## To decide
-
-Art style (vector, pixel, painterly), typography, audio direction, and the reference board (link in `studio/branding/`).
+- **Readable silhouettes first**, even on an iPad.
+- **Never colour alone:** fish states also use posture (wobble) and icons (`?` alert, `!` fleeing, `~` impaired, `[ ]` catchable).
+  Cloud types differ by pattern (dots vs. crosses).
+- **Respect reduced motion:** ambient particles and light drift stop when the OS asks.
+- **Original or licensed only:** log everything in `ASSET_CREDITS.md`. Mood references (DREDGE, Rain World, etc.) are for feel only, never copied.
