@@ -25,3 +25,6 @@ deployment (choices matter), three stars achievable, and the best strategy robus
 
 *Measured by trying every full placement with a simple cleanup rule. Real players won't place perfectly, so
 these should feel harder than the numbers suggest. Check with playtests.
+
+Since the rain update, litter only moves during showers, so every level has a rain timeline and its last
+shower runs close to the end.

@@ -79,6 +79,19 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(PALETTE.wrapper, 1);
       g.fillRect(0, 0, 3, 3);
     });
+    this.tex('ball', 4, 4, (g) => {
+      g.fillStyle(0xd94a3b, 1);
+      g.fillCircle(2, 2, 2);
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(1, 1, 1, 1);
+    });
+    this.tex('toy', 5, 4, (g) => {
+      g.fillStyle(0xf2c94c, 1);
+      g.fillRect(0, 1, 4, 3);
+      g.fillRect(3, 0, 2, 2);
+      g.fillStyle(0xe0715a, 1);
+      g.fillRect(4, 1, 1, 1);
+    });
     this.tex('house', 10, 10, (g) => {
       g.fillStyle(PALETTE.wall, 1);
       g.fillRect(1, 4, 8, 6);

@@ -74,8 +74,8 @@ export const LEVEL_3: LevelConfig = {
   seed: 303,
   generationSeconds: 52,
   durationSeconds: 68,
-  target: 0.85,
-  stars: { one: 0.85, two: 0.9, three: 0.95 },
+  target: 0.9,
+  stars: { one: 0.9, two: 0.94, three: 0.97 },
   inventory: { gps: 2, bin: 2, filter: 1, trap: 2, boom: 1, cleanup: 1 },
   segments: [
     {
@@ -116,7 +116,11 @@ export const LEVEL_3: LevelConfig = {
   ],
   sources,
   hotspots: [],
-  weather: [{ at: 26, duration: 16, intensity: 'heavy' }],
+  weather: [
+    { at: 8, duration: 10, intensity: 'light' },
+    { at: 26, duration: 18, intensity: 'heavy' },
+    { at: 50, duration: 14, intensity: 'light' },
+  ],
   slots: [
     bin(houses, 0, 70),
     bin(school, 80, 0),

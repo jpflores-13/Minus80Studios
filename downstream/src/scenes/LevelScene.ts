@@ -34,16 +34,16 @@ import { TEXT_STYLES } from '../ui/text';
 const NAMES: Record<EquipmentKind, string> = {
   gps: 'GPS bottle',
   bin: 'Trash bin',
-  filter: 'Drain filter',
+  filter: 'Storm drain filter',
   trap: 'Trash trap',
   boom: 'Floating boom',
   cleanup: 'Cleanup crew',
 };
 
 const HELP: Record<EquipmentKind, string> = {
-  gps: 'Click a neighbourhood to release a tracked research bottle and watch where it goes.',
+  gps: 'Tap a neighbourhood to release a tracked research bottle. It shows where that area’s litter goes when it rains.',
   bin: 'Prevent: place by a neighbourhood to cut its litter.',
-  filter: 'Filter: place on a storm drain to catch litter before it reaches the water.',
+  filter: 'Filter: place on a storm drain to catch litter as the rain washes it off the streets.',
   trap: 'Intercept: place across the water. Holds a limited amount.',
   boom: 'Redirect: steers floating litter toward one bank. Click it to flip direction.',
   cleanup: 'During the flow: click a full trap, a filter, or a snag to clear it.',
@@ -81,6 +81,8 @@ export class LevelScene extends Phaser.Scene {
   private fast = false;
   private ended = false;
   private briefing: Phaser.GameObjects.Container | null = null;
+  private scoutPanel!: Phaser.GameObjects.Text;
+  private hintFx!: Phaser.GameObjects.Graphics;
 
   private header!: Phaser.GameObjects.Text;
   private status!: Phaser.GameObjects.Text;
@@ -118,6 +120,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.map = new MapView(this, this.level);
     this.buildTopBar();
+    this.buildScoutPanel();
     this.buildToolbar();
     this.bindInput();
     this.enterPhase('investigate');
@@ -148,7 +151,10 @@ export class LevelScene extends Phaser.Scene {
         if (e.type === 'weather') {
           sound.setRain({ dry: 0, light: 1, moderate: 2, heavy: 3 }[e.conditions]);
           this.say(
-            e.conditions === 'dry' ? 'The rain has stopped.' : `${INTENSITY_LABEL[e.conditions]}!`,
+            e.conditions === 'dry'
+              ? 'Dry again. Litter piles up on the streets and the water slows down.'
+              : `${INTENSITY_LABEL[e.conditions]}! The rain is washing street litter into the water.`,
+            4000,
           );
         }
         if (e.type === 'done') this.finish();
@@ -165,6 +171,7 @@ export class LevelScene extends Phaser.Scene {
       this.sim,
       this.sim?.conditions ?? 'dry',
     );
+    this.drawScoutHints(time);
     this.updateHud();
   }
 
@@ -425,6 +432,41 @@ export class LevelScene extends Phaser.Scene {
     this.speedButton.setText(this.fast ? `SPEED ×${TUNING.sim.fastForward}` : 'SPEED ×1');
   }
 
+  // Scouting help: numbered steps, plus pulsing rings on neighbourhoods until the first bottle goes out.
+  private buildScoutPanel(): void {
+    const gps = this.level.inventory.gps ?? 0;
+    const steps = [
+      'SCOUTING',
+      gps > 0
+        ? `1. Tap a neighbourhood to drop a pink GPS bottle (you have ${gps}). Its trail shows where that area’s litter goes when it rains.`
+        : '1. Tap a neighbourhood to see how much litter it makes.',
+      '2. Tap other neighbourhoods to compare how much litter they make.',
+      '3. Ready? Press PLAN DEPLOYMENT to place your equipment.',
+    ];
+    this.scoutPanel = this.add
+      .text(16, 74, steps.join('\n'), {
+        ...TEXT_STYLES.small,
+        fontSize: '15px',
+        lineSpacing: 3,
+        wordWrap: { width: 520 },
+      })
+      .setDepth(44)
+      .setBackgroundColor('#f4ead2ee')
+      .setPadding(10, 8, 10, 8);
+    this.hintFx = this.add.graphics().setDepth(43);
+  }
+
+  private drawScoutHints(time: number): void {
+    const scouting = this.phase === 'investigate' && !this.briefing;
+    this.scoutPanel.setVisible(scouting);
+    this.hintFx.clear();
+    if (!scouting || (this.used.gps ?? 0) > 0 || this.selected !== 'gps') return;
+    const pulse = 0.5 + 0.5 * Math.sin(time / 200);
+    this.hintFx.lineStyle(3, PALETTE.gpsPink, 0.4 + 0.6 * pulse);
+    for (const src of this.level.sources)
+      this.hintFx.strokeCircle(src.pos.x, src.pos.y, 44 + pulse * 6);
+  }
+
   // Briefing
 
   private showBriefing(): void {
@@ -681,7 +723,7 @@ export class LevelScene extends Phaser.Scene {
           : 'mid-stream';
     this.inspect
       .setText(
-        `${src.label}\nLitter: ${amount}\nRain makes it worse: ${rain}\nDrains into the water ${where}`,
+        `${src.label}\nLitter: ${amount}\nWashes off in the rain: ${rain}\nDrains into the water ${where}`,
       )
       .setPosition(Math.min(src.pos.x + 40, this.scale.width - 320), Math.max(src.pos.y - 30, 70))
       .setVisible(true);

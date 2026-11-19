@@ -4,8 +4,12 @@ import { clamp, type Vec2 } from '../utils/math';
 import { createRng } from '../utils/rng';
 import { lateralSpeedFactor, worldPosition } from './network';
 import { segmentMap } from './sim';
+import { flowFactor, remobilizeFactor } from './weather';
 
-// Virtual GPS bottles. They follow the same rules as litter (dry weather, no equipment)
+// Scouting shows where litter goes during a rain, since that's when it moves.
+const SCOUT_WEATHER = 'moderate';
+
+// Virtual GPS bottles. They follow the same rules as litter (in the rain, no equipment)
 // and record their path. One bottle is one sample, so other litter can go elsewhere.
 // They are never counted as litter.
 export interface TrackPoint {
@@ -48,7 +52,10 @@ export function scout(level: LevelConfig, sourceId: string, seed: number): Track
   while (seg && t < TUNING.gps.maxSeconds) {
     t += dt;
     if (stuck) {
-      if (rng.next() < TUNING.retention.remobilizePerSecond * dt) {
+      if (
+        rng.next() <
+        TUNING.retention.remobilizePerSecond * remobilizeFactor(SCOUT_WEATHER) * dt
+      ) {
         track.stops.push({
           pos: worldPosition(seg, s, lateral),
           seconds: t - stuck.since,
@@ -58,7 +65,7 @@ export function scout(level: LevelConfig, sourceId: string, seed: number): Track
       }
       continue;
     }
-    s += seg.speed * lateralSpeedFactor(lateral) * dt;
+    s += seg.speed * flowFactor(SCOUT_WEATHER) * lateralSpeedFactor(lateral) * dt;
     lateral = clamp(
       lateral + rng.range(-1, 1) * TUNING.transport.lateralDiffusion * Math.sqrt(dt),
       -1,

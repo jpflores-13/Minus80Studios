@@ -24,7 +24,6 @@ const SLIDERS: [keyof typeof TUNING, string, number, number, number][] = [
   ['transport', 'lateralDiffusion', 0, 1.5, 0.05],
   ['retention', 'retainPerSecond', 0, 3, 0.05],
   ['retention', 'remobilizePerSecond', 0, 0.5, 0.01],
-  ['runoff', 'delayMax', 1, 15, 0.5],
 ];
 
 export const DebugPanel = {
@@ -60,6 +59,11 @@ export const DebugPanel = {
       row.append(label, value, input);
       root.append(row);
     };
+    for (const level of ['light', 'moderate', 'heavy'] as const) {
+      slider(`${level} rain wash`, TUNING.weather[level] as unknown as Num, 'wash', 0, 2, 0.05);
+      slider(`${level} rain flow`, TUNING.weather[level] as unknown as Num, 'flow', 0, 3, 0.05);
+    }
+    slider('dry flow', TUNING.weather.dry as unknown as Num, 'flow', 0, 1, 0.05);
     for (const [group, key, min, max, step] of SLIDERS)
       slider(`${group}.${key}`, TUNING[group] as unknown as Num, key, min, max, step);
     const level = ctx().level;

@@ -26,29 +26,28 @@ export const TUNING = {
     /** Lateral position (−1…1) a boom guides litter toward. */
     target: 0.65,
   },
-  runoff: {
-    /** Seconds litter sits on land before runoff carries it into the creek (dry weather). */
-    delayMin: 1,
-    delayMax: 4,
-  },
   transport: {
     /** Random drift across the channel (lateral units per √s). Makes trap coverage matter. */
     lateralDiffusion: 0.35,
   },
   retention: {
-    /** Chance per second that litter near a hotspot's bank gets snagged (dry weather). */
+    /** Chance per second that litter near a hotspot's bank gets snagged. */
     retainPerSecond: 0.6,
-    /** Chance per second that snagged litter breaks free again (dry weather). */
+    /** Base chance per second that snagged litter breaks free (scaled by the weather below). */
     remobilizePerSecond: 0.02,
     /** Litter must be at least this far toward the hotspot's bank (lateral·side) to be snagged. */
     bankBand: 0.25,
   },
   weather: {
-    /** Multipliers by intensity. A source's `runoffResponse` scales how much rain affects it. */
-    light: { generation: 1.4, runoffDelay: 0.7, speed: 1.15, remobilize: 3 },
-    moderate: { generation: 1.9, runoffDelay: 0.5, speed: 1.35, remobilize: 8 },
-    heavy: { generation: 2.6, runoffDelay: 0.3, speed: 1.6, remobilize: 20 },
-    /** Seconds of warning before an event begins. */
+    // Rain is what moves litter. In dry weather it piles up on land and the water barely moves.
+    // flow: multiplier on water speed. wash: chance per second a piece of land litter washes
+    //   into the storm drains (times the source's runoffResponse). remobilize: multiplier on
+    //   how often snagged litter breaks free.
+    dry: { flow: 0.2, wash: 0, remobilize: 0.1 },
+    light: { flow: 1, wash: 0.25, remobilize: 3 },
+    moderate: { flow: 1.3, wash: 0.5, remobilize: 8 },
+    heavy: { flow: 1.7, wash: 0.9, remobilize: 20 },
+    /** Seconds of warning before rain starts. */
     forecastLead: 15,
   },
   gps: {
@@ -57,7 +56,12 @@ export const TUNING = {
     /** Playback speed when animating a scouting run. */
     playbackSpeed: 6,
   },
-  litterMix: { bottle: 0.4, bag: 0.3, wrapper: 0.3 },
+  // What kind of litter each place drops (cosmetic). Schools and parks lose a lot of balls and toys.
+  litterMix: {
+    default: { bottle: 0.4, bag: 0.3, wrapper: 0.3, ball: 0, toy: 0 },
+    school: { bottle: 0.25, bag: 0.15, wrapper: 0.2, ball: 0.25, toy: 0.15 },
+    park: { bottle: 0.3, bag: 0.2, wrapper: 0.15, ball: 0.25, toy: 0.1 },
+  },
 };
 
 export type Intensity = 'light' | 'moderate' | 'heavy';

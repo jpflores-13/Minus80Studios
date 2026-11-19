@@ -31,10 +31,11 @@ describe('transport', () => {
     expect(tally(a.items)).toEqual(tally(b.items));
   });
 
-  it('with no equipment, nothing is prevented or caught', () => {
+  it('with no equipment, nothing is prevented or caught, and rain carries most of it to the ocean', () => {
     const t = tally(runToEnd(level1, {}).items);
     expect(t.prevented + t.intercepted).toBe(0);
     expect(t.escaped + t.mobile).toBe(t.potential);
+    expect(t.escaped).toBeGreaterThan(t.potential * 0.7);
   });
 
   it('bins only prevent litter from their own source', () => {
@@ -113,15 +114,26 @@ describe('filters, booms, snags, weather, cleanup', () => {
     expect(freed.length).toBeGreaterThan(0);
   });
 
-  it('rain raises litter more from paved lots than from parks', () => {
-    const dry = { ...level4, weather: [] };
-    const wet = { ...level4, weather: [{ at: 0, duration: 999, intensity: 'heavy' as const }] };
-    const count = (l: LevelConfig, src: string) =>
-      runToEnd(l, {}).items.filter((i) => i.sourceId === src).length;
-    const lotRise = count(wet, 'lot') / count(dry, 'lot');
-    const parkRise = count(wet, 'park') / count(dry, 'park');
-    expect(lotRise).toBeGreaterThan(parkRise);
-    expect(parkRise).toBeGreaterThanOrEqual(1);
+  it('in dry weather litter stays on land and nothing new reaches the water', () => {
+    const dry = { ...level1, weather: [] };
+    const t = tally(runToEnd(dry, {}).items);
+    expect(t.potential).toBeGreaterThan(50);
+    expect(t.escaped).toBe(0);
+    expect(t.mobile).toBe(t.potential);
+  });
+
+  it('rain washes litter off paved lots faster than off parks', () => {
+    const shower = {
+      ...level4,
+      generationSeconds: 20,
+      durationSeconds: 26,
+      weather: [{ at: 20, duration: 6, intensity: 'moderate' as const }],
+    };
+    const washed = (src: string) => {
+      const items = runToEnd(shower, {}).items.filter((i) => i.sourceId === src);
+      return items.filter((i) => i.state !== 'onLand').length / items.length;
+    };
+    expect(washed('lot')).toBeGreaterThan(washed('park'));
   });
 
   it('cleanup empties a trap, restores its capacity, and never double counts', () => {

@@ -41,17 +41,30 @@ Public links mentioned in the sources (verify each before using in the ending):
 - "Trash Tracker" dashboard (PBS-NC): https://www.arcgis.com/apps/dashboards/cb1da154c2374349b757f814954bc410
 - Trash-trap dashboard (NCSG): https://www.arcgis.com/apps/dashboards/026f977f7aac4306989071b91f72b002
 
+## Expert feedback (personal communication)
+
+From a member of the research team who playtested the game (name withheld until they approve being credited).
+Treat as expert guidance, pending written confirmation.
+
+- Trash typically only moves when it rains, and flow mostly increases with rain. Exceptions include dams and
+  large water bodies, where wind and tides also move litter.
+- Rain washing litter off the land should be visible, not just shown in a weather bar.
+- The different litter rates from different places felt accurate.
+- Toys and balls are a common find in rivers.
+- Call the drain device a "storm drain filter".
+
 ## Science → mechanic mapping
 
-| Mechanic                                     | Inspired by  | Status                                  | Intentional simplifications                                                   |
-| -------------------------------------------- | ------------ | --------------------------------------- | ----------------------------------------------------------------------------- |
-| Urban litter sources + runoff into the creek | #6, #12      | Verified (qualitative)                  | Constant generation rates; fixed runoff delays; litter categories cosmetic    |
-| Trash bins (prevent at source)               | #13          | Verified (as a strategy)                | Fixed 70% effectiveness. Real prevention effectiveness is unknown here        |
-| Trash traps (intercept, finite capacity)     | #7, #8       | Verified (that traps exist)             | Capacity 40 items, coverage across the channel, perfect catch within coverage |
-| GPS research bottles (Milestone 4)           | #1, #10, #11 | Verified                                | Virtual bottles only; never counted as litter                                 |
-| Rain events (Milestone 5)                    | #6           | Verified (qualitative)                  | Rain multipliers are invented                                                 |
-| Cleanup crews (Milestone 8)                  | #8           | Verified (that volunteers remove trash) | Instant removal                                                               |
-| Current faster mid-channel                   | —            | **Abstraction**                         | Placeholder parabola, not hydrology                                           |
+| Mechanic                                                                                  | Inspired by               | Status                                  | Intentional simplifications                                                   |
+| ----------------------------------------------------------------------------------------- | ------------------------- | --------------------------------------- | ----------------------------------------------------------------------------- |
+| Litter waits on land; rain washes it in and speeds the water up (dry: almost no movement) | Expert feedback above; #6 | Expert feedback (pending confirmation)  | Wash rates and flow multipliers are invented                                  |
+| Urban litter sources + runoff into the creek                                              | #6, #12                   | Verified (qualitative)                  | Constant generation rates; fixed runoff delays; litter categories cosmetic    |
+| Trash bins (prevent at source)                                                            | #13                       | Verified (as a strategy)                | Fixed 70% effectiveness. Real prevention effectiveness is unknown here        |
+| Trash traps (intercept, finite capacity)                                                  | #7, #8                    | Verified (that traps exist)             | Capacity 40 items, coverage across the channel, perfect catch within coverage |
+| GPS research bottles (Milestone 4)                                                        | #1, #10, #11              | Verified                                | Virtual bottles only; never counted as litter                                 |
+| Rain events (Milestone 5)                                                                 | #6                        | Verified (qualitative)                  | Rain multipliers are invented                                                 |
+| Cleanup crews (Milestone 8)                                                               | #8                        | Verified (that volunteers remove trash) | Instant removal                                                               |
+| Current faster mid-channel                                                                | —                         | **Abstraction**                         | Placeholder parabola, not hydrology                                           |
 
 **All numbers** (rates, speeds, capacities, effectiveness, targets) are fictional balancing values in
 `src/config/tuning.ts` and `src/levels/*.ts`. They are not calibrated predictions for any real waterway.

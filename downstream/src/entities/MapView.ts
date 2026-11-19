@@ -41,7 +41,10 @@ export class MapView {
     string,
     { sprite: Phaser.GameObjects.Image; label?: Phaser.GameObjects.Text }
   >();
-  private readonly litter = new Map<number, Phaser.GameObjects.Image>();
+  private readonly litter = new Map<
+    number,
+    { sprite: Phaser.GameObjects.Image; wasOnLand: boolean; moving: boolean }
+  >();
   private readonly hotspotLabels = new Map<string, Phaser.GameObjects.Text>();
   private readonly tracks: TrackView[] = [];
   private readonly segs: Map<string, Segment>;
@@ -223,34 +226,66 @@ export class MapView {
   private drawLitter(sim: SimState): void {
     const visible = new Set<number>();
     for (const item of sim.items) {
-      if (item.state !== 'floating' && item.state !== 'retained') continue;
-      const seg = sim.segments.get(item.segmentId);
-      if (!seg) continue;
-      visible.add(item.id);
-      const lateral = item.state === 'retained' ? Math.sign(item.lateral || 1) * 1.1 : item.lateral;
-      const p = worldPosition(seg, item.s, lateral);
-      let sprite = this.litter.get(item.id);
-      if (!sprite) {
-        sprite = this.scene.add.image(p.x, p.y, item.category).setScale(PIXEL).setDepth(5);
-        sprite.setRotation((item.id * 1.7) % Math.PI);
-        this.litter.set(item.id, sprite);
+      let p: { x: number; y: number };
+      if (item.state === 'onLand') {
+        // Litter waiting on the streets near where it was dropped.
+        const src = this.level.sources.find((x) => x.id === item.sourceId);
+        if (!src) continue;
+        p = this.landSpot(src, item.id);
+      } else if (item.state === 'floating' || item.state === 'retained') {
+        const seg = sim.segments.get(item.segmentId);
+        if (!seg) continue;
+        const lateral =
+          item.state === 'retained' ? Math.sign(item.lateral || 1) * 1.1 : item.lateral;
+        p = worldPosition(seg, item.s, lateral);
+      } else {
+        continue;
       }
-      sprite.setPosition(p.x, p.y).setAlpha(item.state === 'retained' ? 0.7 : 1);
+      visible.add(item.id);
+      let view = this.litter.get(item.id);
+      if (!view) {
+        const sprite = this.scene.add.image(p.x, p.y, item.category).setScale(PIXEL).setDepth(5);
+        sprite.setRotation((item.id * 1.7) % Math.PI);
+        view = { sprite, wasOnLand: item.state === 'onLand', moving: false };
+        this.litter.set(item.id, view);
+      }
+      if (view.wasOnLand && item.state !== 'onLand') {
+        // Washed off the street: slide it into the water so the rain's effect is visible.
+        view.wasOnLand = false;
+        view.moving = true;
+        this.scene.tweens.add({
+          targets: view.sprite,
+          x: p.x,
+          y: p.y,
+          duration: 600,
+          ease: 'Sine.easeIn',
+          onComplete: () => view && (view.moving = false),
+        });
+      }
+      if (!view.moving) view.sprite.setPosition(p.x, p.y);
+      view.sprite.setAlpha(item.state === 'retained' ? 0.7 : 1);
     }
-    for (const [id, sprite] of this.litter) {
+    for (const [id, view] of this.litter) {
       if (visible.has(id)) continue;
       this.litter.delete(id);
       const item = sim.items.find((i) => i.id === id);
       const caught = item?.state === 'intercepted' || item?.state === 'removed';
       this.scene.tweens.add({
-        targets: sprite,
+        targets: view.sprite,
         scale: caught ? PIXEL * 1.8 : PIXEL,
-        x: caught ? sprite.x : sprite.x + 40,
+        x: caught ? view.sprite.x : view.sprite.x + 40,
         alpha: 0,
         duration: caught ? 260 : 500,
-        onComplete: () => sprite.destroy(),
+        onComplete: () => view.sprite.destroy(),
       });
     }
+  }
+
+  // A stable spot on the ground around a neighbourhood for a piece of waiting litter.
+  private landSpot(src: PollutionSource, id: number): { x: number; y: number } {
+    const angle = (id * 2.399) % (Math.PI * 2);
+    const r = 30 + ((id * 37) % 28);
+    return { x: src.pos.x + Math.cos(angle) * r, y: src.pos.y + 18 + Math.sin(angle) * r * 0.6 };
   }
 
   private drawSlots(

@@ -79,8 +79,8 @@ export const LEVEL_5: LevelConfig = {
   seed: 505,
   generationSeconds: 54,
   durationSeconds: 74,
-  target: 0.9,
-  stars: { one: 0.9, two: 0.94, three: 0.97 },
+  target: 0.95,
+  stars: { one: 0.95, two: 0.97, three: 0.99 },
   inventory: { gps: 2, bin: 3, filter: 2, trap: 2, boom: 1, cleanup: 2 },
   segments: [
     {
@@ -164,8 +164,9 @@ export const LEVEL_5: LevelConfig = {
     },
   ],
   weather: [
-    { at: 14, duration: 8, intensity: 'light' },
-    { at: 32, duration: 18, intensity: 'heavy' },
+    { at: 8, duration: 10, intensity: 'light' },
+    { at: 28, duration: 22, intensity: 'heavy' },
+    { at: 56, duration: 14, intensity: 'moderate' },
   ],
   slots: [
     bin(hillside, 0, 70),

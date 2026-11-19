@@ -5,7 +5,7 @@ import { createRng, type Rng } from '../utils/rng';
 import type { ActionsUsed, Deployment, Orientations } from './equipment';
 import { createLitter, transition, type LitterCategory, type LitterItem } from './litter';
 import { lateralSpeedFactor, segmentLength, type Segment } from './network';
-import { conditionsAt, weatherFactor, type Conditions } from './weather';
+import { conditionsAt, flowFactor, remobilizeFactor, washRate, type Conditions } from './weather';
 
 // Watershed simulation. Fixed time step and a seeded RNG, so the same setup always
 // gives the same result. No Phaser in here.
@@ -142,12 +142,14 @@ function step(state: SimState, dt: number): SimEvent[] {
 
   for (const item of state.items) {
     if (item.state === 'onLand') {
-      item.landTimer -= dt;
-      if (item.landTimer <= 0) runoff(state, item, events);
+      // Litter only washes off the land when it rains.
+      const src = state.level.sources.find((x) => x.id === item.sourceId);
+      if (src && state.rng.next() < washRate(cond, src.runoffResponse) * dt)
+        runoff(state, item, events);
     } else if (item.state === 'floating') {
       moveFloating(state, item, dt, events);
     } else if (item.state === 'retained') {
-      const p = TUNING.retention.remobilizePerSecond * weatherFactor(cond, 'remobilize') * dt;
+      const p = TUNING.retention.remobilizePerSecond * remobilizeFactor(cond) * dt;
       if (state.rng.next() < p) {
         const hotspotId = item.holder;
         transition(item, 'floating', state.time);
@@ -165,19 +167,21 @@ function step(state: SimState, dt: number): SimEvent[] {
 
 function generate(state: SimState, dt: number, events: SimEvent[]): void {
   for (const src of state.level.sources) {
-    const rate = src.rate * weatherFactor(state.conditions, 'generation', src.runoffResponse);
-    let acc = (state.sourceAccumulators[src.id] ?? 0) + rate * dt;
+    let acc = (state.sourceAccumulators[src.id] ?? 0) + src.rate * dt;
     while (acc >= 1) {
       acc -= 1;
-      const item = createLitter(state.nextId++, src.id, pickCategory(state.rng), state.time);
+      const item = createLitter(
+        state.nextId++,
+        src.id,
+        pickCategory(state.rng, src.look),
+        state.time,
+      );
       state.items.push(item);
       if (hasSlotEquipment(state, 'bin', src.id) && state.rng.next() < TUNING.bin.effectiveness) {
         transition(item, 'prevented', state.time);
         events.push({ type: 'prevented', sourceId: src.id });
       } else {
         transition(item, 'onLand', state.time);
-        const delay = state.rng.range(TUNING.runoff.delayMin, TUNING.runoff.delayMax);
-        item.landTimer = delay * weatherFactor(state.conditions, 'runoffDelay', src.runoffResponse);
         item.segmentId = src.entry.segmentId;
         item.s = src.entry.s;
       }
@@ -204,8 +208,7 @@ function moveFloating(state: SimState, item: LitterItem, dt: number, events: Sim
   const seg = state.segments.get(item.segmentId);
   if (!seg) return;
   const before = item.s;
-  const speed =
-    seg.speed * weatherFactor(state.conditions, 'speed') * lateralSpeedFactor(item.lateral);
+  const speed = seg.speed * flowFactor(state.conditions) * lateralSpeedFactor(item.lateral);
   item.s += speed * dt;
   item.lateral = clamp(
     item.lateral + state.rng.range(-1, 1) * TUNING.transport.lateralDiffusion * Math.sqrt(dt),
@@ -269,10 +272,14 @@ function hasSlotEquipment(state: SimState, kind: 'bin', sourceId: string): boole
   );
 }
 
-function pickCategory(rng: Rng): LitterCategory {
-  const r = rng.next();
-  const { bottle, bag } = TUNING.litterMix;
-  return r < bottle ? 'bottle' : r < bottle + bag ? 'bag' : 'wrapper';
+function pickCategory(rng: Rng, look: string): LitterCategory {
+  const mix = TUNING.litterMix[look as keyof typeof TUNING.litterMix] ?? TUNING.litterMix.default;
+  let r = rng.next();
+  for (const [kind, share] of Object.entries(mix) as [LitterCategory, number][]) {
+    if (r < share) return kind;
+    r -= share;
+  }
+  return 'wrapper';
 }
 
 // ── Cleanup crews ─────────────────────────────────────────────────────────────

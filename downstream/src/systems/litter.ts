@@ -19,7 +19,7 @@ export type LitterState =
   | 'removed'
   | 'escaped';
 
-export type LitterCategory = 'bottle' | 'bag' | 'wrapper';
+export type LitterCategory = 'bottle' | 'bag' | 'wrapper' | 'ball' | 'toy';
 
 export interface LitterItem {
   id: number;
@@ -31,8 +31,6 @@ export interface LitterItem {
   s: number;
   /** Position across the channel, −1 … 1. */
   lateral: number;
-  /** Seconds remaining on land before runoff carries it into the waterway. */
-  landTimer: number;
   /** Which trap, filter, or hotspot currently holds it (if intercepted or retained). */
   holder: string;
   history: { t: number; to: LitterState }[];
@@ -63,7 +61,6 @@ export function createLitter(
     segmentId: '',
     s: 0,
     lateral: 0,
-    landTimer: 0,
     holder: '',
     history: [{ t, to: 'generated' }],
   };

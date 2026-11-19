@@ -12,6 +12,7 @@ export const LEVEL_1: LevelConfig = {
   name: 'The Neighborhood',
   intro: 'A small creek winds through town toward the sea. Where will you intervene?',
   teaches: [
+    'Litter sits on the streets until rain washes it into the creek',
     'Trash bins prevent litter at its source',
     'Trash traps catch floating litter',
     'GPS research bottles reveal where litter travels',
@@ -79,7 +80,10 @@ export const LEVEL_1: LevelConfig = {
     },
   ],
   hotspots: [],
-  weather: [],
+  weather: [
+    { at: 10, duration: 12, intensity: 'light' },
+    { at: 34, duration: 26, intensity: 'moderate' },
+  ],
   slots: [
     { id: 'bin-store', kind: 'bin', pos: { x: 230, y: 370 }, sourceId: 'store' },
     { id: 'bin-park', kind: 'bin', pos: { x: 600, y: 140 }, sourceId: 'park' },

@@ -9,7 +9,7 @@ export function conditionsAt(level: LevelConfig, t: number): Conditions {
   return e?.intensity ?? 'dry';
 }
 
-/** The next event that starts within the forecast window (or is already underway). */
+/** The next rain that starts within the forecast window (or is already underway). */
 export function forecast(
   level: LevelConfig,
   t: number,
@@ -20,15 +20,20 @@ export function forecast(
   return upcoming ? { ...upcoming, inSeconds: Math.max(0, upcoming.at - t) } : null;
 }
 
-/** Multipliers for current conditions. `response` (0–1) scales how sensitive something is to rain. */
-export function weatherFactor(
-  c: Conditions,
-  key: 'generation' | 'runoffDelay' | 'speed' | 'remobilize',
-  response = 1,
-): number {
-  if (c === 'dry') return 1;
-  const m = TUNING.weather[c][key];
-  return 1 + (m - 1) * response;
+// Water speed multiplier for the current weather.
+export function flowFactor(c: Conditions): number {
+  return TUNING.weather[c].flow;
+}
+
+// Chance per second that land litter washes into the drains. `response` (0-1) is how
+// much a place sheds when it rains: paved lots near 1, parks much lower.
+export function washRate(c: Conditions, response: number): number {
+  return TUNING.weather[c].wash * response;
+}
+
+// How much more often snagged litter breaks free in this weather.
+export function remobilizeFactor(c: Conditions): number {
+  return TUNING.weather[c].remobilize;
 }
 
 export const INTENSITY_LABEL: Record<Conditions, string> = {
