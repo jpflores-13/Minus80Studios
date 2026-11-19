@@ -1,0 +1,21 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #02101b;
+  /* Prevent iPad/touch gestures (scroll, zoom) from fighting the game. */
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+#game-container {
+  width: 100%;
+  height: 100%;
+}
