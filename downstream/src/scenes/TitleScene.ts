@@ -30,7 +30,7 @@ export class TitleScene extends Phaser.Scene {
         padding: { x: 12, y: 6 },
       },
     );
-    addCenteredText(this, height * 0.96, 'A Minus 80 Studio prototype', TEXT_STYLES.smallLight);
+    addCenteredText(this, height * 0.96, 'A -80 Studio prototype', TEXT_STYLES.smallLight);
 
     const start = () => this.scene.start('Level', { levelId: first.id });
     this.input.keyboard?.once('keydown-SPACE', start);

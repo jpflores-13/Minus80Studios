@@ -1,9 +1,9 @@
-# Minus 80 Studio
+# -80 Studio
 
 **Short indie games where science is the mechanic.**
 
-Minus 80 Studio makes short (7–10 minute), visually compelling browser games inspired by real scientific discoveries
-and the scientists who make them. The name nods to the −80 °C freezer, where every lab keeps its most precious samples.
+-80 Studio makes short (7–10 minute), visually compelling browser games inspired by real scientific discoveries
+and the scientists who make them. The name nods to the -80 °C freezer, where every lab keeps its most precious samples.
 
 ## This folder
 

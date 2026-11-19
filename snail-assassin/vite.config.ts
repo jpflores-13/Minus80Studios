@@ -1,7 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 
-// Each Minus 80 game gets its own fixed port so several can run at once.
+// Each -80 game gets its own fixed port so several can run at once.
 const DEV_PORT = 8081;
 
 export default defineConfig({

@@ -1,7 +1,7 @@
 # Downstream!
 
 _An environmental strategy and puzzle game about plastic pollution, river transport, and waste interception._
-A [Minus 80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
+A [-80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
 
 **Status:** v0.2. Level 1 is fully playable: investigate the watershed, deploy trash bins and a trash trap, release the flow, and earn up to three stars.
 
@@ -44,5 +44,5 @@ tests/  docs/
 
 ## License
 
-Proprietary, © Minus 80 Studio (to be finalized before public release).
+Proprietary, © -80 Studio (to be finalized before public release).
 Scaffolded from [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`).

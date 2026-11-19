@@ -1,7 +1,7 @@
 # Snail Assassin
 
 _An atmospheric underwater stealth-and-hunting game inspired by venomous cone snails._
-A [Minus 80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
+A [-80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
 
 **Status:** v0.2, Atlas vertical slice. Hunt 3 fish on a top-down reef using the Glucose Crash → System Override → Engulf combo.
 
@@ -50,5 +50,5 @@ docs/              Design, science, art, playtesting, roadmap
 
 ## License
 
-Proprietary, © Minus 80 Studio. All rights reserved (to be finalized before any public release).
+Proprietary, © -80 Studio. All rights reserved (to be finalized before any public release).
 Scaffolded from the official [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`).

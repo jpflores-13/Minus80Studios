@@ -1,6 +1,6 @@
 # Development Playbook
 
-How a scientific discovery becomes a Minus 80 game. Each stage has an **output** and a **gate** (what must be true before moving on).
+How a scientific discovery becomes a -80 game. Each stage has an **output** and a **gate** (what must be true before moving on).
 
 ## The scientist-to-game workflow
 

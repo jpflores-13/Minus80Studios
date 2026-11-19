@@ -2,7 +2,7 @@
   "name": "downstream",
   "version": "0.2.0",
   "private": true,
-  "description": "Minus 80 Studio — a river strategy and puzzle game about plastic pollution and waste interception.",
+  "description": "-80 Studio — a river strategy and puzzle game about plastic pollution and waste interception.",
   "type": "module",
   "engines": {
     "node": ">=26"

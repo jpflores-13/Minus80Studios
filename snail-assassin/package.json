@@ -2,7 +2,7 @@
   "name": "snail-assassin",
   "version": "0.2.0",
   "private": true,
-  "description": "Minus 80 Studio — an atmospheric underwater stealth game inspired by venomous cone snails.",
+  "description": "-80 Studio — an atmospheric underwater stealth game inspired by venomous cone snails.",
   "type": "module",
   "engines": {
     "node": ">=26"
