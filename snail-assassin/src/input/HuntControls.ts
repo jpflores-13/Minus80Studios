@@ -2,17 +2,18 @@ import Phaser from 'phaser';
 import type { HuntInput } from '../systems/hunt';
 import { directionFromKeys } from '../systems/movement';
 
-// Turns keyboard and mouse into hunt actions. Touch or gamepad would be another mapper here.
+// Keyboard and mouse. Touch is handled by TouchControls and merged on top.
 export class HuntControls {
-  private readonly keys: Record<string, Phaser.Input.Keyboard.Key>;
+  private readonly keys: Record<string, Phaser.Input.Keyboard.Key> = {};
 
   constructor(private readonly scene: Phaser.Scene) {
     const kb = scene.input.keyboard;
-    if (!kb) throw new Error('Keyboard input is required for this prototype.');
-    this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,Q,E,SPACE') as Record<
-      string,
-      Phaser.Input.Keyboard.Key
-    >;
+    if (kb) {
+      this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,Q,E,SPACE') as Record<
+        string,
+        Phaser.Input.Keyboard.Key
+      >;
+    }
   }
 
   read(): HuntInput {

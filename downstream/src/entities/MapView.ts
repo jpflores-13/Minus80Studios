@@ -69,7 +69,7 @@ export class MapView {
       this.rainDrops.push({ x: rng.range(0, scene.scale.width), y: rng.range(0, mapH) });
   }
 
-  slotAt(x: number, y: number, radius = 34): Slot | undefined {
+  slotAt(x: number, y: number, radius = 44): Slot | undefined {
     let best: Slot | undefined;
     let bestD = radius;
     for (const s of this.level.slots) {

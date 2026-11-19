@@ -67,6 +67,13 @@ export class PauseScene extends Phaser.Scene {
     new Button(this, width / 2, by, 220, 48, 'RESTART', () =>
       close(() => hunt().restart({ characterId: data.characterId })),
     );
+    new Button(this, width / 2 - 130, by + 64, 220, 48, 'CHOOSE ASSASSIN', () =>
+      close(() => hunt().start('Select', { mode: 'hunt', characterId: data.characterId })),
+    );
+    new Button(this, width / 2 + 130, by + 64, 220, 48, 'SOUND ON / OFF', () => {
+      sound.toggleMute();
+      render();
+    });
     new Button(this, width / 2 + 260, by, 220, 48, 'HOME', () =>
       close(() => hunt().start('Title')),
     );

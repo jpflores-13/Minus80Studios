@@ -4,6 +4,10 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- On-screen FLOW ARROWS and GPS TRAILS buttons, larger tap targets, and a rotate-your-phone message.
+
 ## [0.3.0] - 2026-11-19
 
 ### Added

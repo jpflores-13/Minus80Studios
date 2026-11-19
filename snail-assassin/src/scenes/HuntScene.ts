@@ -6,6 +6,7 @@ import { PIXEL } from '../config/gameConfig';
 import { markOnce, settings } from '../config/settings';
 import { Reef } from '../entities/Reef';
 import { HuntControls } from '../input/HuntControls';
+import { TouchControls } from '../input/TouchControls';
 import { createHunt, isCatchable, stepHunt, type HuntEvent, type HuntState } from '../systems/hunt';
 import { Button } from '../ui/Button';
 import { Hud } from '../ui/Hud';
@@ -24,6 +25,7 @@ export class HuntScene extends Phaser.Scene {
   private state!: HuntState;
   private character!: CharacterConfig;
   private controls!: HuntControls;
+  private touch: TouchControls | null = null;
   private reef!: Reef;
   private hud!: Hud;
   private snail!: Phaser.GameObjects.Image;
@@ -91,7 +93,20 @@ export class HuntScene extends Phaser.Scene {
       () => this.scene.start('Title'),
       this.character.palette.accent,
     );
+    new Button(
+      this,
+      this.scale.width - 230,
+      30,
+      90,
+      36,
+      'PAUSE',
+      () => this.pauseHunt(),
+      this.character.palette.accent,
+    );
     this.controls = new HuntControls(this);
+    this.touch = this.sys.game.device.input.touch
+      ? new TouchControls(this, this.character, () => this.state)
+      : null;
     this.hud = new Hud(this, this.character);
     this.helpCard = this.add
       .text(this.scale.width / 2, 170, this.helpText(), { ...TEXT_STYLES.small, lineSpacing: 6 })
@@ -125,7 +140,10 @@ export class HuntScene extends Phaser.Scene {
   override update(time: number, deltaMs: number): void {
     // Clamp dt so a backgrounded tab doesn't simulate a giant time step.
     const dt = Math.min(deltaMs / 1000, 0.1);
-    const events = stepHunt(this.state, this.controls.read(), dt);
+    const keyboard = this.controls.read();
+    const input = this.touch ? this.touch.apply(keyboard) : keyboard;
+    this.touch?.update();
+    const events = stepHunt(this.state, input, dt);
     for (const e of events) this.react(e);
     this.reef.update(time, dt);
     this.draw(time);
@@ -141,7 +159,9 @@ export class HuntScene extends Phaser.Scene {
     return [
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
       ...lines,
-      'Move WASD / arrows · aim with the mouse · Pause Esc · Restart R · Help H · Mute M',
+      this.touch
+        ? 'Touch: drag on the left to move · tap the reef to aim · use the buttons on the right'
+        : 'Move WASD / arrows · aim with the mouse · Pause Esc · Restart R · Help H · Mute M',
     ].join('\n');
   }
 
@@ -364,13 +384,14 @@ export class HuntScene extends Phaser.Scene {
     const dx = p.worldX - s.snail.pos.x;
     const dy = p.worldY - s.snail.pos.y;
     const d = Math.hypot(dx, dy) || 1;
-    if (primary.kind === 'cloud') {
+    // On touch screens the reticle from TouchControls shows the aim instead.
+    if (!this.touch && primary.kind === 'cloud') {
       const k = d > primary.range ? primary.range / d : 1;
       g.lineStyle(1, 0xffffff, 0.12);
       g.strokeCircle(s.snail.pos.x, s.snail.pos.y, primary.range);
       g.lineStyle(2, 0xffffff, 0.35);
       g.strokeCircle(s.snail.pos.x + dx * k, s.snail.pos.y + dy * k, primary.radius);
-    } else if (primary.kind === 'strike' && !s.tether) {
+    } else if (!this.touch && primary.kind === 'strike' && !s.tether) {
       const k = d > primary.range ? primary.range / d : 1;
       const ax = s.snail.pos.x + dx * k;
       const ay = s.snail.pos.y + dy * k;

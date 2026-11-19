@@ -444,7 +444,7 @@ export class LevelScene extends Phaser.Scene {
       `Goal: keep at least ${Math.round(this.level.target * 100)}% of the litter out of the ocean.`,
       this.forecastSummary(),
       '',
-      'Click or press ENTER to start scouting',
+      'Tap, click, or press ENTER to start scouting',
     ];
     const text = this.add
       .text(0, 0, lines.join('\n'), {
@@ -467,12 +467,12 @@ export class LevelScene extends Phaser.Scene {
     sound.play('click');
     if (this.selected === 'gps')
       this.say(
-        'Pick a neighbourhood to release a GPS research bottle and see where its litter goes.',
+        'Tap a neighbourhood to release a GPS research bottle and see where its litter goes.',
         6000,
       );
     else
       this.say(
-        'Click a neighbourhood to inspect it. Press F to show which way the water flows.',
+        'Tap a neighbourhood to inspect it. FLOW ARROWS shows which way the water goes.',
         5000,
       );
   }
@@ -509,7 +509,7 @@ export class LevelScene extends Phaser.Scene {
       .setDepth(43);
     new Button(this, width - 52, 32, 84, 40, 'HOME', () => this.scene.start('Title'), PALETTE.ink);
     this.toast = this.add
-      .text(width / 2, height - TOOLBAR_HEIGHT - 28, '', {
+      .text(width / 2, height - TOOLBAR_HEIGHT - 76, '', {
         ...TEXT_STYLES.smallLight,
         align: 'center',
         wordWrap: { width: 900 },
@@ -575,6 +575,13 @@ export class LevelScene extends Phaser.Scene {
       this.cards.set(kind, { bg, text, key: String(i + 1) });
     });
 
+    const toggleY = height - TOOLBAR_HEIGHT - 26;
+    new Button(this, 80, toggleY, 140, 36, 'FLOW ARROWS', () => {
+      this.map.showFlowArrows = !this.map.showFlowArrows;
+    });
+    new Button(this, 230, toggleY, 140, 36, 'GPS TRAILS', () => {
+      this.map.showTrails = !this.map.showTrails;
+    });
     this.mainButton = new Button(
       this,
       width - 125,
