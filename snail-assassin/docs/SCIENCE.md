@@ -71,3 +71,22 @@ otherwise. Fish flee with hysteresis.
 - Is there any evidence of a somatostatin-like override component in _C. tulipa_? (None assigned until confirmed.)
 - Ziconotide facts for the ending: verify the source species and approval details against an authoritative review.
 - Image sourcing: licensed photographs of each species (e.g., Wikimedia Commons, with per-file license checks).
+
+## Links used in the game
+
+Every link shown in the game (`src/content/science.ts`) must appear here (enforced by `tests/content.test.ts`).
+PubMed and open-access pages are preferred because some publisher DOI pages block automated link checks.
+
+- https://pubmed.ncbi.nlm.nih.gov/31430472/ (Schulz 2019)
+- https://pubmed.ncbi.nlm.nih.gov/26322961/ (Himaya 2015)
+- https://pubmed.ncbi.nlm.nih.gov/26397110/ (Olivera 2015)
+- https://pubmed.ncbi.nlm.nih.gov/25605914/ (Safavi-Hemami 2015)
+- https://doi.org/10.1038/s41467-024-50470-2 (Yeung 2024, open access)
+- https://doi.org/10.1038/s41598-019-54186-y (Dutt 2019, open access)
+- https://pubmed.ncbi.nlm.nih.gov/38779019/ (Lin et al. 2024, _A comprehensive review on ziconotide_, Heliyon; source for the ending's medicine screen)
+
+## Pending documentation
+
+The evidence-table rows for Catalyst (_C. catus_) and Nightshade (_C. tulipa_) still need to be written by the team
+and reviewed by a cone-snail researcher. Their in-game abilities are labelled as inspired by the papers above, and the
+ending text is marked as a draft.

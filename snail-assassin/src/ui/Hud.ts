@@ -11,13 +11,19 @@ const SLOTS: { slot: AbilitySlot; key: string }[] = [
   { slot: 'capture', key: 'SPACE' },
 ];
 
-/** Minimal hunt HUD: objective, captures, timer, venom, and ability readiness (text + shape, not colour alone). */
+type Tutorial = { primary: boolean; secondary: boolean; capture: boolean } | null;
+
+/**
+ * Minimal hunt HUD: objective, captures, timer, venom, ability readiness, and the
+ * first-hunt tutorial checklist. States use text and shapes, never colour alone.
+ */
 export class Hud {
   private readonly objective: Phaser.GameObjects.Text;
   private readonly timer: Phaser.GameObjects.Text;
   private readonly venomBar: Phaser.GameObjects.Rectangle;
   private readonly venomLabel: Phaser.GameObjects.Text;
   private readonly abilityTexts: Phaser.GameObjects.Text[] = [];
+  private readonly checklist: Phaser.GameObjects.Text;
   private readonly toast: Phaser.GameObjects.Text;
   private toastUntil = 0;
 
@@ -32,8 +38,13 @@ export class Hud {
       .text(width - 20, 16, '', TEXT_STYLES.hud)
       .setOrigin(1, 0)
       .setDepth(depth);
+    this.checklist = scene.add
+      .text(20, 52, '', { ...TEXT_STYLES.small, lineSpacing: 4 })
+      .setDepth(depth)
+      .setBackgroundColor('#06192bcc')
+      .setPadding(10, 6, 10, 6);
 
-    const barY = height - 84;
+    const barY = height - 112;
     scene.add
       .rectangle(width / 2 - 200, barY, 400, 14, 0x000000, 0.45)
       .setOrigin(0, 0.5)
@@ -46,28 +57,33 @@ export class Hud {
       .text(width / 2 - 200, barY - 28, '', TEXT_STYLES.small)
       .setDepth(depth);
 
-    SLOTS.forEach(({ slot }, i) => {
-      const t = scene.add
-        .text(width / 2 + (i - 1) * 230, height - 58, '', { ...TEXT_STYLES.small, align: 'center' })
-        .setDepth(depth)
-        .setBackgroundColor('#06192bcc')
-        .setPadding(10, 6, 10, 6)
-        .setOrigin(0.5, 0)
-        .setFixedSize(220, 0);
-      t.setData('slot', slot);
-      this.abilityTexts.push(t);
+    SLOTS.forEach((_, i) => {
+      this.abilityTexts.push(
+        scene.add
+          .text(width / 2 + (i - 1) * 230, height - 84, '', {
+            ...TEXT_STYLES.small,
+            align: 'center',
+          })
+          .setDepth(depth)
+          .setBackgroundColor('#06192bcc')
+          .setPadding(10, 6, 10, 6)
+          .setOrigin(0.5, 0)
+          .setFixedSize(220, 0),
+      );
     });
     this.toast = scene.add
-      .text(width / 2, height - 130, '', TEXT_STYLES.body)
+      .text(width / 2, height - 150, '', TEXT_STYLES.body)
       .setOrigin(0.5)
       .setDepth(depth);
   }
 
-  update(state: HuntState): void {
+  update(state: HuntState, tutorial: Tutorial): void {
     const target = TUNING.hunt.objectiveCaptures;
-    const pips = '●'.repeat(state.captured) + '○'.repeat(Math.max(0, target - state.captured));
+    const pips =
+      '●'.repeat(Math.min(state.captured, target)) +
+      '○'.repeat(Math.max(0, target - state.captured));
     this.objective.setText(
-      `OBJECTIVE  Capture ${target} fish    ${pips}  ${state.captured}/${target}`,
+      `${this.character.name}   OBJECTIVE  Capture ${target} fish   ${pips}  ${state.captured}/${target}`,
     );
     const left = Math.max(0, TUNING.hunt.timeLimitSeconds - state.time);
     this.timer.setText(
@@ -81,11 +97,37 @@ export class Hud {
     SLOTS.forEach(({ slot, key }, i) => {
       const a = this.character.abilities[slot];
       const cd = v.cooldowns[slot];
-      const status = cd > 0 ? `${cd.toFixed(1)}s` : v.reserve < a.cost ? 'LOW' : 'READY';
+      const needsTarget = (a.kind === 'lock' || a.kind === 'reel') && !state.tether;
+      const reeling = a.kind === 'reel' && state.tether?.reeling;
+      const status =
+        cd > 0
+          ? `${cd.toFixed(1)}s`
+          : v.reserve < a.cost
+            ? 'LOW VENOM'
+            : needsTarget
+              ? 'NEEDS A STRIKE'
+              : reeling
+                ? 'REELING…'
+                : 'READY';
       const t = this.abilityTexts[i];
-      t?.setText(`[${key}] ${a.label}\n${a.cost > 0 ? `${a.cost} venom · ` : ''}${status}`);
+      t?.setText(`[${key}] ${a.label}\n${a.cost > 0 ? `${a.cost} venom` : 'free'}\n${status}`);
       t?.setAlpha(status === 'READY' ? 1 : 0.55);
     });
+
+    if (tutorial) {
+      const step = (done: boolean, s: AbilitySlot, verb: string) =>
+        `${done ? '☑' : '☐'} ${verb} [${SLOTS.find((x) => x.slot === s)?.key}] ${this.character.abilities[s].label}`;
+      this.checklist
+        .setText(
+          [
+            'TUTORIAL',
+            step(tutorial.primary, 'primary', 'Use'),
+            step(tutorial.secondary, 'secondary', 'Follow with'),
+            step(tutorial.capture, 'capture', 'Capture with'),
+          ].join('\n'),
+        )
+        .setVisible(true);
+    } else this.checklist.setVisible(false);
 
     if (this.scene.time.now > this.toastUntil) this.toast.setText('');
   }

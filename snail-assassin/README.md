@@ -3,7 +3,7 @@
 _An atmospheric underwater stealth-and-hunting game inspired by venomous cone snails._
 A [-80 Studio](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
 
-**Status:** v0.2, Atlas vertical slice. Hunt 3 fish on a top-down reef using the Glucose Crash → System Override → Engulf combo.
+**Status:** v0.3, three playable assassins (Catalyst, Atlas, Nightshade), character select, tutorials, audio, and the full "The Science Is Real" ending.
 
 ## Quick start
 
@@ -11,7 +11,7 @@ Requires Node.js 26 LTS (see `.node-version`).
 
 ```bash
 npm install       # once, or after dependencies change
-npm run dev       # http://localhost:8081  (add ?scene=Hunt to skip the title)
+npm run dev       # http://localhost:8081  (dev shortcuts: ?scene=Hunt&char=catalyst, ?scene=Select, ?scene=Discovery&char=atlas)
 ```
 
 | Command                             | What it does                                             |
@@ -30,11 +30,14 @@ npm run dev       # http://localhost:8081  (add ?scene=Hunt to skip the title)
 src/
   main.ts          Entry point: builds the Phaser game from the scene list
   config/          gameConfig.ts (resolution, palette), tuning.ts (gameplay numbers)
-  characters/      Character data (Atlas), built from reusable ability kinds
-  scenes/          Boot → Title → Hunt (+ Pause) → Results
+  characters/      Character data (Catalyst, Atlas, Nightshade), built from reusable ability kinds
+  scenes/          Boot → Splash → Title → Select → Hunt (+ Pause) → Results → Discovery
+  content/         Player-facing science text and links (draft, pending expert review)
+  audio/           Synthesized sound engine (no audio files)
+  debug/           Dev-only balancing panel (backtick key), stripped from production
   entities/        Visual pieces (Reef)
   input/           Device → action mapping (keyboard + mouse now; touch/gamepad later)
-  systems/         Pure, unit-tested simulation: hunt, fish, metabolic, escape, venom, current, movement
+  systems/         Pure, unit-tested simulation: hunt, fish, metabolic, neural, escape, venom, current, movement
   ui/              Shared text styles and UI helpers
   utils/           Small helpers (math, accessibility)
 public/assets/     Images/audio served as-is (credit them in docs/ASSET_CREDITS.md)

@@ -4,6 +4,24 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-19
+
+### Added
+
+- **Catalyst** (_Conus catus_): Lightning Strike (aimed harpoon that immobilizes and tethers one fish), Motor Lock
+  (extends immobilization), and Reel In (pull the tethered fish in; the tether breaks if it recovers).
+- **Nightshade** (_Conus tulipa_): Ghost Signal (dampens escape responsiveness), Silent Tide (insulin-inspired cloud),
+  and Phantom Net (engulf weakened, unaware fish).
+- Neural module and escape-responsiveness effects in the shared prey simulation; strikes startle nearby fish.
+- -80 Studio splash, cinematic title menu, "Choose Your Assassin" select screen (all characters available),
+  first-hunt tutorial checklist per character, and a richer pause menu (choose character, sound, effects).
+- "The Science Is Real" discovery sequence: reveal, species discovery text (draft pending expert review),
+  "From Venom to Medicine", research links, replay and menu buttons, and the studio signature. Also
+  reachable from the main menu. Skippable; auto-advances.
+- Synthesized audio (ambience, ability sounds, per-character pitch) with mute and volume; reduced-effects setting.
+- Dev-only balancing panel (backtick key): live sliders, prey-state plot, JSON export. Stripped from production builds.
+- Tests: all three characters win with their combos; shortcuts fail; long strikes need Motor Lock; content links trace to SCIENCE.md.
+
 ## [0.2.0] - 2026-11-19
 
 ### Added

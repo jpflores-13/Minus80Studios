@@ -5,6 +5,7 @@
  * of them is a calibrated biological measurement. Character-specific numbers
  * (ability costs, radii) live in src/characters/*.ts.
  *
+ * The object is deliberately mutable so the dev-only debug panel can tune it live.
  * Units: pixels, seconds, and dimensionless 0–1 state variables.
  */
 export const TUNING = {
@@ -48,6 +49,13 @@ export const TUNING = {
     /** Fish count as "impaired" (visual state) below this glucose. */
     impairedBelow: 0.65,
   },
+  neural: {
+    /** Neural impairment n ∈ [0,1]: dn/dt = −recovery·(1 − L)·n, where L is the motor-lock effect. */
+    recoveryRate: 0.6,
+    lockTau: 6,
+    /** Fish cannot swim while n is above this. */
+    immobileAbove: 0.45,
+  },
   escape: {
     /** Fish can notice the snail within this distance (px). */
     detectionRadius: 150,
@@ -59,9 +67,16 @@ export const TUNING = {
     alertAbove: 0.3,
     fleeAbove: 0.6,
     calmBelow: 0.25,
+    /** Escape responsiveness r ∈ [minResponsiveness, 1] recovers toward 1 at this rate (per s). */
+    responsivenessRecovery: 0.08,
+    minResponsiveness: 0.15,
+    /** Strikes startle nearby fish: awareness jumps to this (× responsiveness) within startleRadius. */
+    startleRadius: 120,
+    missStartle: 0.8,
+    hitStartle: 0.65,
   },
   capture: {
-    /** Capture vulnerability = 1 − glucose; fish are catchable at or above this. */
+    /** Fish are catchable when vulnerability ≥ this. */
     vulnerabilityThreshold: 0.7,
   },
   venom: {
@@ -78,4 +93,6 @@ export const TUNING = {
   marineSnow: {
     count: 60,
   },
-} as const;
+};
+
+export type Tuning = typeof TUNING;

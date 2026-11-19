@@ -2,12 +2,16 @@
 
 > Living document. Proposed ideas are marked **(proposal)** until the team agrees to them.
 
-## Current build (v0.2: Atlas vertical slice)
+## Current build (v0.3)
 
-Top-down reef hunt as **ATLAS** (_Conus geographus_). Capture 3 fish in 3:00. Q drops a Glucose Crash cloud,
-E drops a System Override cloud, and SPACE engulfs weakened fish (marked with [ ]). Clouds drift with the current. Fish roam
-in schools, notice a moving snail, and flee. Insulin alone slows fish but only the combo makes them catchable.
-Pause (Esc), restart (R), help (H), results screen.
+Splash → title menu → **Choose Your Assassin** → species tutorial (checklist on each character's first hunt) →
+reef hunt (capture 3 fish in 3:00) → results → **The Science Is Real** → replay, switch character, or read the research.
+
+| Character                   | Q                                       | E                               | SPACE                                | Strategy                                       |
+| --------------------------- | --------------------------------------- | ------------------------------- | ------------------------------------ | ---------------------------------------------- |
+| CATALYST · _Conus catus_    | Lightning Strike (aimed, single target) | Motor Lock (on the struck fish) | Reel In                              | Precision ambush; long strikes need Motor Lock |
+| ATLAS · _Conus geographus_  | Glucose Crash (cloud)                   | System Override (cloud)         | Engulf (2 at once)                   | Metabolic area control; the combo is required  |
+| NIGHTSHADE · _Conus tulipa_ | Ghost Signal (escape-dampening cloud)   | Silent Tide (cloud)             | Phantom Net (unaware, weakened fish) | Stealthy close approach; both clouds required  |
 
 ## Pitch
 

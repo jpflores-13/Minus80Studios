@@ -1,0 +1,114 @@
+import type { CharacterConfig } from '../characters/types';
+
+/**
+ * Player-facing science content for the "The Science Is Real" ending.
+ *
+ * Every statement here must trace to docs/SCIENCE.md (tests enforce that each
+ * link appears there). The text is a DRAFT until a cone-snail researcher
+ * reviews it. Keep `REVIEW_STATUS` honest.
+ */
+export interface Reference {
+  label: string;
+  url: string;
+}
+
+export interface Discovery {
+  reveal: string;
+  /** 40–70 words of main scientific text (tested). */
+  text: string;
+  /** "Read the Research": 1–2 species-specific peer-reviewed publications. */
+  research: Reference[];
+  /** "Explore the Real Science": an accessible resource until the studio science page exists. */
+  explore: Reference;
+}
+
+export const REVIEW_STATUS = 'Draft text: pending review by a cone snail researcher.';
+
+export const DISCOVERIES: Record<CharacterConfig['id'], Discovery> = {
+  catalyst: {
+    reveal: 'MEET THE REAL CATALYST',
+    text:
+      'The cat cone is a hook-and-line hunter. It fires a hollow, harpoon-like tooth from its extended proboscis in ' +
+      'one of the fastest strikes recorded in the animal kingdom. The harpoon delivers venom and tethers the snail ' +
+      'to its catch, and the venom rapidly stops the fish from swimming away. That is how a slow snail lands a fast fish.',
+    research: [
+      {
+        label: 'Schulz et al. 2019, Current Biology: the high-speed radular prey strike',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/31430472/',
+      },
+      {
+        label: 'Himaya et al. 2015, J. Proteome Research: venomics of Conus catus',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/26322961/',
+      },
+    ],
+    explore: {
+      label: 'Olivera et al. 2015: how fish-hunting cone snails catch their prey',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/26397110/',
+    },
+  },
+  atlas: {
+    reveal: 'MEET THE REAL ATLAS',
+    text:
+      'The geography cone hunts fish with a net strategy, engulfing them in a stretchy, net-like false mouth. Its ' +
+      'venom contains a specialised insulin that sends fish into dangerously low blood sugar, plus a mimic of a fish ' +
+      'hormone that blocks the fish’s own rescue response, making the crash worse. Two molecules, one strategy.',
+    research: [
+      {
+        label: 'Safavi-Hemami et al. 2015, PNAS: specialized insulin used as a weapon',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/25605914/',
+      },
+      {
+        label: 'Yeung et al. 2024, Nature Communications: a weaponized hormone mimic',
+        url: 'https://doi.org/10.1038/s41467-024-50470-2',
+      },
+    ],
+    explore: {
+      label: 'Yeung et al. 2024 (open access): how the geography cone disrupts prey blood sugar',
+      url: 'https://doi.org/10.1038/s41467-024-50470-2',
+    },
+  },
+  nightshade: {
+    reveal: 'MEET THE REAL NIGHTSHADE',
+    text:
+      'The tulip cone is also a net hunter, engulfing fish with its expandable false mouth. Its venom includes a ' +
+      'specialised insulin, and a molecule that, in lab tests with zebrafish larvae, dramatically reduced the fish’s ' +
+      'escape response. How these components work together during a real hunt is still being studied.',
+    research: [
+      {
+        label: 'Dutt et al. 2019, Scientific Reports: a venom molecule that dampens escape',
+        url: 'https://doi.org/10.1038/s41598-019-54186-y',
+      },
+      {
+        label: 'Safavi-Hemami et al. 2015, PNAS: venom insulin in C. tulipa and C. geographus',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/25605914/',
+      },
+    ],
+    explore: {
+      label: 'Dutt et al. 2019 (open access): net hunting in the tulip cone',
+      url: 'https://doi.org/10.1038/s41598-019-54186-y',
+    },
+  },
+};
+
+export const MEDICINE = {
+  title: 'FROM VENOM TO MEDICINE',
+  text:
+    'Cone snail venom has already inspired an approved medicine. Ziconotide, a treatment for severe chronic pain, is ' +
+    'a synthetic version of a peptide first found in the venom of a different species, the magician’s cone ' +
+    '(Conus magus). Scientists are now studying other venom molecules, including insulin and hormone mimics, as ' +
+    'possible drug leads. These remain experimental.',
+  reference: {
+    label: 'Lin et al. 2024, Heliyon: a comprehensive review on ziconotide',
+    url: 'https://pubmed.ncbi.nlm.nih.gov/38779019/',
+  },
+};
+
+export const DISCLAIMER =
+  'Inspired by real biology. Gameplay abilities, kinetics, and physiological effects have been simplified for entertainment.';
+
+export const ILLUSTRATION_NOTE =
+  'Original illustration. A licensed photograph of the real species is coming.';
+
+export function wordCount(text: string): number {
+  return text.trim().split(/\s+/).length;
+}

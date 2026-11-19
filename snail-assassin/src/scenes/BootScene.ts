@@ -26,7 +26,8 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
     });
-    this.scene.start(this.firstScene());
+    const { scene, data } = this.devStart();
+    this.scene.start(scene, data);
   }
 
   private makeTexture(key: string, w: number, h: number, draw: Draw): void {
@@ -36,18 +37,26 @@ export class BootScene extends Phaser.Scene {
     g.destroy();
   }
 
-  /** Dev-only shortcut: http://localhost:8081/?scene=Hunt skips the title. */
-  private firstScene(): string {
-    const requested = new URLSearchParams(window.location.search).get('scene');
+  /**
+   * Dev-only shortcuts, e.g. http://localhost:8081/?scene=Hunt&char=catalyst
+   * or ?scene=Discovery&char=nightshade. Production always starts at the splash.
+   */
+  private devStart(): { scene: string; data: object } {
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('scene');
     const known = requested !== null && this.scene.get(requested) !== null;
-    return import.meta.env.DEV && known ? requested : 'Title';
+    if (!import.meta.env.DEV || !known) return { scene: 'Splash', data: {} };
+    return {
+      scene: requested,
+      data: { characterId: params.get('char') ?? 'atlas', mode: 'gallery' },
+    };
   }
 }
 
 /**
  * Top-down cone snail facing right (16×9 px): spire at the back, broad shoulder,
  * shell tapering forward, foot visible beneath, and siphon reaching ahead.
- * Deliberately conical, not a garden-snail spiral.
+ * Deliberately conical, not a garden-snail spiral. Pattern differs per species.
  */
 function drawConeSnail(g: Phaser.GameObjects.Graphics, c: CharacterConfig): void {
   const { shell, pattern, body, accent } = c.palette;
@@ -58,17 +67,33 @@ function drawConeSnail(g: Phaser.GameObjects.Graphics, c: CharacterConfig): void
   g.fillTriangle(5, 1, 13, 4, 5, 7);
   g.fillRect(5, 1, 6, 7);
   g.fillTriangle(10, 1, 13, 4, 10, 7);
-  g.fillStyle(pattern, 1); // low spire + "map" markings
-  g.fillRect(1, 3, 2, 3);
-  for (const [x, y] of [
-    [4, 2],
-    [7, 2],
-    [8, 5],
-    [5, 5],
-    [10, 3],
-    [6, 3],
-  ] as const)
-    g.fillRect(x, y, 2, 1);
+  g.fillStyle(pattern, 1);
+  g.fillRect(1, 3, 2, 3); // low spire
+  const marks: Record<CharacterConfig['id'], [number, number, number, number][]> = {
+    // Catalyst: sharp angular bands.
+    catalyst: [
+      [3, 1, 1, 7],
+      [6, 1, 1, 7],
+      [9, 2, 1, 5],
+      [4, 4, 4, 1],
+    ],
+    // Atlas: blotchy "map" markings.
+    atlas: [
+      [4, 2, 2, 1],
+      [7, 2, 2, 1],
+      [8, 5, 2, 1],
+      [5, 5, 2, 1],
+      [10, 3, 2, 1],
+      [6, 3, 2, 1],
+    ],
+    // Nightshade: soft translucent streaks.
+    nightshade: [
+      [3, 2, 7, 1],
+      [4, 5, 6, 1],
+      [8, 3, 1, 2],
+    ],
+  };
+  for (const [x, y, w, h] of marks[c.id]) g.fillRect(x, y, w, h);
   g.fillStyle(accent, 1); // siphon
   g.fillRect(14, 4, 2, 1);
 }

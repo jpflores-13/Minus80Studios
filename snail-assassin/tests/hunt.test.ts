@@ -1,52 +1,20 @@
 import { describe, expect, it } from 'vitest';
+import { CHARACTERS } from '../src/characters';
 import { ATLAS } from '../src/characters/atlas';
+import { CATALYST } from '../src/characters/catalyst';
+import { NIGHTSHADE } from '../src/characters/nightshade';
 import { TUNING } from '../src/config/tuning';
-import {
-  createHunt,
-  NO_INPUT,
-  stepHunt,
-  type HuntInput,
-  type HuntState,
-} from '../src/systems/hunt';
-import { normalize } from '../src/utils/math';
+import { createHunt, NO_INPUT, stepHunt, type HuntState } from '../src/systems/hunt';
+import { atlasBot, catalystBot, nightshadeBot, play, SEEDS } from './bots';
 
 const DT = 1 / 60;
+const wins = (results: HuntState[]) => results.filter((s) => s.outcome === 'won').length;
 
-/**
- * A simple scripted player for Atlas: approach the nearest school, cast
- * Glucose Crash then System Override on it, close in, and Engulf when
- * vulnerable fish are in reach. Used to check that the hunt is winnable.
- */
-function atlasBot(s: HuntState, useOverride = true): HuntInput {
-  const catchable = 1 - TUNING.capture.vulnerabilityThreshold;
-  const live = s.fish.filter((f) => f.mode !== 'captured');
-  const vulnerable = live.filter((f) => f.glucose < catchable);
-  const pool = vulnerable.length > 0 ? vulnerable : live;
-  const dist = (f: (typeof live)[number]) =>
-    Math.hypot(f.pos.x - s.snail.pos.x, f.pos.y - s.snail.pos.y);
-  const target = pool.reduce((best, f) => (dist(f) < dist(best) ? f : best));
-  const d = dist(target);
-  return {
-    move: normalize({ x: target.pos.x - s.snail.pos.x, y: target.pos.y - s.snail.pos.y }),
-    aim: target.pos,
-    primary: d < 200 && vulnerable.length === 0 && target.insulin < 0.3,
-    secondary: useOverride && d < 200 && target.insulin > 0.3 && target.override < 0.3,
-    capture: d < ATLAS.abilities.capture.radius,
-  };
-}
-
-function play(seed: number, bot: (s: HuntState) => HuntInput) {
-  const s = createHunt(ATLAS, seed);
-  while (s.outcome === 'playing') stepHunt(s, bot(s), DT);
-  return s;
-}
-
-describe('hunt', () => {
+describe('hunt core', () => {
   it('is deterministic for a given seed (restart reproduces the same reef)', () => {
-    const a = play(7, atlasBot);
-    const b = play(7, atlasBot);
-    expect(a.time).toBe(b.time);
-    expect(a.captured).toBe(b.captured);
+    const a = play(ATLAS, 7, atlasBot());
+    const b = play(ATLAS, 7, atlasBot());
+    expect([a.time, a.captured]).toEqual([b.time, b.captured]);
   });
 
   it('places clouds no further than the ability range', () => {
@@ -59,6 +27,24 @@ describe('hunt', () => {
     );
   });
 
+  it('is lost when time runs out', () => {
+    const s = createHunt(ATLAS, 4);
+    while (s.outcome === 'playing') stepHunt(s, NO_INPUT, 0.5);
+    expect(s.outcome).toBe('lost');
+    expect(s.time).toBeGreaterThanOrEqual(TUNING.hunt.timeLimitSeconds);
+  });
+
+  it('character switching: every character starts a fresh, valid hunt on the same reef', () => {
+    const reefs = CHARACTERS.map((c) => createHunt(c, 5));
+    for (const s of reefs) {
+      expect(s.captured).toBe(0);
+      expect(s.venom.reserve).toBe(TUNING.venom.max);
+      expect(s.fish.map((f) => f.pos)).toEqual(reefs[0]!.fish.map((f) => f.pos));
+    }
+  });
+});
+
+describe('Atlas (engulf + clouds)', () => {
   it('engulf only captures vulnerable fish in range', () => {
     const s = createHunt(ATLAS, 2);
     const [healthy, weak, far] = s.fish;
@@ -81,27 +67,98 @@ describe('hunt', () => {
     expect(s.captured).toBe(0);
   });
 
-  it('is lost when time runs out', () => {
-    const s = createHunt(ATLAS, 4);
-    while (s.outcome === 'playing') stepHunt(s, NO_INPUT, 0.5);
-    expect(s.outcome).toBe('lost');
-    expect(s.time).toBeGreaterThanOrEqual(TUNING.hunt.timeLimitSeconds);
+  it('wins most hunts with Glucose Crash → System Override → Engulf', () => {
+    expect(wins(SEEDS.map((seed) => play(ATLAS, seed, atlasBot())))).toBeGreaterThanOrEqual(6);
   });
 
-  const SEEDS = [11, 22, 33, 44, 55, 66, 77, 88];
-
-  it('Atlas wins most hunts with the signature combo (Glucose Crash → System Override → Engulf)', () => {
-    const wins = SEEDS.filter((seed) => play(seed, atlasBot).outcome === 'won');
-    expect(wins.length).toBeGreaterThanOrEqual(6);
+  it('Glucose Crash alone is not enough', () => {
+    expect(wins(SEEDS.map((seed) => play(ATLAS, seed, atlasBot(false))))).toBe(0);
   });
 
-  it('Glucose Crash alone is not enough: the combo is required', () => {
-    const wins = SEEDS.filter((seed) => play(seed, (st) => atlasBot(st, false)).outcome === 'won');
-    expect(wins).toHaveLength(0);
+  it('engulfing without venom never wins', () => {
+    expect(
+      play(ATLAS, 11, (st) => ({ ...atlasBot()(st), primary: false, secondary: false })).outcome,
+    ).toBe('lost');
+  });
+});
+
+describe('Catalyst (strike + tether)', () => {
+  function setup(distance: number) {
+    const s = createHunt(CATALYST, 9);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + distance, y: s.snail.pos.y };
+    return { s, fish };
+  }
+
+  it('a strike that misses wastes venom and adds a cooldown penalty', () => {
+    const s = createHunt(CATALYST, 9);
+    const events = stepHunt(s, { ...NO_INPUT, primary: true, aim: { x: 0, y: 0 } }, DT);
+    expect(events.some((e) => e.type === 'strike-miss')).toBe(true);
+    expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
+    expect(s.venom.cooldowns.primary).toBeGreaterThan(2);
+    expect(s.stats.strikesMissed).toBe(1);
   });
 
-  it('engulfing without any venom never wins', () => {
-    const s = play(11, (st) => ({ ...atlasBot(st), primary: false, secondary: false }));
-    expect(s.outcome).toBe('lost');
+  it('a hit immobilizes and tethers exactly one fish', () => {
+    const { s, fish } = setup(100);
+    stepHunt(s, { ...NO_INPUT, primary: true, aim: fish.pos }, DT);
+    expect(s.tether?.fishId).toBe(fish.id);
+    expect(fish.neural).toBeGreaterThan(0.9);
+    expect(s.fish.filter((f) => f.tethered)).toHaveLength(1);
+  });
+
+  it('Motor Lock and Reel In need a tethered fish (no venom spent otherwise)', () => {
+    const s = createHunt(CATALYST, 9);
+    expect(stepHunt(s, { ...NO_INPUT, secondary: true }, DT)).toContainEqual({
+      type: 'denied',
+      slot: 'secondary',
+      reason: 'no-target',
+    });
+    expect(s.venom.reserve).toBe(TUNING.venom.max);
+  });
+
+  const reelFrom = (distance: number, lock: boolean) => {
+    const { s, fish } = setup(distance);
+    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
+    if (lock) stepHunt(s, { ...NO_INPUT, secondary: true }, DT);
+    stepHunt(s, { ...NO_INPUT, capture: true }, DT);
+    for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
+    return s;
+  };
+
+  it('a long-range strike escapes without Motor Lock (the tether breaks)', () => {
+    const s = reelFrom(160, false);
+    expect(s.captured).toBe(0);
+    expect(s.stats.tethersBroken).toBe(1);
+  });
+
+  it('the same strike is captured with Motor Lock', () => {
+    expect(reelFrom(160, true).captured).toBe(1);
+  });
+
+  it('wins every hunt with Lightning Strike → Motor Lock → Reel In', () => {
+    expect(wins(SEEDS.map((seed) => play(CATALYST, seed, catalystBot())))).toBe(SEEDS.length);
+  });
+});
+
+describe('Nightshade (escape dampening + insulin + net)', () => {
+  it('Ghost Signal lowers escape responsiveness', () => {
+    const s = createHunt(NIGHTSHADE, 3);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + 120, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
+    for (let i = 0; i < 60; i++) stepHunt(s, NO_INPUT, DT);
+    expect(fish.responsiveness).toBeLessThan(0.8);
+  });
+
+  it('wins most hunts with Ghost Signal → Silent Tide → Phantom Net', () => {
+    expect(
+      wins(SEEDS.map((seed) => play(NIGHTSHADE, seed, nightshadeBot()))),
+    ).toBeGreaterThanOrEqual(6);
+  });
+
+  it('either cloud alone is not enough (the combo is complementary)', () => {
+    expect(wins(SEEDS.map((seed) => play(NIGHTSHADE, seed, nightshadeBot(true, false))))).toBe(0);
+    expect(wins(SEEDS.map((seed) => play(NIGHTSHADE, seed, nightshadeBot(false, true))))).toBe(0);
   });
 });

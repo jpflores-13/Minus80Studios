@@ -1,13 +1,19 @@
 import { TUNING } from '../config/tuning';
-import { approach, length, normalize, type Vec2 } from '../utils/math';
+import { approach, clamp, length, normalize, type Vec2 } from '../utils/math';
 import type { Rng } from '../utils/rng';
 import { shouldFlee, stepAwareness } from './escape';
 import { stepMetabolic, swimPerformance, type MetabolicState } from './metabolic';
+import { isImmobilized, stepNeural, type NeuralState } from './neural';
 
-export type FishMode = 'roaming' | 'alert' | 'fleeing' | 'impaired' | 'captured';
+export type FishMode =
+  'roaming' | 'alert' | 'fleeing' | 'impaired' | 'immobilized' | 'tethered' | 'captured';
 
-/** One fish: physical state plus bounded physiological state variables (all 0–1). */
-export interface Fish extends MetabolicState {
+/**
+ * One fish: physical state plus bounded physiological state variables (all 0–1).
+ * Three modules act on it: metabolic (glucose), neural (immobilization), and
+ * escape (awareness × responsiveness).
+ */
+export interface Fish extends MetabolicState, NeuralState {
   id: number;
   school: number;
   pos: Vec2;
@@ -17,6 +23,7 @@ export interface Fish extends MetabolicState {
   awareness: number;
   /** 1 = normal escape responsiveness; lowered by escape-dampening abilities. */
   responsiveness: number;
+  tethered: boolean;
   mode: FishMode;
 }
 
@@ -39,18 +46,31 @@ export function createFish(id: number, school: number, pos: Vec2, rng: Rng): Fis
     glucose: 1,
     insulin: 0,
     override: 0,
+    neural: 0,
+    lock: 0,
+    tethered: false,
     mode: 'roaming',
   };
 }
 
-/** Capture vulnerability (0–1). Currently driven by metabolic state; neural effects will add to it later. */
-export function vulnerability(fish: Fish): number {
-  return 1 - fish.glucose;
+/**
+ * Capture vulnerability (0–1+). Metabolic impairment always counts; `unawareBonus`
+ * lets stealth hunters exploit fish that are both unaware and have dampened escape responses.
+ */
+export function vulnerability(fish: Fish, unawareBonus = 0): number {
+  return 1 - fish.glucose + unawareBonus * (1 - fish.awareness) * (1 - fish.responsiveness);
+}
+
+/** Reduce escape responsiveness (bounded below). */
+export function dampen(fish: Fish, dose: number): void {
+  const p = TUNING.escape;
+  fish.responsiveness = clamp(fish.responsiveness - dose, p.minResponsiveness, 1);
 }
 
 /**
  * Advance one fish by dt: physiology, awareness, mode transitions, and steering.
  * Steering = wander + schooling + edge avoidance, or flee directly away from the snail.
+ * Tethered fish are moved by the hunt (reel), not by their own steering.
  */
 export function stepFish(
   fish: Fish,
@@ -63,14 +83,16 @@ export function stepFish(
 ): void {
   if (fish.mode === 'captured') return;
   const p = TUNING.fish;
+  const esc = TUNING.escape;
 
   stepMetabolic(fish, dt);
-  fish.responsiveness = Math.min(1, fish.responsiveness + 0.1 * dt);
+  stepNeural(fish, dt);
+  fish.responsiveness = Math.min(1, fish.responsiveness + esc.responsivenessRecovery * dt);
 
   const toSnail = { x: snailPos.x - fish.pos.x, y: snailPos.y - fish.pos.y };
   const dist = length(toSnail);
-  // Low glucose dulls reactions as well as swimming.
-  const alertness = 0.3 + 0.7 * fish.glucose;
+  // Low glucose and neural impairment both dull reactions.
+  const alertness = (0.3 + 0.7 * fish.glucose) * (1 - fish.neural);
   fish.awareness = stepAwareness(
     fish.awareness,
     dist,
@@ -80,18 +102,27 @@ export function stepFish(
     dt,
   );
 
-  const fleeing = shouldFlee(fish.awareness, fish.mode === 'fleeing');
-  fish.mode = fleeing
-    ? 'fleeing'
-    : fish.glucose < TUNING.metabolic.impairedBelow
-      ? 'impaired'
-      : fish.awareness > TUNING.escape.alertAbove
-        ? 'alert'
-        : 'roaming';
+  const immobile = isImmobilized(fish);
+  const fleeing =
+    !immobile && !fish.tethered && shouldFlee(fish.awareness, fish.mode === 'fleeing');
+  fish.mode = fish.tethered
+    ? 'tethered'
+    : immobile
+      ? 'immobilized'
+      : fleeing
+        ? 'fleeing'
+        : fish.glucose < TUNING.metabolic.impairedBelow
+          ? 'impaired'
+          : fish.awareness > esc.alertAbove
+            ? 'alert'
+            : 'roaming';
+  if (fish.tethered) return;
 
-  const performance = swimPerformance(fish.glucose);
+  const performance = swimPerformance(fish.glucose) * (1 - fish.neural);
   let desired: Vec2;
-  if (fleeing) {
+  if (immobile) {
+    desired = { x: 0, y: 0 };
+  } else if (fleeing) {
     const away = normalize({ x: -toSnail.x, y: -toSnail.y });
     desired = scale(away, fish.baseSpeed * performance * p.fleeSpeedMultiplier);
   } else {
@@ -99,7 +130,7 @@ export function stepFish(
     let dir = { x: Math.cos(fish.heading), y: Math.sin(fish.heading) };
     dir = add(dir, schoolingSteer(fish, school));
     dir = add(dir, edgeSteer(fish.pos, arena));
-    // Alert fish hold still-ish and face away; impaired fish drift slowly.
+    // Alert fish slow down and watch; impaired fish drift slowly.
     const speedFactor = fish.mode === 'alert' ? 0.5 : 1;
     desired = scale(normalize(dir), fish.baseSpeed * performance * speedFactor);
   }

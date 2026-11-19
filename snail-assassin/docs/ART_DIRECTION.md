@@ -18,7 +18,8 @@ All pixel art renders with nearest-neighbour filtering (`pixelArt: true`).
 ## Palette (`src/config/gameConfig.ts`, character palettes in `src/characters/*.ts`)
 
 Navy `#06192b`, deep `#0a2a3f`, sand `#cdb58a`, coral `#e0715a`, seagrass `#4f8a4a`.
-Atlas: shell `#e9dcc0`, pattern `#1f6f78`, accent `#5fd3c6`. Catalyst (amber/brown) and Nightshade (violet/lavender) to come.
+Atlas: shell `#e9dcc0`, pattern `#1f6f78`, accent `#5fd3c6`. Catalyst: shell `#d9a441`, bands `#5a3416`, accent `#ffd36b` (angular bands). Nightshade: shell `#e8d9f0`, streaks `#7a4fa0`, accent `#c9a2ff` (soft streaks).
+Cloud patterns: insulin = dots, override = crosses, escape-dampening = rippling rings. Fish icons add `x` (immobilized) and `z` (dampened).
 
 ## Principles
 

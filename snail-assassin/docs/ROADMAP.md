@@ -4,7 +4,14 @@
 
 Tooling, CI, scenes, movable placeholder snail.
 
-## v0.2: Vertical slice of the core loop
+## ✅ v0.3: All three assassins, select, tutorials, ending, audio (Milestones 3–6, most of 7)
+
+- [ ] Human playtest of all three characters (target 2–3 min per hunt)
+- [ ] Expert review of SCIENCE.md and the ending text; Catalyst/Nightshade evidence rows
+- [ ] Licensed species photographs for the reveal
+- [ ] Touch controls for the hunt
+
+## v0.2: Vertical slice of the core loop (done)
 
 - [ ] One prey type with simple wandering AI
 - [ ] Prey awareness / detection system (pure, tested, tunable)

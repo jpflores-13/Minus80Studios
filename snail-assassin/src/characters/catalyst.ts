@@ -1,0 +1,61 @@
+import type { CharacterConfig } from './types';
+
+/**
+ * CATALYST — Conus catus. Fictional character; real species.
+ * Hunting style inspired by the fast radular harpoon strike and tether
+ * (docs/SCIENCE.md). No specific toxin is named in-game until expert review.
+ * All numbers are gameplay balancing values.
+ */
+export const CATALYST: CharacterConfig = {
+  id: 'catalyst',
+  name: 'CATALYST',
+  species: 'Conus catus',
+  commonName: 'Cat cone',
+  title: 'The Hitman',
+  tagline: 'One target. One opportunity. Make it count.',
+  personality: 'Calculated, efficient, decisive.',
+  specialization: 'Rapid neural disruption',
+  snailSpeed: 50,
+  palette: {
+    shell: 0xd9a441,
+    pattern: 0x5a3416,
+    body: 0xb7795a,
+    accent: 0xffd36b,
+    cloud: 0xffd36b,
+    ui: '#ffd36b',
+  },
+  abilities: {
+    primary: {
+      kind: 'strike',
+      label: 'Lightning Strike',
+      blurb: 'Fire the venom harpoon at one fish. It stops swimming at once. Misses waste venom.',
+      cost: 30,
+      cooldown: 2,
+      range: 170,
+      aimTolerance: 34,
+      missPenalty: 2,
+    },
+    secondary: {
+      kind: 'lock',
+      label: 'Motor Lock',
+      blurb: 'Keep the struck fish from recovering, so you have time to reel it in.',
+      cost: 20,
+      cooldown: 4,
+      potency: 1,
+    },
+    capture: {
+      kind: 'reel',
+      label: 'Reel In',
+      blurb: 'Retract the tether and pull the struck fish into your mouth.',
+      cost: 0,
+      cooldown: 0.5,
+      reelSpeed: 60,
+      captureRadius: 24,
+      tetherLength: 230,
+    },
+  },
+  combo: 'Lightning Strike → Motor Lock → Reel In',
+  strengths: ['Immediate effects', 'Precision', 'Straightforward'],
+  weaknesses: ['Single target', 'Misses waste venom', 'Limited range'],
+  attributes: { speed: 3, range: 3, burst: 5, area: 1, stealth: 3 },
+};

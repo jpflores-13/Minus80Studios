@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
+import { sound } from '../audio/Sound';
+import { settings, updateSettings } from '../config/settings';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
-/** Overlay shown while the hunt is paused. Esc resumes, R restarts, T returns to title. */
+/** Overlay shown while the hunt is paused. */
 export class PauseScene extends Phaser.Scene {
   constructor() {
     super('Pause');
@@ -9,26 +11,54 @@ export class PauseScene extends Phaser.Scene {
 
   create(data: { characterId: string }): void {
     const { width, height } = this.scale;
-    this.add.rectangle(0, 0, width, height, 0x000000, 0.6).setOrigin(0);
-    addCenteredText(this, height * 0.4, 'PAUSED', TEXT_STYLES.title);
-    addCenteredText(
-      this,
-      height * 0.55,
-      'Esc  resume    ·    R  restart    ·    T  title',
-      TEXT_STYLES.body,
-    );
+    this.add.rectangle(0, 0, width, height, 0x000000, 0.65).setOrigin(0);
+    addCenteredText(this, height * 0.3, 'PAUSED', TEXT_STYLES.title);
+    const options = addCenteredText(this, height * 0.52, '', {
+      ...TEXT_STYLES.body,
+      align: 'center',
+      lineSpacing: 10,
+    });
+    const render = () =>
+      options.setText(
+        [
+          'Esc  resume',
+          'R  restart hunt',
+          'C  choose another assassin',
+          'T  title screen',
+          `M  sound: ${settings().muted ? 'off' : 'on'}    − / +  volume ${Math.round(settings().volume * 100)}%`,
+          `V  effects: ${settings().reducedEffects ? 'reduced' : 'full'}`,
+        ].join('\n'),
+      );
+    render();
 
     const kb = this.input.keyboard;
-    const close = (next?: () => void) => {
+    const close = (next: () => void) => {
       kb?.removeAllListeners();
       this.scene.stop();
-      next?.();
+      next();
     };
+    const hunt = () => this.scene.get('Hunt').scene;
     kb?.on('keydown-ESC', () => close(() => this.scene.resume('Hunt')));
-    kb?.on('keydown-R', () =>
-      close(() => this.scene.get('Hunt').scene.restart({ characterId: data.characterId })),
+    kb?.on('keydown-R', () => close(() => hunt().restart({ characterId: data.characterId })));
+    kb?.on('keydown-C', () =>
+      close(() => hunt().start('Select', { mode: 'hunt', characterId: data.characterId })),
     );
-    kb?.on('keydown-T', () => close(() => this.scene.get('Hunt').scene.start('Title')));
+    kb?.on('keydown-T', () => close(() => hunt().start('Title')));
+    kb?.on('keydown-M', () => {
+      sound.toggleMute();
+      render();
+    });
+    const vol = (d: number) => {
+      sound.setVolume(settings().volume + d);
+      render();
+    };
+    kb?.on('keydown-MINUS', () => vol(-0.1));
+    kb?.on('keydown-PLUS', () => vol(0.1));
+    kb?.on('keydown-EQUALS', () => vol(0.1));
+    kb?.on('keydown-V', () => {
+      updateSettings({ reducedEffects: !settings().reducedEffects });
+      render();
+    });
     this.input.once('pointerdown', () => close(() => this.scene.resume('Hunt')));
   }
 }
