@@ -1,0 +1,14 @@
+{
+  "folders": [
+    { "name": "🏛  studio", "path": "studio" },
+    { "name": "🐌 snail-assassin", "path": "snail-assassin" },
+    { "name": "🌊 downstream", "path": "downstream" }
+  ],
+  "settings": {
+    "files.exclude": { "**/node_modules": true, "**/dist": true },
+    "search.exclude": { "**/node_modules": true, "**/dist": true, "**/package-lock.json": true }
+  },
+  "extensions": {
+    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "vitest.explorer"]
+  }
+}
