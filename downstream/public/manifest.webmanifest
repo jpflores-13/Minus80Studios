@@ -1,0 +1,19 @@
+{
+  "name": "Downstream!",
+  "short_name": "Downstream!",
+  "description": "A -80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1d3b2c",
+  "theme_color": "#1d3b2c",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

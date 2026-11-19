@@ -1,0 +1,19 @@
+{
+  "name": "Snail Assassin",
+  "short_name": "Snail Assassin",
+  "description": "A -80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#06192b",
+  "theme_color": "#06192b",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

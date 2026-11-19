@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { toggleFullscreen } from '../ui/fullscreen';
 import { sound } from '../audio/Sound';
 import { PALETTE, PIXEL } from '../config/gameConfig';
 import { isUnlocked, progress, saveProgress } from '../config/progress';
@@ -55,9 +56,17 @@ export class TitleScene extends Phaser.Scene {
         label: () => `EFFECTS: ${progress().reducedEffects ? 'REDUCED' : 'FULL'}`,
         action: () => saveProgress({ reducedEffects: !progress().reducedEffects }),
       },
+      ...(this.sys.game.device.fullscreen.available
+        ? [
+            {
+              label: () => (this.scale.isFullscreen ? 'EXIT FULL SCREEN' : 'FULL SCREEN'),
+              action: () => toggleFullscreen(this),
+            },
+          ]
+        : []),
     ];
     this.items = menu.map((item, i) => {
-      const text = addCenteredText(this, height * 0.5 + i * 44, '', {
+      const text = addCenteredText(this, height * 0.47 + i * 40, '', {
         ...TEXT_STYLES.body,
         backgroundColor: '#2d2a26aa',
         padding: { x: 12, y: 4 },

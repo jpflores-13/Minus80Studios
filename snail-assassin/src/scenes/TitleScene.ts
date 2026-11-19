@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { toggleFullscreen } from '../ui/fullscreen';
 import { sound } from '../audio/Sound';
 import { settings, updateSettings } from '../config/settings';
 import { PIXEL } from '../config/gameConfig';
@@ -72,6 +73,14 @@ export class TitleScene extends Phaser.Scene {
         label: () => `EFFECTS: ${settings().reducedEffects ? 'REDUCED' : 'FULL'}`,
         action: () => updateSettings({ reducedEffects: !settings().reducedEffects }),
       },
+      ...(this.sys.game.device.fullscreen.available
+        ? [
+            {
+              label: () => (this.scale.isFullscreen ? 'EXIT FULL SCREEN' : 'FULL SCREEN'),
+              action: () => toggleFullscreen(this),
+            },
+          ]
+        : []),
     ];
     this.items = menu.map((item, i) => {
       const text = addCenteredText(

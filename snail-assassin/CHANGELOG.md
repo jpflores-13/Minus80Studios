@@ -4,6 +4,12 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added (Android and tablets)
+
+- FULL SCREEN option on the title menu where the browser supports it (Android, tablets, desktop), which
+  also locks phones to landscape.
+- Web app manifest, so "Add to Home screen" opens the game full screen and sideways.
+
 ### Added
 
 - HOME buttons on the hunt, select, results, and pause screens.
