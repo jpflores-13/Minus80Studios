@@ -86,7 +86,8 @@ export class MapView {
   }
 
   sourceAt(x: number, y: number): PollutionSource | undefined {
-    return this.level.sources.find((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 50);
+    // Generous: anywhere on the buildings or their name label counts.
+    return this.level.sources.find((s) => Math.hypot(s.pos.x - x, s.pos.y - y) < 70);
   }
 
   hotspotAt(x: number, y: number): Hotspot | undefined {

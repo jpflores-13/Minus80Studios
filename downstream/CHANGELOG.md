@@ -4,6 +4,16 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Fixed
+
+- Tapping a place always shows what it is (before, it only did when the GPS tool wasn't selected), and the
+  tap area is much bigger.
+
+### Added
+
+- Place info cards explain each kind of place in plain words, plus a map key and "Tap a place to learn about it"
+  hints until you've tapped one.
+
 ### Added (Android and tablets)
 
 - FULL SCREEN option on the title menu where the browser supports it (Android, tablets, desktop), which

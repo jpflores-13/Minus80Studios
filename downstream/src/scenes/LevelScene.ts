@@ -82,6 +82,8 @@ export class LevelScene extends Phaser.Scene {
   private ended = false;
   private briefing: Phaser.GameObjects.Container | null = null;
   private scoutPanel!: Phaser.GameObjects.Text;
+  private hintLabel!: Phaser.GameObjects.Text;
+  private inspected = new Set<string>();
   private hintFx!: Phaser.GameObjects.Graphics;
 
   private header!: Phaser.GameObjects.Text;
@@ -117,6 +119,7 @@ export class LevelScene extends Phaser.Scene {
     this.fast = false;
     this.ended = false;
     this.cards.clear();
+    this.inspected = new Set();
 
     this.map = new MapView(this, this.level);
     this.buildTopBar();
@@ -315,9 +318,11 @@ export class LevelScene extends Phaser.Scene {
         if (slot && this.dep[slot.id] && this.phase === 'flow')
           return this.say(REJECT['wrong-phase']);
         const src = this.map.sourceAt(x, y);
-        if (src && this.selected === 'gps') return this.releaseGps(src);
-        if (src) this.showInspect(src);
-        else this.inspect.setVisible(false);
+        if (src) {
+          this.showInspect(src);
+          if (this.selected === 'gps') this.releaseGps(src);
+          return;
+        } else this.inspect.setVisible(false);
       },
     );
 
@@ -437,34 +442,50 @@ export class LevelScene extends Phaser.Scene {
     const gps = this.level.inventory.gps ?? 0;
     const steps = [
       'SCOUTING',
-      gps > 0
-        ? `1. Tap a neighbourhood to drop a pink GPS bottle (you have ${gps}). Its trail shows where that area’s litter goes when it rains.`
-        : '1. Tap a neighbourhood to see how much litter it makes.',
-      '2. Tap other neighbourhoods to compare how much litter they make.',
-      '3. Ready? Press PLAN DEPLOYMENT to place your equipment.',
+      '1. Tap a place on the map (homes, shops, a school…) to see what it is, how much litter it drops, and where its rainwater goes.',
+      ...(gps > 0
+        ? [
+            `2. Each tap also drops a pink GPS bottle while you have them (${gps} left). Its trail shows where that place’s litter travels when it rains.`,
+          ]
+        : []),
+      `${gps > 0 ? 3 : 2}. Map key: dotted lines = where rainwater drains into the creek. Outlined boxes = spots for equipment.`,
+      `${gps > 0 ? 4 : 3}. Ready? Press PLAN DEPLOYMENT.`,
     ];
     this.scoutPanel = this.add
       .text(16, 74, steps.join('\n'), {
         ...TEXT_STYLES.small,
         fontSize: '15px',
         lineSpacing: 3,
-        wordWrap: { width: 520 },
+        wordWrap: { width: 540 },
       })
       .setDepth(44)
       .setBackgroundColor('#f4ead2ee')
       .setPadding(10, 8, 10, 8);
     this.hintFx = this.add.graphics().setDepth(43);
+    this.hintLabel = this.add
+      .text(0, 0, 'Tap a place to learn about it', TEXT_STYLES.label)
+      .setOrigin(0.5)
+      .setDepth(45)
+      .setBackgroundColor('#2d2a26dd')
+      .setPadding(6, 3, 6, 3)
+      .setVisible(false);
   }
 
   private drawScoutHints(time: number): void {
     const scouting = this.phase === 'investigate' && !this.briefing;
     this.scoutPanel.setVisible(scouting);
     this.hintFx.clear();
-    if (!scouting || (this.used.gps ?? 0) > 0 || this.selected !== 'gps') return;
+    // Pulse every place until the player has tapped one.
+    const showHint = scouting && this.inspected.size === 0;
+    this.hintLabel.setVisible(showHint);
+    if (!showHint) return;
     const pulse = 0.5 + 0.5 * Math.sin(time / 200);
-    this.hintFx.lineStyle(3, PALETTE.gpsPink, 0.4 + 0.6 * pulse);
+    const color = this.selected === 'gps' ? PALETTE.gpsPink : PALETTE.cream;
+    this.hintFx.lineStyle(3, color, 0.4 + 0.6 * pulse);
     for (const src of this.level.sources)
       this.hintFx.strokeCircle(src.pos.x, src.pos.y, 44 + pulse * 6);
+    const first = this.level.sources[0];
+    if (first) this.hintLabel.setPosition(first.pos.x, first.pos.y + 62);
   }
 
   // Briefing
@@ -486,6 +507,7 @@ export class LevelScene extends Phaser.Scene {
       `Goal: keep at least ${Math.round(this.level.target * 100)}% of the litter out of the ocean.`,
       this.forecastSummary(),
       '',
+      'First, scout: tap places on the map to learn what they are and where their litter goes.',
       'Tap, click, or press ENTER to start scouting',
     ];
     const text = this.add
@@ -691,7 +713,7 @@ export class LevelScene extends Phaser.Scene {
     } else {
       this.status.setText(
         this.phase === 'investigate'
-          ? 'Scout the watershed: inspect neighbourhoods and release GPS bottles.'
+          ? 'Scouting: tap places on the map to learn about them. With the GPS tool, each tap also drops a bottle.'
           : 'Place your equipment, then release the flow.',
       );
       this.progressFill.width = 0;
@@ -706,13 +728,14 @@ export class LevelScene extends Phaser.Scene {
 
   // Qualitative info only, so players reason about it rather than calculate.
   private showInspect(src: PollutionSource): void {
-    const amount = src.rate >= 0.55 ? 'High' : src.rate >= 0.4 ? 'Medium' : 'Low';
+    this.inspected.add(src.id);
+    const amount = src.rate >= 0.55 ? 'a lot' : src.rate >= 0.4 ? 'a medium amount' : 'a little';
     const rain =
       src.runoffResponse >= 0.85
-        ? 'a lot (paved)'
+        ? 'almost all of it (paved)'
         : src.runoffResponse >= 0.55
-          ? 'somewhat'
-          : 'a little';
+          ? 'a good share'
+          : 'only some (the ground soaks up rain)';
     const seg = this.level.segments.find((s) => s.id === src.entry.segmentId);
     const frac = seg ? src.entry.s / segmentLength(seg) : 0;
     const where =
@@ -721,14 +744,37 @@ export class LevelScene extends Phaser.Scene {
         : frac < 0.33
           ? 'upstream'
           : 'mid-stream';
+    const spots = this.level.slots
+      .filter((sl) => sl.sourceId === src.id)
+      .map((sl) => (sl.kind === 'bin' ? 'trash bin' : 'storm drain filter'));
+    const lines = [
+      src.label.toUpperCase(),
+      PLACE_DESCRIPTIONS[src.look],
+      `Litter dropped: ${amount}`,
+      `Washed off when it rains: ${rain}`,
+      `Its rainwater drains into the water ${where} (follow the dotted line)`,
+      spots.length > 0
+        ? `Equipment spots here: ${spots.join(', ')}`
+        : 'No equipment spots right here',
+    ];
     this.inspect
-      .setText(
-        `${src.label}\nLitter: ${amount}\nWashes off in the rain: ${rain}\nDrains into the water ${where}`,
-      )
-      .setPosition(Math.min(src.pos.x + 40, this.scale.width - 320), Math.max(src.pos.y - 30, 70))
+      .setText(lines.join('\n'))
+      .setWordWrapWidth(360)
+      .setPosition(Math.min(src.pos.x + 40, this.scale.width - 400), Math.max(src.pos.y - 30, 70))
       .setVisible(true);
   }
 }
+
+// What each kind of place is, in a sentence. Matches the litter mix in tuning.ts.
+const PLACE_DESCRIPTIONS: Record<PollutionSource['look'], string> = {
+  houses: 'Homes. A steady trickle of everyday litter.',
+  store: 'A shop. Bottles, bags and wrappers.',
+  school: 'A school. Balls and toys along with the usual litter.',
+  park: 'A park. Balls and toys, and grass that soaks up some of the rain.',
+  apartments: 'Apartment blocks. Lots of people, lots of litter.',
+  lot: 'A big parking lot. All pavement, so rain sweeps it clean.',
+  market: 'A market. Bottles, bags and wrappers.',
+};
 
 function clock(seconds: number): string {
   return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
