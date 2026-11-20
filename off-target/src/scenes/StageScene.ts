@@ -10,6 +10,7 @@ import { stageOf, timeLeft } from '../systems/boss';
 import { createGame, stepGame, type GameEvent, type GameState } from '../systems/game';
 import { TILE, type Tile } from '../systems/tilemap';
 import { announce } from '../ui/announce';
+import { TEXT_STYLES } from '../ui/text';
 
 export interface StageData {
   stageId: string;
@@ -58,6 +59,8 @@ export class StageScene extends Phaser.Scene {
   private fx!: Phaser.GameObjects.Graphics;
   private ending = false;
   private lastCountdown = new Map<number, number>();
+  private banner!: Phaser.GameObjects.Text;
+  private bannerSub!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Stage');
@@ -153,16 +156,46 @@ export class StageScene extends Phaser.Scene {
     this.fx = this.add.graphics().setDepth(12);
     this.cameras.main.startFollow(this.player, true, 0.15, 0.15, 0, 0);
 
+    const { width: viewW, height: viewH } = this.scale;
+    this.banner = this.add
+      .text(viewW / 2, viewH * 0.3, '', { ...TEXT_STYLES.title, align: 'center' })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(60)
+      .setAlpha(0);
+    this.bannerSub = this.add
+      .text(viewW / 2, viewH * 0.3 + 56, '', {
+        ...TEXT_STYLES.body,
+        align: 'center',
+        wordWrap: { width: viewW * 0.8 },
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(60)
+      .setAlpha(0);
+
     this.scene.launch('Hud', { stage: this });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scene.stop('Hud');
       sound.setUrgency(1);
     });
     sound.playSong('stage');
+    this.flashBanner(`STAGE ${stage.number}\n${stage.name.toUpperCase()}`, stage.intro.join(' '));
     const offTarget = this.game$.bosses.filter((b) => b.config.role === 'off-target');
     announce(
-      `Stage ${stage.number}: ${stage.name}. Playing as ${this.game$.hero.name}. ${offTarget.length === 1 ? 'One machine is' : `${offTarget.length} machines are`} at the wrong target. Move right, press jump to jump, and use your power when you are next to it.`,
+      `Stage ${stage.number}: ${stage.name}. ${stage.intro.join(' ')} Playing as ${this.game$.hero.name}. ${offTarget.length === 1 ? 'One machine is' : `${offTarget.length} machines are`} at the wrong target. Move right, press jump to jump, and use your power when you are next to it.`,
     );
+  }
+
+  private flashBanner(text: string, sub = ''): void {
+    this.banner.setText(text).setAlpha(1);
+    this.bannerSub.setText(sub).setAlpha(sub ? 1 : 0);
+    this.tweens.add({
+      targets: sub ? [this.banner, this.bannerSub] : [this.banner],
+      alpha: 0,
+      delay: 4200,
+      duration: 700,
+    });
   }
 
   private drawBackground(w: number, h: number): void {
