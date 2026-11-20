@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+- A "DID YOU KNOW?" science reveal with checked citations on cohesin loop extrusion, CTCF loop-anchor
+  orientation, and direct biochemical observation of cohesin extruding DNA, reachable from the title screen.
+
 ## 0.1.0 (Phase 1 prototype)
 
 - The Folder: independent left/right ends on an ordered corridor pathway, anchors, lifetime, cooldown,

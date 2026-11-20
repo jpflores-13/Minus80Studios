@@ -18,13 +18,15 @@ _Distance is your greatest weapon._ A stealth-action puzzle game from
   cases block your path but not a guard's view. Guards plan routes through open folds too.
 - **The job**: grab the diamond, then reach the van before the escape clock runs out. Optional loot adds
   to the score. Up to three stars, local high scores.
+- A "DID YOU KNOW?" science reveal naming the Folder's hidden basis (cohesin loop extrusion, CTCF loop
+  anchors) with checked citations, reachable from the title screen at any time.
 - Opening scene, title, settings, results, keyboard, gamepad and touch controls.
 
 ## Not built yet (next phases)
 
-Jobs 2–7, the remaining crew (FLASH, ANCHOR, PHANTOM, ARCHITECT), directional security gates and
-multiple simultaneous Folders, upgrades, achievements, the scientific reveal, The Perfect Crime
-challenge mode, and the optional Science Mode.
+Jobs 2–7, the remaining crew (FLASH, ANCHOR, PHANTOM, ARCHITECT) and a select screen for them, directional
+security gates and multiple simultaneous Folders, upgrades, achievements, The Perfect Crime challenge mode,
+and the optional Science Mode.
 
 ## Quick start
 
