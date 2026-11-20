@@ -110,7 +110,9 @@ export class LevelScene extends Phaser.Scene {
       kb.on('keydown-SPACE', () => (this.bitePressed = true));
       kb.on('keydown-E', () => (this.bitePressed = true));
       kb.on('keydown-Q', () => (this.sniffPressed = true));
+      kb.on('keydown-C', () => (this.sniffPressed = true));
       kb.on('keydown-X', () => (this.specialPressed = true));
+      kb.on('keydown-V', () => (this.specialPressed = true));
       kb.on('keydown-ESC', () => this.pause());
       kb.on('keydown-P', () => this.pause());
       kb.on('keydown-R', () => this.scene.restart({ levelId: this.levelId }));

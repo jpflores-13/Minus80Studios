@@ -115,6 +115,7 @@ export class JobScene extends Phaser.Scene {
         this.keys[n] = kb.addKey(c, true);
       kb.on('keydown-SPACE', () => (this.foldPressed = true));
       kb.on('keydown-ESC', () => this.pause());
+      kb.on('keydown-P', () => this.pause());
       kb.on('keydown-R', () => this.scene.restart({ jobId: this.jobId }));
     }
     this.scene.launch('Hud', { job: this });
