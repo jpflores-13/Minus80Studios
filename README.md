@@ -7,11 +7,12 @@
 | [`studio/`](studio/)                 | Studio vision, development playbook, game catalog, roadmap, branding                           | —        |
 | [`snail-assassin/`](snail-assassin/) | **Snail Assassin**: underwater stealth hunting as venomous cone snails                         | 8081     |
 | [`downstream/`](downstream/)         | **Downstream!**: a watershed strategy puzzle about stopping litter before it reaches the ocean | 8082     |
+| [`shortcut/`](shortcut/)             | **SHORTCUT.**: a cozy puzzle about connecting a city with temporary shortcuts                  | 8083     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 
 ```bash
-cd snail-assassin   # or downstream
+cd snail-assassin   # or downstream, shortcut
 npm install
 npm run dev         # play locally
 npm run check       # typecheck, lint, format, tests

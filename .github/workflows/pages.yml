@@ -28,12 +28,16 @@ jobs:
       - name: Build Downstream!
         working-directory: downstream
         run: npm ci && npx vite build
+      - name: Build SHORTCUT.
+        working-directory: shortcut
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
           cp site/index.html _site/
           cp -r snail-assassin/dist _site/snail-assassin
           cp -r downstream/dist _site/downstream
+          cp -r shortcut/dist _site/shortcut
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site

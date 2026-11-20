@@ -1,0 +1,65 @@
+import type { LevelConfig } from './types';
+
+// Two neighbourhoods. Shortcuts should stay inside their own district.
+export const level3: LevelConfig = {
+  id: 'level-3',
+  number: 3,
+  name: 'Good Neighbors',
+  tagline: 'Bread for the Café, power for the Factory, and no mix-ups.',
+  intro: [
+    'Ferngate has grown into two districts. Old Town has a Bakery and a Café. The Works has a Power Plant and a Factory.',
+    'Each district has its own depot. Left alone, the machines stretch across the border, and you get shortcuts from the Bakery to the Factory. That helps nobody.',
+    'You have six checkpoints. Keep each district’s shortcuts at home, and keep both the Café and the Factory running.',
+    'Mix-ups are shortcuts that join the two districts. Checkpoints leak now and then, so spare ones might be worth guarding the border with.',
+  ],
+  hint: 'Keep shortcuts inside their district. Mix-ups count against you.',
+  bins: 36,
+  durationSeconds: 60,
+  buildings: [
+    {
+      id: 'bakery',
+      name: 'Bakery',
+      kind: 'bakery',
+      role: 'supplier',
+      resource: 'bread',
+      bin: 3,
+      active: true,
+    },
+    {
+      id: 'cafe',
+      name: 'Café',
+      kind: 'cafe',
+      role: 'consumer',
+      resource: 'bread',
+      bin: 14,
+      active: true,
+    },
+    {
+      id: 'plant',
+      name: 'Power Plant',
+      kind: 'plant',
+      role: 'supplier',
+      resource: 'power',
+      bin: 21,
+      active: true,
+    },
+    {
+      id: 'factory',
+      name: 'Factory',
+      kind: 'factory',
+      role: 'consumer',
+      resource: 'power',
+      bin: 32,
+      active: true,
+    },
+  ],
+  districts: [
+    { id: 'old-town', name: 'Old Town', from: 0, to: 17 },
+    { id: 'works', name: 'The Works', from: 18, to: 35 },
+  ],
+  fixedDepots: [9, 27],
+  fixedCheckpoints: [],
+  tools: { depots: 0, checkpoints: 6 },
+  engine: { fleet: 4, lifetimeMean: 20 },
+  goal: { metric: 'service', one: 0.4, two: 0.55, three: 0.7, maxMixups: 0.25 },
+};
