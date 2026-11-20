@@ -9,6 +9,7 @@
 | [`downstream/`](downstream/)         | **Downstream!**: a watershed strategy puzzle about stopping litter before it reaches the ocean | 8082     |
 | [`shortcut/`](shortcut/)             | **SHORTCUT.**: a cozy puzzle about connecting a city with temporary shortcuts                  | 8083     |
 | [`off-target/`](off-target/)         | **OFF TARGET.**: a retro arcade rescue platformer                                              | 8084     |
+| [`dr-anti-crispr/`](dr-anti-crispr/) | **DR. ANTI-CRISPR**: a portrait arcade survival shooter                                        | 8085     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 

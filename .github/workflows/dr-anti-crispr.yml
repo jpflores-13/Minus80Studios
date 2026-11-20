@@ -1,0 +1,37 @@
+name: dr-anti-crispr CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['dr-anti-crispr/**', '.github/workflows/dr-anti-crispr.yml']
+  pull_request:
+    paths: ['dr-anti-crispr/**', '.github/workflows/dr-anti-crispr.yml']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: dr-anti-crispr
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: dr-anti-crispr/.node-version
+          cache: npm
+          cache-dependency-path: dr-anti-crispr/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npx vite build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dr-anti-crispr-web-build
+          path: dr-anti-crispr/dist/
+          retention-days: 14

@@ -34,6 +34,9 @@ jobs:
       - name: Build OFF TARGET.
         working-directory: off-target
         run: npm ci && npx vite build
+      - name: Build DR. ANTI-CRISPR
+        working-directory: dr-anti-crispr
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -42,6 +45,7 @@ jobs:
           cp -r downstream/dist _site/downstream
           cp -r shortcut/dist _site/shortcut
           cp -r off-target/dist _site/off-target
+          cp -r dr-anti-crispr/dist _site/dr-anti-crispr
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
