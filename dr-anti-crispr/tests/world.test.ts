@@ -56,6 +56,48 @@ describe('compatibility table', () => {
   });
 });
 
+describe('the hero wraps around the arena', () => {
+  it('drifting past the left wall brings you back on the right, and vice versa', () => {
+    const w = quiet();
+    w.equipped = [];
+    w.hero.x = FIELD.wall + 25;
+    stepWorld(w, { ...NO_INPUT, dx: -1 }, 0.3);
+    expect(w.hero.x).toBeGreaterThan(FIELD.w / 2);
+    w.hero.x = FIELD.w - FIELD.wall - 25;
+    stepWorld(w, { ...NO_INPUT, dx: 1 }, 0.3);
+    expect(w.hero.x).toBeLessThan(FIELD.w / 2);
+  });
+
+  it('drifting past the top or bottom loops to the other edge, same as Snail Assassin’s reef', () => {
+    const w = quiet();
+    w.equipped = [];
+    w.hero.y = FIELD.top + 41;
+    stepWorld(w, { ...NO_INPUT, dy: -1 }, 0.3);
+    expect(w.hero.y).toBeGreaterThan((FIELD.top + FIELD.h) / 2);
+    w.hero.y = FIELD.h - 61;
+    stepWorld(w, { ...NO_INPUT, dy: 1 }, 0.3);
+    expect(w.hero.y).toBeLessThan((FIELD.top + FIELD.h) / 2);
+  });
+
+  it('never gets stuck at an edge: nothing clamps the hero in place', () => {
+    const w = quiet();
+    w.equipped = [];
+    const starts = [
+      { x: FIELD.wall, y: 400 },
+      { x: FIELD.w - FIELD.wall, y: 400 },
+      { x: 360, y: FIELD.top },
+      { x: 360, y: FIELD.h },
+    ];
+    for (const s of starts) {
+      w.hero.x = s.x;
+      w.hero.y = s.y;
+      stepWorld(w, { ...NO_INPUT, dx: 1, dy: 1 }, 1 / 60);
+      expect(Number.isFinite(w.hero.x)).toBe(true);
+      expect(Number.isFinite(w.hero.y)).toBe(true);
+    }
+  });
+});
+
 describe('enemies', () => {
   it('Cutters move toward the hero', () => {
     const w = quiet();

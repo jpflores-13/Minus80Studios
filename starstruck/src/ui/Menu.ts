@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { announce } from './announce';
 import { Button } from './Button';
+import { TEXT_STYLES } from './text';
 
 export interface MenuItem {
   label: () => string;
@@ -12,12 +13,14 @@ export interface MenuItem {
 
 /**
  * A vertical list of big buttons. Arrow keys or d-pad move, Enter/Space/A choose, Esc goes back.
- * Touch and mouse work directly. Everything is announced for screen readers.
+ * Touch and mouse work directly. The focused item's help text is both spoken (for screen readers)
+ * and shown on screen below the list, so sighted desktop players can read the controls too.
  */
 export class Menu {
   private buttons: Button[] = [];
   private index = 0;
   private padPrev = { up: false, down: false, a: false, b: false };
+  private helpText: Phaser.GameObjects.Text;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -34,6 +37,13 @@ export class Menu {
       b.bg.on('pointerover', () => this.focus(i, false));
       return b;
     });
+    this.helpText = scene.add
+      .text(x, y + items.length * gap + 28, '', {
+        ...TEXT_STYLES.hint,
+        align: 'center',
+        wordWrap: { width: Math.max(w + 160, scene.scale.width * 0.7) },
+      })
+      .setOrigin(0.5, 0);
     const kb = scene.input.keyboard;
     kb?.on('keydown', (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 's') this.focus(this.index + 1);
@@ -67,6 +77,7 @@ export class Menu {
     this.index = ((i % n) + n) % n;
     this.buttons.forEach((b, j) => b.setFocus(j === this.index));
     const item = this.items[this.index];
+    this.helpText.setText(item?.help ?? '');
     if (item && speak)
       announce(`${item.label()}${item.help ? `. ${item.help}` : ''}, ${this.index + 1} of ${n}`);
   }
@@ -78,6 +89,7 @@ export class Menu {
       b.setText(item.label());
       b.setEnabled(!item.enabled || item.enabled());
     });
+    this.helpText.setText(this.items[this.index]?.help ?? '');
   }
 
   private choose(i: number): void {

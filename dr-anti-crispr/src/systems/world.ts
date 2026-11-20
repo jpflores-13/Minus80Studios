@@ -397,8 +397,10 @@ function moveHero(w: World, input: Input, dt: number): void {
       h.y += (input.dy / Math.max(1, len)) * speed * dt;
     }
   }
-  h.x = clamp(h.x, FIELD.wall + 24, FIELD.w - FIELD.wall - 24);
-  h.y = clamp(h.y, FIELD.top + 40, FIELD.h - 60);
+  // The cell has no corners to get trapped in: drift past an edge and you loop around to the
+  // other side, the same wraparound arena as Snail Assassin's reef.
+  h.x = wrapRange(h.x, FIELD.wall + 24, FIELD.w - FIELD.wall - 24);
+  h.y = wrapRange(h.y, FIELD.top + 40, FIELD.h - 60);
   // obstacles push you aside
   for (const o of w.obstacles.live()) {
     const d = Math.hypot(h.x - o.x, h.y - o.y);
@@ -895,6 +897,12 @@ function stepSpecials(w: World, input: Input, ev: WorldEvent[], dt: number): voi
 
 function clamp(x: number, a: number, b: number): number {
   return Math.min(b, Math.max(a, x));
+}
+
+/** Wraps x into [a, b), looping past one edge to come out the other. */
+function wrapRange(x: number, a: number, b: number): number {
+  const size = b - a;
+  return a + ((((x - a) % size) + size) % size);
 }
 
 /** Final score with a breakdown, for the results screen. */
