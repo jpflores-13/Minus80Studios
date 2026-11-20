@@ -6,7 +6,7 @@
     <title>Minus 80 Studios</title>
     <meta
       name="description"
-      content="Short games inspired by real science. Play Snail Assassin, Downstream! and SHORTCUT. in your browser."
+      content="Short games inspired by real science. Play Snail Assassin, Downstream!, SHORTCUT., OFF TARGET. and DR. ANTI-CRISPR in your browser."
     />
     <style>
       * {
@@ -96,6 +96,14 @@
       a.game.cream .play {
         background: #44586b;
         color: #fbf6ea;
+      }
+      a.game.violet {
+        border-color: #f2b632;
+        background: #161235;
+      }
+      a.game.violet .play {
+        background: #f2b632;
+        color: #0d0a1f;
       }
       a.game svg {
         display: block;
@@ -481,6 +489,128 @@
           <p class="how" id="short-how">
             Plays on computers (mouse or keyboard) and on iPhone, iPad, and Android (touch).
             Turn phones sideways.
+          </p>
+          <span class="play" aria-hidden="true">Play</span>
+        </div>
+      </a>
+      <a
+        class="game violet"
+        href="./off-target/"
+        aria-labelledby="off-title"
+        aria-describedby="off-desc off-how"
+      >
+        <!-- Platform scene: a little golden hero running toward a big cutting machine and a DNA strand -->
+        <svg
+          viewBox="0 0 160 90"
+          shape-rendering="crispEdges"
+          role="img"
+          aria-label="Pixel art: a small golden hero runs and jumps across purple platforms toward a big magenta machine about to cut a strand of DNA, with a countdown overhead"
+        >
+          <rect width="160" height="90" fill="#0d0a1f" />
+          <rect y="80" width="160" height="10" fill="#5a3f8f" />
+          <rect y="80" width="160" height="2" fill="#8a6cc4" />
+          <rect x="40" y="60" width="26" height="5" fill="#5a3f8f" />
+          <rect x="40" y="60" width="26" height="1" fill="#8a6cc4" />
+          <!-- spikes -->
+          <polygon points="72,80 75,74 78,80 81,74 84,80" fill="#d6334a" />
+          <!-- ladder (filament) -->
+          <g fill="#9be08a">
+            <rect x="30" y="62" width="2" height="2" /><rect x="30" y="68" width="2" height="2" /><rect x="30" y="74" width="2" height="2" />
+            <rect x="33" y="65" width="2" height="2" /><rect x="33" y="71" width="2" height="2" /><rect x="33" y="77" width="2" height="2" />
+          </g>
+          <!-- the hero, mid-jump -->
+          <g transform="translate(50 46)">
+            <rect x="1" y="0" width="8" height="7" fill="#f2b632" />
+            <rect x="2" y="2" width="6" height="4" fill="#2b2050" />
+            <rect x="3" y="3" width="1" height="1" fill="#9ff0d0" /><rect x="6" y="4" width="1" height="1" fill="#9ff0d0" />
+            <rect x="4" y="7" width="2" height="2" fill="#e39a3b" />
+            <rect x="1" y="9" width="2" height="1" fill="#f4f0ff" /><rect x="7" y="9" width="2" height="1" fill="#f4f0ff" />
+          </g>
+          <!-- CHOP and GENE -->
+          <g transform="translate(108 52)">
+            <rect x="0" y="4" width="34" height="20" rx="4" fill="#b23a6b" />
+            <rect x="5" y="9" width="6" height="5" fill="#f4f0ff" /><rect x="22" y="9" width="6" height="5" fill="#f4f0ff" />
+            <rect x="8" y="11" width="3" height="3" fill="#080614" /><rect x="22" y="11" width="3" height="3" fill="#080614" />
+            <polygon points="12,24 16,24 13,30" fill="#d8d8e8" /><polygon points="18,24 22,24 21,30" fill="#d8d8e8" />
+          </g>
+          <ellipse cx="102" cy="44" rx="5" ry="3" fill="#ffa64d" />
+          <g>
+            <rect x="110" y="76" width="3" height="2" fill="#58c4f0" /><rect x="116" y="74" width="3" height="2" fill="#f06c9b" />
+            <rect x="122" y="76" width="3" height="2" fill="#58c4f0" /><rect x="128" y="74" width="3" height="2" fill="#f06c9b" />
+            <rect x="134" y="76" width="3" height="2" fill="#58c4f0" />
+          </g>
+          <!-- countdown -->
+          <rect x="96" y="8" width="56" height="7" fill="#2a1b4d" stroke="#f2b632" stroke-width="1" />
+          <rect x="97" y="10" width="38" height="3" fill="#d6334a" />
+          <rect x="8" y="8" width="5" height="5" fill="#f2b632" /><rect x="15" y="8" width="5" height="5" fill="#f2b632" /><rect x="22" y="8" width="5" height="5" fill="#3a3050" />
+        </svg>
+        <div class="info">
+          <h2 id="off-title"><span class="sr-only">Play </span>OFF TARGET.</h2>
+          <p id="off-desc">
+            Every second counts. Run, jump and climb across a microscopic world to stop a giant
+            cutting machine before it hits the wrong target.
+          </p>
+          <p class="how" id="off-how">
+            Plays on computers (keyboard or gamepad) and on iPhone, iPad, and Android (touch).
+            Turn phones sideways.
+          </p>
+          <span class="play" aria-hidden="true">Play</span>
+        </div>
+      </a>
+
+      <a
+        class="game violet"
+        href="./dr-anti-crispr/"
+        aria-labelledby="dac-title"
+        aria-describedby="dac-desc dac-how"
+      >
+        <!-- Shooter scene: a phage hero at the bottom firing turquoise shots at red and violet machines -->
+        <svg
+          viewBox="0 0 160 90"
+          shape-rendering="crispEdges"
+          role="img"
+          aria-label="Pixel art: a golden phage hero at the bottom of a dark purple cell fires turquoise shots at waves of red and violet machines; one machine wears a padlock"
+        >
+          <rect width="160" height="90" fill="#161235" />
+          <rect width="6" height="90" fill="#3d2a6e" /><rect x="154" width="6" height="90" fill="#3d2a6e" />
+          <g fill="#8a6cc4">
+            <circle cx="6" cy="10" r="2" /><circle cx="6" cy="30" r="2" /><circle cx="6" cy="50" r="2" /><circle cx="6" cy="70" r="2" />
+            <circle cx="154" cy="20" r="2" /><circle cx="154" cy="40" r="2" /><circle cx="154" cy="60" r="2" /><circle cx="154" cy="80" r="2" />
+          </g>
+          <circle cx="40" cy="30" r="6" fill="none" stroke="#3a5f9f" stroke-width="1.5" />
+          <!-- machines -->
+          <g transform="translate(50 10)"><ellipse cx="6" cy="5" rx="6" ry="5" fill="#d6334a" /><polygon points="2,9 5,9 2,13" fill="#e8e8f4" /><polygon points="7,9 10,9 10,13" fill="#e8e8f4" /></g>
+          <g transform="translate(96 16)"><ellipse cx="6" cy="5" rx="6" ry="5" fill="#d6334a" /><polygon points="2,9 5,9 2,13" fill="#e8e8f4" /><polygon points="7,9 10,9 10,13" fill="#e8e8f4" /></g>
+          <g transform="translate(118 6)"><circle cx="5" cy="5" r="5" fill="#9b4fd6" /><rect x="3" y="3" width="4" height="4" fill="#f4f0ff" /><rect x="4" y="4" width="2" height="2" fill="#d6334a" /></g>
+          <g transform="translate(72 30)">
+            <ellipse cx="6" cy="5" rx="6" ry="5" fill="#8f8fa8" />
+            <rect x="3" y="-5" width="6" height="5" fill="#9ff0d0" /><rect x="4" y="-8" width="4" height="4" fill="none" stroke="#9ff0d0" stroke-width="1" />
+          </g>
+          <!-- shots -->
+          <g fill="#4fe0c0">
+            <rect x="78" y="44" width="3" height="4" /><rect x="72" y="56" width="3" height="4" /><rect x="88" y="52" width="3" height="4" /><rect x="96" y="34" width="3" height="4" />
+          </g>
+          <!-- the doctor -->
+          <g transform="translate(73 64)">
+            <polygon points="3,0 11,0 14,4 14,9 11,12 3,12 0,9 0,4" fill="#3a2a6e" stroke="#f2b632" stroke-width="1" />
+            <path d="M3 4 q2 2 4 0 t4 0 M3 8 q2 2 4 0 t4 0" stroke="#9ff0d0" stroke-width="1" fill="none" />
+            <rect x="5" y="12" width="4" height="7" fill="#f2b632" />
+            <rect x="-3" y="13" width="4" height="3" fill="#4fe0c0" /><rect x="13" y="13" width="4" height="3" fill="#4fe0c0" />
+            <path d="M5 19 L1 25 M9 19 L13 25" stroke="#f4f0ff" stroke-width="1" />
+          </g>
+          <!-- genome integrity bar -->
+          <rect x="10" y="4" width="34" height="4" fill="#2a1b4d" stroke="#f2b632" stroke-width="0.6" />
+          <rect x="11" y="5" width="26" height="2" fill="#9ff0d0" />
+        </svg>
+        <div class="info">
+          <h2 id="dac-title"><span class="sr-only">Play </span>DR. ANTI-CRISPR</h2>
+          <p id="dac-desc">
+            One phage. An entire army. Dodge, upgrade and call in reinforcements as wave after
+            wave of cutting machines come for your genome.
+          </p>
+          <p class="how" id="dac-how">
+            Made for phones held upright (drag to move). Also plays on computers with the keyboard
+            or a gamepad.
           </p>
           <span class="play" aria-hidden="true">Play</span>
         </div>
