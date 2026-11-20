@@ -1,9 +1,11 @@
+import type { CharacterId } from '../content/characters';
 import { prefersReducedMotion } from '../utils/accessibility';
 
 // Saved in this browser only; every access is wrapped because storage can be blocked.
 
 export interface Progress {
   best: Record<string, { score: number; stars: number }>;
+  character: CharacterId;
   volume: number;
   muted: boolean;
   music: boolean;
@@ -27,6 +29,7 @@ export function progress(): Progress {
   if (cached) return cached;
   cached = {
     best: {},
+    character: 'diggy',
     volume: 0.7,
     muted: false,
     music: true,
