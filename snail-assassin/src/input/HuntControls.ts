@@ -1,19 +1,33 @@
 import Phaser from 'phaser';
+import { settings } from '../config/settings';
 import type { HuntInput } from '../systems/hunt';
 import { directionFromKeys } from '../systems/movement';
 
-// Keyboard and mouse. Touch is handled by TouchControls and merged on top.
+// Keyboard and mouse, using the player's chosen keys (Settings > Controls).
+// Arrow keys always move too. Touch is handled by TouchControls and merged on top.
 export class HuntControls {
   private readonly keys: Record<string, Phaser.Input.Keyboard.Key> = {};
 
   constructor(private readonly scene: Phaser.Scene) {
     const kb = scene.input.keyboard;
-    if (kb) {
-      this.keys = kb.addKeys('W,A,S,D,UP,DOWN,LEFT,RIGHT,Q,E,SPACE') as Record<
-        string,
-        Phaser.Input.Keyboard.Key
-      >;
-    }
+    if (!kb) return;
+    const map = settings().keys;
+    const add = (name: string, code: string) => {
+      const keyCode =
+        Phaser.Input.Keyboard.KeyCodes[code as keyof typeof Phaser.Input.Keyboard.KeyCodes];
+      if (keyCode !== undefined) this.keys[name] = kb.addKey(keyCode);
+    };
+    add('up', map.up);
+    add('down', map.down);
+    add('left', map.left);
+    add('right', map.right);
+    add('primary', map.primary);
+    add('secondary', map.secondary);
+    add('capture', map.capture);
+    add('arrowUp', 'UP');
+    add('arrowDown', 'DOWN');
+    add('arrowLeft', 'LEFT');
+    add('arrowRight', 'RIGHT');
   }
 
   read(): HuntInput {
@@ -26,15 +40,15 @@ export class HuntControls {
     const pointer = this.scene.input.activePointer;
     return {
       move: directionFromKeys(
-        down('A', 'LEFT'),
-        down('D', 'RIGHT'),
-        down('W', 'UP'),
-        down('S', 'DOWN'),
+        down('left', 'arrowLeft'),
+        down('right', 'arrowRight'),
+        down('up', 'arrowUp'),
+        down('down', 'arrowDown'),
       ),
       aim: { x: pointer.worldX, y: pointer.worldY },
-      primary: pressed('Q'),
-      secondary: pressed('E'),
-      capture: pressed('SPACE'),
+      primary: pressed('primary'),
+      secondary: pressed('secondary'),
+      capture: pressed('capture'),
     };
   }
 }

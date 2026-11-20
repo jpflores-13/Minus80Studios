@@ -5,6 +5,7 @@ import type { Attributes, CharacterConfig } from '../characters/types';
 import { PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 export interface SelectData {
@@ -130,6 +131,24 @@ export class SelectScene extends Phaser.Scene {
         ...wrap,
       })
       .setOrigin(0.5, 0);
+    if (settings().largeText) {
+      // Compact card for large text: names only. Full ability text is read aloud and on the hunt's help card.
+      const compact = txt(
+        250,
+        [
+          ...(Object.keys(KEYS) as (keyof typeof KEYS)[]).map(
+            (slot) => `[${KEYS[slot]}] ${c.abilities[slot].label}`,
+          ),
+          '',
+          `+ ${c.strengths.join(', ')}`,
+          `− ${c.weaknesses.join(', ')}`,
+        ].join('\n'),
+        { ...TEXT_STYLES.small, fontSize: '15px', lineSpacing: 4 },
+      );
+      container.add([frame, portrait, name, sub, tagline, compact]);
+      return container;
+    }
+
     const personality = txt(240, c.personality, { ...TEXT_STYLES.small, color: '#9fc0c8' });
 
     const abilityLines = (Object.keys(KEYS) as (keyof typeof KEYS)[])
@@ -174,6 +193,15 @@ export class SelectScene extends Phaser.Scene {
   }
 
   private highlight(): void {
+    const c = CHARACTERS[this.index];
+    if (c) {
+      const abilities = (['primary', 'secondary', 'capture'] as const)
+        .map((slot) => `${c.abilities[slot].label}: ${c.abilities[slot].blurb}`)
+        .join(' ');
+      announce(
+        `${c.name}, ${c.title}, ${c.species}. ${c.tagline} ${c.personality} ${abilities} Press Enter to choose. ${this.index + 1} of ${CHARACTERS.length}.`,
+      );
+    }
     this.cards.forEach((card, i) => {
       const active = i === this.index;
       card.setAlpha(active ? 1 : 0.55);

@@ -3,12 +3,15 @@ import type { CharacterConfig } from '../characters/types';
 import { TUNING } from '../config/tuning';
 import type { HuntState } from '../systems/hunt';
 import type { AbilitySlot } from '../systems/venom';
+import { settings } from '../config/settings';
+import { announce } from './announce';
 import { TEXT_STYLES } from './text';
 
-const SLOTS: { slot: AbilitySlot; key: string }[] = [
-  { slot: 'primary', key: 'Q' },
-  { slot: 'secondary', key: 'E' },
-  { slot: 'capture', key: 'SPACE' },
+const label = (name: string) => ({ SPACE: 'SPACE', ESC: 'ESC' })[name] ?? name;
+const SLOTS: { slot: AbilitySlot; key: () => string }[] = [
+  { slot: 'primary', key: () => label(settings().keys.primary) },
+  { slot: 'secondary', key: () => label(settings().keys.secondary) },
+  { slot: 'capture', key: () => label(settings().keys.capture) },
 ];
 
 type Tutorial = { primary: boolean; secondary: boolean; capture: boolean } | null;
@@ -41,7 +44,9 @@ export class Hud {
       .setBackgroundColor('#06192bcc')
       .setPadding(10, 6, 10, 6);
 
-    const barY = height - 112;
+    // Large text needs more room at the bottom.
+    const lift = settings().largeText ? 26 : 0;
+    const barY = height - 112 - lift;
     scene.add
       .rectangle(width / 2 - 200, barY, 400, 14, 0x000000, 0.45)
       .setOrigin(0, 0.5)
@@ -57,7 +62,7 @@ export class Hud {
     SLOTS.forEach((_, i) => {
       this.abilityTexts.push(
         scene.add
-          .text(width / 2 + (i - 1) * 230, height - 84, '', {
+          .text(width / 2 + (i - 1) * 230, height - 84 - lift, '', {
             ...TEXT_STYLES.small,
             align: 'center',
           })
@@ -82,10 +87,14 @@ export class Hud {
     this.objective.setText(
       `${this.character.name}   OBJECTIVE  Capture ${target} fish   ${pips}  ${state.captured}/${target}`,
     );
-    const left = Math.max(0, TUNING.hunt.timeLimitSeconds - state.time);
-    this.timer.setText(
-      `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`,
-    );
+    if (state.options.relaxed) {
+      this.timer.setText('no time limit');
+    } else {
+      const left = Math.max(0, TUNING.hunt.timeLimitSeconds - state.time);
+      this.timer.setText(
+        `${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`,
+      );
+    }
 
     const v = state.venom;
     this.venomBar.width = 400 * (v.reserve / v.max);
@@ -107,13 +116,13 @@ export class Hud {
                 ? 'REELING…'
                 : 'READY';
       const t = this.abilityTexts[i];
-      t?.setText(`[${key}] ${a.label}\n${a.cost > 0 ? `${a.cost} venom` : 'free'}\n${status}`);
+      t?.setText(`[${key()}] ${a.label}\n${a.cost > 0 ? `${a.cost} venom` : 'free'}\n${status}`);
       t?.setAlpha(status === 'READY' ? 1 : 0.55);
     });
 
     if (tutorial) {
       const step = (done: boolean, s: AbilitySlot, verb: string) =>
-        `${done ? '☑' : '☐'} ${verb} [${SLOTS.find((x) => x.slot === s)?.key}] ${this.character.abilities[s].label}`;
+        `${done ? '☑' : '☐'} ${verb} [${SLOTS.find((x) => x.slot === s)?.key()}] ${this.character.abilities[s].label}`;
       this.checklist
         .setText(
           [
@@ -130,6 +139,7 @@ export class Hud {
   }
 
   say(message: string, ms = 1800): void {
+    announce(message);
     this.toast.setText(message);
     this.toastUntil = this.scene.time.now + ms;
   }

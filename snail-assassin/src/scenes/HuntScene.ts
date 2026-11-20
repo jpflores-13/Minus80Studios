@@ -4,11 +4,14 @@ import { getCharacter } from '../characters';
 import type { CharacterConfig } from '../characters/types';
 import { PIXEL } from '../config/gameConfig';
 import { markOnce, settings } from '../config/settings';
+import { TUNING } from '../config/tuning';
 import { Reef } from '../entities/Reef';
 import { HuntControls } from '../input/HuntControls';
 import { TouchControls } from '../input/TouchControls';
+import { applyAssist } from '../systems/assist';
 import { createHunt, isCatchable, stepHunt, type HuntEvent, type HuntState } from '../systems/hunt';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { Hud } from '../ui/Hud';
 import { TEXT_STYLES } from '../ui/text';
 
@@ -17,7 +20,16 @@ export interface HuntSceneData {
   seed?: number;
 }
 
-const SLOT_KEYS = { primary: 'Q', secondary: 'E', capture: 'SPACE' } as const;
+// The player's chosen keys, shown in the help text.
+const slotKeys = () => {
+  const k = settings().keys;
+  return {
+    primary: keyLabel(k.primary),
+    secondary: keyLabel(k.secondary),
+    capture: keyLabel(k.capture),
+  };
+};
+const keyLabel = (name: string) => ({ SPACE: 'Space', ESC: 'Esc' })[name] ?? name;
 const CLOUD_COLORS = { override: 0xe9dcc0 } as const;
 
 // Reads input, steps the hunt, draws the result. Rules live in systems/hunt.ts.
@@ -53,10 +65,12 @@ export class HuntScene extends Phaser.Scene {
     this.character = getCharacter(data.characterId ?? 'atlas');
     this.pitch = CHARACTER_PITCH[this.character.id] ?? 1;
     const seed = data.seed ?? Math.floor(Math.random() * 1e9);
-    this.state = createHunt(this.character, seed, {
-      width: this.scale.width,
-      height: this.scale.height,
-    });
+    this.state = createHunt(
+      this.character,
+      seed,
+      { width: this.scale.width, height: this.scale.height },
+      { relaxed: settings().relaxed },
+    );
     this.ended = false;
     this.flashes = [];
     this.fishSprites.clear();
@@ -106,7 +120,11 @@ export class HuntScene extends Phaser.Scene {
       this.character.palette.accent,
     );
     const o = this.state.predator;
-    this.octopus = this.add.image(o.pos.x, o.pos.y, 'octopus').setScale(PIXEL).setDepth(11);
+    this.octopus = this.add
+      .image(o.pos.x, o.pos.y, 'octopus')
+      .setScale(PIXEL)
+      .setDepth(11)
+      .setVisible(!settings().relaxed);
     this.octopusIcon = this.add
       .text(o.pos.x, o.pos.y, '', { ...TEXT_STYLES.hud, color: '#ffb3c1' })
       .setOrigin(0.5)
@@ -130,12 +148,22 @@ export class HuntScene extends Phaser.Scene {
       .setBackgroundColor('#06192be6')
       .setPadding(16, 12, 16, 12);
     this.time.delayedCall(14000, () => this.helpCard.setVisible(false));
+    announce(
+      `Hunt started as ${this.character.name}. Capture ${TUNING.hunt.objectiveCaptures} fish. ${this.helpText()}`,
+    );
 
     const kb = this.input.keyboard;
-    kb?.on('keydown-ESC', () => this.pauseHunt());
-    kb?.on('keydown-R', () => this.scene.restart({ characterId: this.character.id }));
-    kb?.on('keydown-H', () => this.helpCard.setVisible(!this.helpCard.visible));
-    kb?.on('keydown-M', () => this.hud.say(sound.toggleMute() ? 'Sound off' : 'Sound on'));
+    const mapped = Object.values(settings().keys);
+    const bind = (key: string, fn: () => void) => {
+      if (!mapped.includes(key)) kb?.on(`keydown-${key}`, fn);
+    };
+    kb?.on(`keydown-${settings().keys.pause}`, () => this.pauseHunt());
+    bind('R', () => this.scene.restart({ characterId: this.character.id }));
+    bind('H', () => {
+      this.helpCard.setVisible(!this.helpCard.visible);
+      if (this.helpCard.visible) announce(this.helpText());
+    });
+    bind('M', () => this.hud.say(sound.toggleMute() ? 'Sound off' : 'Sound on'));
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       kb?.removeAllListeners();
       sound.stopAmbience();
@@ -157,8 +185,13 @@ export class HuntScene extends Phaser.Scene {
     const dt = Math.min(deltaMs / 1000, 0.1);
     this.touch?.update();
     const keyboard = this.controls.read();
-    const input = this.touch ? this.touch.apply(keyboard) : keyboard;
+    const raw = this.touch ? this.touch.apply(keyboard) : keyboard;
+    const input = settings().assist ? applyAssist(this.state, raw) : raw;
+    const before = this.state.captured;
     const events = stepHunt(this.state, input, dt);
+    if (this.state.captured > before) {
+      announce(`${this.state.captured} of ${TUNING.hunt.objectiveCaptures} fish captured.`);
+    }
     for (const e of events) this.react(e);
     this.reef.update(time, dt);
     this.draw(time);
@@ -167,9 +200,9 @@ export class HuntScene extends Phaser.Scene {
 
   private helpText(): string {
     const c = this.character;
-    const lines = (Object.keys(SLOT_KEYS) as (keyof typeof SLOT_KEYS)[]).map(
+    const lines = (['primary', 'secondary', 'capture'] as const).map(
       (slot, i) =>
-        `${i + 1}  [${SLOT_KEYS[slot]}] ${c.abilities[slot].label}: ${c.abilities[slot].blurb}`,
+        `${i + 1}  [${slotKeys()[slot]}] ${c.abilities[slot].label}: ${c.abilities[slot].blurb}`,
     );
     return [
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
@@ -177,8 +210,14 @@ export class HuntScene extends Phaser.Scene {
       'Watch out for the octopus: it spots you when you move. Hold still to hide.',
       this.touch
         ? 'Touch: use MOVE (bottom left) or press and hold on the reef to crawl there · quick tap to aim · buttons on the right'
-        : 'Move WASD / arrows · aim with the mouse · Pause Esc · Restart R · Help H · Mute M',
-    ].join('\n');
+        : `Move ${['up', 'left', 'down', 'right'].map((a) => keyLabel(settings().keys[a as 'up'])).join('')} / arrows · aim with the mouse · Pause ${keyLabel(settings().keys.pause)} · Restart R · Help H · Mute M`,
+      settings().relaxed ? 'Relaxed mode: no timer, and the octopus won’t grab you.' : '',
+      settings().assist
+        ? 'Assist is on: abilities aim themselves and capture happens on its own.'
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n');
   }
 
   private sfx(name: SfxName): void {
@@ -258,6 +297,7 @@ export class HuntScene extends Phaser.Scene {
         );
         break;
       case 'predator-chase':
+        if (this.state.options.relaxed) break;
         this.sfx('warn');
         this.hud.say('An octopus spotted you! Hold still or get away.', 2500);
         break;

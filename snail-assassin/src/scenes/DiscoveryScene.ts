@@ -11,6 +11,7 @@ import {
   MEDICINE,
   REVIEW_STATUS,
 } from '../content/science';
+import { announce } from '../ui/announce';
 import { Button } from '../ui/Button';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -56,6 +57,11 @@ export class DiscoveryScene extends Phaser.Scene {
     kb?.on('keydown-ENTER', () => this.next());
     kb?.on('keydown-RIGHT', () => this.next());
     kb?.on('keydown-ESC', () => this.show(STEPS.length - 1));
+    kb?.on('keydown', (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (STEPS[this.step] === 'more' && n >= 1 && n <= this.buttons.length)
+        this.buttons[n - 1]?.press();
+    });
     this.input.on('pointerdown', (_p: Phaser.Input.Pointer, over: unknown[]) => {
       if (over.length === 0) this.next();
     });
@@ -66,6 +72,18 @@ export class DiscoveryScene extends Phaser.Scene {
     sound.unlock();
     sound.play('reveal');
     this.show(0);
+  }
+
+  private announceStep(step: Step): void {
+    const texts = this.layer.list
+      .filter((o): o is Phaser.GameObjects.Text => o instanceof Phaser.GameObjects.Text)
+      .map((t) => t.text.trim())
+      .filter(Boolean);
+    const options =
+      step === 'more'
+        ? ' Options: ' + this.buttons.map((b) => b.label.text.replace(/\s+/g, ' ')).join('. ') + '.'
+        : ' Press Space to continue.';
+    announce(texts.join('. ') + options);
   }
 
   private next(): void {
@@ -81,7 +99,12 @@ export class DiscoveryScene extends Phaser.Scene {
     const step = STEPS[i]!;
     this.cameras.main.fadeIn(450);
     this[step]();
-    if (step === 'more') markOnce('seenDiscovery', this.character.id);
+    if (step === 'more') {
+      markOnce('seenDiscovery', this.character.id);
+      // Number the buttons so they work from the keyboard too.
+      this.buttons.forEach((b, n) => b.label.setText(`${n + 1}  ${b.label.text}`));
+    }
+    this.announceStep(step);
     // Gentle auto-advance keeps the whole sequence to roughly 20–30 s.
     const holds: Record<Step, number> = {
       reveal: 2600,
@@ -90,7 +113,9 @@ export class DiscoveryScene extends Phaser.Scene {
       medicine: 9000,
       more: 0,
     };
-    if (holds[step] > 0) this.autoTimer = this.time.delayedCall(holds[step], () => this.next());
+    // Relaxed mode: no auto-advance; move on with Space or a tap.
+    if (holds[step] > 0 && !settings().relaxed)
+      this.autoTimer = this.time.delayedCall(holds[step], () => this.next());
   }
 
   private text(

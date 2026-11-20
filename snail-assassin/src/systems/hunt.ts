@@ -57,6 +57,7 @@ export interface HuntState {
   captured: number;
   capturedIds: number[];
   stats: HuntStats;
+  options: HuntOptions;
   outcome: 'playing' | 'won' | 'lost';
   nextId: number;
 }
@@ -94,10 +95,16 @@ export const NO_INPUT: HuntInput = {
   capture: false,
 };
 
+export interface HuntOptions {
+  /** Relaxed mode: no time limit, and the octopus never grabs. */
+  relaxed: boolean;
+}
+
 export function createHunt(
   character: CharacterConfig,
   seed: number,
   arena: Arena = { width: 1280, height: 720 },
+  options: HuntOptions = { relaxed: false },
 ): HuntState {
   const rng = createRng(seed);
   const fish: Fish[] = [];
@@ -135,6 +142,7 @@ export function createHunt(
     capturedIds: [],
     stats: { abilitiesUsed: 0, strikesHit: 0, strikesMissed: 0, tethersBroken: 0, timesGrabbed: 0 },
     outcome: 'playing',
+    options,
     nextId: 1,
   };
 }
@@ -209,7 +217,8 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   const o = state.predator;
   const wasChasing = o.mode === 'chase';
   const snailMotionNow = length(snail.vel) / state.character.snailSpeed;
-  if (stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt)) {
+  const grabbed = stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt);
+  if (grabbed && !state.options.relaxed) {
     snail.stunned = TUNING.predator.stunSeconds;
     snail.vel = { x: 0, y: 0 };
     state.venom.reserve = Math.max(0, state.venom.reserve - TUNING.predator.venomLost);
@@ -223,7 +232,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   if (state.captured >= TUNING.hunt.objectiveCaptures) {
     state.outcome = 'won';
     events.push({ type: 'won' });
-  } else if (state.time >= TUNING.hunt.timeLimitSeconds) {
+  } else if (!state.options.relaxed && state.time >= TUNING.hunt.timeLimitSeconds) {
     state.outcome = 'lost';
     events.push({ type: 'lost' });
   }

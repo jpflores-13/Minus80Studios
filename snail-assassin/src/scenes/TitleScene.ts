@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { toggleFullscreen } from '../ui/fullscreen';
 import { sound } from '../audio/Sound';
-import { settings, updateSettings } from '../config/settings';
+import { settings } from '../config/settings';
 import { PIXEL } from '../config/gameConfig';
 import { CHARACTERS } from '../characters';
 import { Reef } from '../entities/Reef';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface MenuItem {
@@ -64,15 +65,7 @@ export class TitleScene extends Phaser.Scene {
     const menu: MenuItem[] = [
       { label: () => 'HUNT', action: () => this.go('Select', { mode: 'hunt' }) },
       { label: () => 'DID YOU KNOW?', action: () => this.go('Select', { mode: 'science' }) },
-      {
-        label: () =>
-          `SOUND: ${settings().muted ? 'OFF' : `${Math.round(settings().volume * 100)}%`}   (M to mute, − / + volume)`,
-        action: () => sound.toggleMute(),
-      },
-      {
-        label: () => `EFFECTS: ${settings().reducedEffects ? 'REDUCED' : 'FULL'}`,
-        action: () => updateSettings({ reducedEffects: !settings().reducedEffects }),
-      },
+      { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.go('Settings', {}) },
       ...(this.sys.game.device.fullscreen.available
         ? [
             {
@@ -134,6 +127,8 @@ export class TitleScene extends Phaser.Scene {
     const n = this.items.length;
     this.index = (i + n) % n;
     this.refresh();
+    const item = this.items[this.index]?.item;
+    if (item) announce(`${item.label()}, ${this.index + 1} of ${n}`);
   }
 
   private refresh(): void {

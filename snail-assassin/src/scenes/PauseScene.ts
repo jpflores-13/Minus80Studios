@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { settings, updateSettings } from '../config/settings';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 /** Overlay shown while the hunt is paused. */
@@ -31,6 +32,7 @@ export class PauseScene extends Phaser.Scene {
         ].join('\n'),
       );
     render();
+    announce(`Paused. ${options.text.replace(/\n/g, '. ')}`);
 
     const kb = this.input.keyboard;
     const close = (next: () => void) => {

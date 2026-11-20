@@ -6,6 +6,7 @@ import { TEXT_STYLES } from './text';
 export class Button {
   readonly bg: Phaser.GameObjects.Rectangle;
   readonly label: Phaser.GameObjects.Text;
+  readonly press: () => void;
 
   constructor(
     scene: Phaser.Scene,
@@ -28,11 +29,12 @@ export class Button {
       .setDepth(201);
     this.bg.on('pointerover', () => this.bg.setFillStyle(accent, 0.25));
     this.bg.on('pointerout', () => this.bg.setFillStyle(0x06192b, 0.85));
-    this.bg.on('pointerup', () => {
+    this.press = () => {
       sound.unlock();
       sound.play('select');
       onClick();
-    });
+    };
+    this.bg.on('pointerup', this.press);
   }
 
   setVisible(v: boolean): this {

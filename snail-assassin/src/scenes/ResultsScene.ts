@@ -4,6 +4,7 @@ import { PALETTE, PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
 import { TUNING } from '../config/tuning';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 export interface ResultsData {
@@ -73,6 +74,13 @@ export class ResultsScene extends Phaser.Scene {
       c.palette.accent,
     );
     const seen = settings().seenDiscovery.includes(c.id);
+    announce(
+      `${data.won ? 'Hunt complete. Nature does it better.' : 'The reef wins this time.'} ` +
+        `${c.name}. ${data.captured} of ${TUNING.hunt.objectiveCaptures} fish captured in ${mins} minutes ${secs} seconds. ` +
+        (data.won
+          ? 'Press Enter for the science, R to hunt again, C to choose another assassin, T for the title.'
+          : 'Press Enter to try again, C to choose another assassin, T for the title.'),
+    );
     const toScience = () => this.scene.start('Discovery', { characterId: c.id, mode: 'ending' });
     const again = () => this.scene.start('Hunt', { characterId: c.id });
     const choose = () => this.scene.start('Select', { mode: 'hunt', characterId: c.id });
