@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
+import { AchievementsScene } from './scenes/AchievementsScene';
 import { BootScene } from './scenes/BootScene';
 import { EndingScene } from './scenes/EndingScene';
 import { HudScene } from './scenes/HudScene';
@@ -25,6 +26,7 @@ const game = new Phaser.Game(
     TitleScene,
     SettingsScene,
     LevelSelectScene,
+    AchievementsScene,
     LevelScene,
     HudScene,
     PauseScene,

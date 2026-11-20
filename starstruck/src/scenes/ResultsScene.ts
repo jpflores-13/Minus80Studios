@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
+import { ACHIEVEMENTS, checkAchievements } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { getLevel, LEVELS } from '../levels';
@@ -27,6 +28,17 @@ export class ResultsScene extends Phaser.Scene {
           [data.levelId]: { score: s.score, stars: Math.max(st, old?.stars ?? 0) },
         },
       });
+    saveProgress({
+      lifetimeDug: progress().lifetimeDug + s.diggedTiles,
+      lifetimeWormsEaten: progress().lifetimeWormsEaten + (s.eaten.worm ?? 0),
+    });
+    const newAchievements = checkAchievements({
+      state: s,
+      progress: progress(),
+      levelCount: LEVELS.length,
+    });
+    if (newAchievements.length)
+      saveProgress({ achievements: [...progress().achievements, ...newAchievements] });
     addCenteredText(
       this,
       90,
@@ -56,6 +68,15 @@ export class ResultsScene extends Phaser.Scene {
       `Time             ${Math.floor(s.time)}s`,
     ];
     this.add.text(width / 2 - 200, 230, lines.join('\n'), { ...TEXT_STYLES.hud, lineSpacing: 10 });
+    if (newAchievements.length) {
+      const names = newAchievements.map((id) => ACHIEVEMENTS[id].name.toUpperCase());
+      addCenteredText(this, 420, `ACHIEVEMENT UNLOCKED: ${names.join(', ')}`, {
+        ...TEXT_STYLES.hud,
+        fontSize: '20px',
+        color: PALETTE.textMint,
+        wordWrap: { width: width - 80 },
+      });
+    }
     const again = () => this.scene.start('Level', { levelId: data.levelId });
     const next = LEVELS.find((l) => l.number === getLevel(data.levelId).number + 1);
     const items = [
@@ -79,8 +100,11 @@ export class ResultsScene extends Phaser.Scene {
     if (won && items.length > 2) menu.focus(1, false);
     this.input.keyboard?.on('keydown-R', again);
     sound.playSong('title');
+    const achievementLine = newAchievements.length
+      ? ` Achievement unlocked: ${newAchievements.map((id) => ACHIEVEMENTS[id].name).join(', ')}.`
+      : '';
     announce(
-      `${won ? `Level complete, ${st} stars.` : 'Try again.'} Score ${s.score}. Best combo ${s.bestCombo}. Press R to play again.`,
+      `${won ? `Level complete, ${st} stars.` : 'Try again.'} Score ${s.score}. Best combo ${s.bestCombo}.${achievementLine} Press R to play again.`,
     );
   }
 }

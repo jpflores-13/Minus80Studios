@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
+import { ACHIEVEMENT_ORDER } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
@@ -51,6 +52,11 @@ export class TitleScene extends Phaser.Scene {
               : this.scene.start('Intro'),
         },
         { label: () => 'LEVELS', action: () => this.scene.start('LevelSelect') },
+        {
+          label: () =>
+            `ACHIEVEMENTS (${progress().achievements.length}/${ACHIEVEMENT_ORDER.length})`,
+          action: () => this.scene.start('Achievements'),
+        },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
         {
           label: () => 'WATCH THE OPENING',

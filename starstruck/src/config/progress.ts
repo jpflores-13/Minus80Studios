@@ -1,3 +1,4 @@
+import type { AchievementId } from '../content/achievements';
 import type { CharacterId } from '../content/characters';
 import { prefersReducedMotion } from '../utils/accessibility';
 
@@ -6,6 +7,10 @@ import { prefersReducedMotion } from '../utils/accessibility';
 export interface Progress {
   best: Record<string, { score: number; stars: number }>;
   character: CharacterId;
+  achievements: AchievementId[];
+  /** Tiles dug and worms eaten, across every level ever played (not just the current best). */
+  lifetimeDug: number;
+  lifetimeWormsEaten: number;
   volume: number;
   muted: boolean;
   music: boolean;
@@ -30,6 +35,9 @@ export function progress(): Progress {
   cached = {
     best: {},
     character: 'diggy',
+    achievements: [],
+    lifetimeDug: 0,
+    lifetimeWormsEaten: 0,
     volume: 0.7,
     muted: false,
     music: true,
