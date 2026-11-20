@@ -22,6 +22,7 @@ const baseProgress = (overrides: Partial<Progress> = {}): Progress => ({
   achievements: [],
   lifetimeDug: 0,
   lifetimeWormsEaten: 0,
+  bestWormageddon: { score: 0, seconds: 0 },
   volume: 0.7,
   muted: false,
   music: true,
