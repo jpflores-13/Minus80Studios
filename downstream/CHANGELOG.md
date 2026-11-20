@@ -6,6 +6,10 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Fixed
 
+- Tool cards no longer overlap: icon on top, name underneath, count in a corner badge (the trash trap icon used to
+  cover its own name).
+- Messages moved to the top right so they no longer cover places and equipment along the bottom of the map.
+
 - Long forecasts no longer run under the HOME button, and tool names fit on the cards with six tools.
 
 - Tapping a place always shows what it is (before, it only did when the GPS tool wasn't selected), and the

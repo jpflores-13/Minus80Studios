@@ -96,7 +96,12 @@ export class LevelScene extends Phaser.Scene {
   private pausedText!: Phaser.GameObjects.Text;
   private cards = new Map<
     EquipmentKind,
-    { bg: Phaser.GameObjects.Rectangle; text: Phaser.GameObjects.Text; key: string }
+    {
+      bg: Phaser.GameObjects.Rectangle;
+      text: Phaser.GameObjects.Text;
+      badge: Phaser.GameObjects.Text;
+      key: string;
+    }
   >();
   private mainButton!: Button;
   private pauseButton!: Button;
@@ -589,13 +594,15 @@ export class LevelScene extends Phaser.Scene {
       })
       .setDepth(43);
     new Button(this, width - 52, 32, 84, 40, 'HOME', () => this.scene.start('Title'), PALETTE.ink);
+    // Messages sit top-right, just under the forecast, where they cover the least of the map.
     this.toast = this.add
-      .text(width / 2, height - TOOLBAR_HEIGHT - 76, '', {
+      .text(width - 300, 72, '', {
         ...TEXT_STYLES.smallLight,
+        fontSize: '16px',
         align: 'center',
-        wordWrap: { width: 900 },
+        wordWrap: { width: 540 },
       })
-      .setOrigin(0.5)
+      .setOrigin(0.5, 0)
       .setDepth(45)
       .setBackgroundColor('#2d2a26dd')
       .setPadding(10, 5, 10, 5)
@@ -641,23 +648,38 @@ export class LevelScene extends Phaser.Scene {
         .setDepth(50)
         .setStrokeStyle(2, PALETTE.ink)
         .setInteractive({ useHandCursor: true });
-      this.add
-        .image(x + 22, y - 22, kind)
-        .setScale(kinds.length > 4 ? PIXEL * 0.9 : PIXEL * 1.2)
-        .setDepth(51)
-        .setRotation(kind === 'trap' ? Math.PI / 2 : 0);
+      // Icon in the top half, scaled to fit its box; name below; count as a corner badge.
+      const icon = this.add.image(x + cardW / 2, y - 18, kind).setDepth(51);
+      const fit = Math.min((cardW - 44) / icon.width, 30 / icon.height, PIXEL * 1.4);
+      icon.setScale(fit);
       const text = this.add
-        .text(x + 6, y - 6, '', {
+        .text(x + cardW / 2, y + 4, '', {
           ...TEXT_STYLES.small,
           fontSize: kinds.length > 4 ? '13px' : '14px',
-          wordWrap: { width: cardW - 10 },
+          align: 'center',
+          wordWrap: { width: cardW - 8 },
         })
+        .setOrigin(0.5, 0)
         .setDepth(51);
+      const badge = this.add
+        .text(x + cardW - 4, y - 36, '', { ...TEXT_STYLES.label, fontSize: '13px' })
+        .setOrigin(1, 0)
+        .setDepth(52)
+        .setBackgroundColor('#2d2a26')
+        .setPadding(4, 1, 4, 1);
+      // keyboard shortcut number
+      this.add
+        .text(x + 4, y - 36, `${i + 1}`, {
+          ...TEXT_STYLES.small,
+          fontSize: '12px',
+          color: PALETTE.textDim,
+        })
+        .setDepth(52);
       bg.on('pointerdown', (p: Phaser.Input.Pointer) => {
         sound.unlock();
         this.startDrag(kind, null, p);
       });
-      this.cards.set(kind, { bg, text, key: String(i + 1) });
+      this.cards.set(kind, { bg, text, badge, key: String(i + 1) });
     });
 
     const toggleY = height - TOOLBAR_HEIGHT - 26;
@@ -696,7 +718,8 @@ export class LevelScene extends Phaser.Scene {
   private refreshToolbar(): void {
     for (const [kind, card] of this.cards) {
       const left = remaining(this.level, this.dep, kind, this.used);
-      card.text.setText(`[${card.key}] ${NAMES[kind]}\n×${left} left`);
+      card.text.setText(NAMES[kind]);
+      card.badge.setText(`×${left}`);
       const usable = left > 0 && this.canUse(kind) === null;
       card.bg.setAlpha(usable ? 1 : 0.45);
       card.bg.setStrokeStyle(
