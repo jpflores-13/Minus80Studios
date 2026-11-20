@@ -264,9 +264,11 @@ export class JobScene extends Phaser.Scene {
       pts.push(new Phaser.Math.Vector2(x + Math.cos(a) * d, y + Math.sin(a) * d));
     }
     g.fillStyle(color, alarmed ? 0.32 : 0.16).fillPoints(pts, true);
-    // dashed edge so the cone reads without colour
-    g.lineStyle(2, color, 0.7);
-    for (let i = 1; i + 1 < pts.length; i += 2) {
+    // a dashed edge at rest, solid once it has spotted you, so the alarm reads as a shape change
+    // and not just a colour or opacity shift
+    g.lineStyle(alarmed ? 3 : 2, color, 0.7);
+    const step = alarmed ? 1 : 2;
+    for (let i = 1; i + 1 < pts.length; i += step) {
       const a = pts[i] as Phaser.Math.Vector2;
       const b = pts[i + 1] as Phaser.Math.Vector2;
       g.lineBetween(a.x, a.y, b.x, b.y);
