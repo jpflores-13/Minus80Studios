@@ -416,7 +416,7 @@ export class LevelScene extends Phaser.Scene {
     kb?.on('keydown-DELETE', () => this.removeFocused());
     kb?.on('keydown-BACKSPACE', () => this.removeFocused());
     kb?.on('keydown-F', () => (this.map.showFlowArrows = !this.map.showFlowArrows));
-    kb?.on('keydown-G', () => (this.map.showTrails = !this.map.showTrails));
+    kb?.on('keydown-G', () => this.map.replayTrails());
     kb?.on('keydown-P', () => this.togglePause());
     kb?.on('keydown-SPACE', () => this.togglePause());
     kb?.on('keydown-X', () => this.toggleSpeed());
@@ -941,9 +941,7 @@ export class LevelScene extends Phaser.Scene {
     new Button(this, 80, toggleY, 140, 36, 'FLOW ARROWS', () => {
       this.map.showFlowArrows = !this.map.showFlowArrows;
     });
-    new Button(this, 230, toggleY, 140, 36, 'GPS TRAILS', () => {
-      this.map.showTrails = !this.map.showTrails;
-    });
+    new Button(this, 230, toggleY, 140, 36, 'GPS TRAILS', () => this.map.replayTrails());
     this.mainButton = new Button(
       this,
       width - 125,

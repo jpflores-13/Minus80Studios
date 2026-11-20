@@ -55,6 +55,9 @@ export const TUNING = {
     maxSeconds: 80,
     /** Playback speed when animating a scouting run. */
     playbackSpeed: 6,
+    /** A finished trail stays on the map this long (real seconds), then fades out. */
+    lingerSeconds: 4,
+    fadeSeconds: 1.5,
   },
   // What kind of litter each place drops (cosmetic). Schools and parks lose a lot of balls and toys.
   litterMix: {

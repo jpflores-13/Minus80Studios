@@ -64,7 +64,7 @@ export class SettingsScene extends Phaser.Scene {
       },
       {
         label: () => 'KEYBOARD CONTROLS',
-        help: 'In a level: Tab or the arrow keys move between places and equipment spots, Enter uses the highlighted one. Number keys pick a tool. P pauses, X speeds up, R restarts, F shows flow arrows, G shows GPS trails, M mutes.',
+        help: 'In a level: Tab or the arrow keys move between places and equipment spots, Enter uses the highlighted one. Number keys pick a tool. P pauses, X speeds up, R restarts, F shows flow arrows, G replays GPS trails, M mutes.',
         activate: () => announce(this.items[5]?.help ?? ''),
       },
       {

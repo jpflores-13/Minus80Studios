@@ -24,6 +24,8 @@ const SOURCE_SPRITES: Record<PollutionSource['look'], string> = {
 interface TrackView {
   track: Track;
   shownUntil: number; // seconds of the track revealed so far
+  /** Real seconds since the trail finished drawing (it fades out after a while). */
+  doneFor: number;
   bottle: Phaser.GameObjects.Image;
 }
 
@@ -103,7 +105,7 @@ export class MapView {
     const src = this.level.sources.find((s) => s.id === track.sourceId);
     const start = track.points[0]?.pos ?? src?.pos ?? { x: 0, y: 0 };
     const bottle = this.scene.add.image(start.x, start.y, 'gps').setScale(PIXEL).setDepth(9);
-    this.tracks.push({ track, shownUntil: 0, bottle });
+    this.tracks.push({ track, shownUntil: 0, doneFor: 0, bottle });
   }
 
   // Rebuild equipment sprites from the deployment. Cheap; call after any change.
@@ -375,6 +377,15 @@ export class MapView {
     }
   }
 
+  /** Show every GPS trail again from the start. */
+  replayTrails(): void {
+    this.showTrails = true;
+    for (const t of this.tracks) {
+      t.shownUntil = 0;
+      t.doneFor = 0;
+    }
+  }
+
   private drawTrails(dt: number): void {
     const g = this.trails;
     g.clear();
@@ -387,23 +398,31 @@ export class MapView {
         view.track.seconds,
         view.shownUntil + dt * TUNING.gps.playbackSpeed,
       );
+      if (view.shownUntil >= view.track.seconds) view.doneFor += dt;
+      // finished trails linger, then fade away (GPS TRAILS or G replays them)
+      const { lingerSeconds, fadeSeconds } = TUNING.gps;
+      const fade = 1 - Phaser.Math.Clamp((view.doneFor - lingerSeconds) / fadeSeconds, 0, 1);
+      if (fade <= 0) {
+        view.bottle.setVisible(false);
+        continue;
+      }
       const pts = view.track.points.filter((p) => p.t <= view.shownUntil);
       // White edge under the pink line keeps the trail visible on water for colour-blind players.
       for (const [width, color, alpha] of [
         [6, 0xffffff, 0.9],
         [3, PALETTE.gpsPink, 1],
       ] as const) {
-        g.lineStyle(width, color, alpha);
+        g.lineStyle(width, color, alpha * fade);
         g.beginPath();
         pts.forEach((p, i) => (i === 0 ? g.moveTo(p.pos.x, p.pos.y) : g.lineTo(p.pos.x, p.pos.y)));
         g.strokePath();
       }
       for (const stop of view.track.stops) {
-        g.lineStyle(2, PALETTE.gpsPink, 1);
+        g.lineStyle(2, PALETTE.gpsPink, fade);
         g.strokeCircle(stop.pos.x, stop.pos.y, 10);
       }
       const last = pts.at(-1);
-      if (last) view.bottle.setPosition(last.pos.x, last.pos.y).setVisible(true);
+      if (last) view.bottle.setPosition(last.pos.x, last.pos.y).setVisible(true).setAlpha(fade);
     }
   }
 
