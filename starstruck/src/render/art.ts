@@ -38,6 +38,23 @@ function drawMole(g: Phaser.GameObjects.Graphics, step: number, accent: number):
   g.fillStyle(0x2c2c33, 1).fillEllipse(29, 16, 12, 12);
   // tiny eyes (moles see very little)
   g.fillStyle(0x0c0f13, 1).fillRect(29, 12, 1, 1).fillRect(29, 19, 1, 1);
+  // the star: a fringe of fleshy appendages around the nose, this species' signature feature
+  const noseX = 35;
+  const noseY = 16;
+  g.fillStyle(PALETTE.rose, 1);
+  for (let i = 0; i < 11; i++) {
+    const a = ((-150 + i * 30) * Math.PI) / 180;
+    const len = i % 2 ? 3.6 : 5;
+    g.fillTriangle(
+      noseX,
+      noseY - 0.8,
+      noseX,
+      noseY + 0.8,
+      noseX + Math.cos(a) * len,
+      noseY + Math.sin(a) * len,
+    );
+  }
+  g.fillStyle(0x1a1a20, 1).fillCircle(noseX, noseY, 2);
   // the lightning-bolt accessory on its back
   g.fillStyle(accent, 1);
   g.fillPoints(
