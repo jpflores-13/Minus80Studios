@@ -50,6 +50,7 @@ export class LevelScene extends Phaser.Scene {
   private ended = false;
   private wormageddonMode = false;
   private upgradeUi: (Phaser.GameObjects.GameObject | Button)[] = [];
+  private upgradeButtons: Button[] = [];
   focusing = false;
 
   constructor() {
@@ -352,16 +353,31 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
+  /** A soft, layered glow: a cheap stand-in for a radial gradient using Graphics alone. */
+  private halo(
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    r: number,
+    color: number,
+  ): void {
+    for (let i = 5; i > 0; i--) g.fillStyle(color, 0.05 * (6 - i)).fillCircle(x, y, (r * i) / 5);
+  }
+
   private showWormageddonUpgrades(): void {
     const w = this.state.wormageddon;
     if (!w) return;
     const { width, height } = this.scale;
+    const reduced = progress().reducedEffects;
+    const glowColors = [PALETTE.coral, PALETTE.amber, PALETTE.rose];
     const shade = this.add
-      .rectangle(0, 0, width, height, PALETTE.charcoal, 0.85)
+      .rectangle(0, 0, width, height, PALETTE.charcoal, 0.88)
       .setOrigin(0)
       .setScrollFactor(0)
       .setDepth(70)
       .setInteractive();
+    const glow = this.add.graphics().setScrollFactor(0).setDepth(70);
+    this.halo(glow, width / 2, height * 0.22, 200, PALETTE.amber);
     const title = this.add
       .text(width / 2, height * 0.22, 'CHOOSE AN UPGRADE', TEXT_STYLES.title)
       .setOrigin(0.5)
@@ -374,12 +390,16 @@ export class LevelScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScrollFactor(0)
       .setDepth(71);
-    this.upgradeUi = [shade, title, note];
+    this.upgradeUi = [shade, glow, title, note];
+    this.upgradeButtons = [];
     w.offers.forEach((u, i) => {
+      const y = height * 0.4 + i * 150;
+      const color = glowColors[i % glowColors.length] ?? PALETTE.coral;
+      this.halo(glow, width / 2, y, 130, color);
       const b = new Button(
         this,
         width / 2,
-        height * 0.4 + i * 150,
+        y,
         Math.min(620, width - 80),
         120,
         `${i + 1}. ${u.name.toUpperCase()}\n\n${u.text}`,
@@ -387,7 +407,30 @@ export class LevelScene extends Phaser.Scene {
         PALETTE.coral,
       );
       b.label.setFontSize(18).setWordWrapWidth(560);
+      b.bg.setStrokeStyle(3, color);
+      this.upgradeButtons.push(b);
       this.upgradeUi.push(b);
+      if (!reduced) {
+        b.bg.setAlpha(0);
+        b.label.setAlpha(0);
+        this.tweens.add({
+          targets: [b.bg, b.label],
+          alpha: 1,
+          duration: 300,
+          delay: i * 110,
+          ease: 'Sine.easeOut',
+        });
+        this.tweens.add({
+          targets: b.bg,
+          scaleX: 1.03,
+          scaleY: 1.03,
+          duration: 1100,
+          yoyo: true,
+          repeat: -1,
+          delay: i * 110 + 350,
+          ease: 'Sine.easeInOut',
+        });
+      }
     });
     announce(
       `Choose an upgrade: ${w.offers.map((u, i) => `${i + 1}, ${u.name}: ${u.text}`).join('. ')}`,
@@ -397,9 +440,12 @@ export class LevelScene extends Phaser.Scene {
   private pickUpgrade(index: number): void {
     if (this.state.wormageddon?.phase !== 'upgrade') return;
     sound.play('special');
+    const chosen = this.upgradeButtons[index];
+    if (chosen) this.burst(chosen.bg.x, chosen.bg.y, PALETTE.amber);
     chooseWormageddonUpgrade(this.state, index);
     for (const o of this.upgradeUi) o.destroy();
     this.upgradeUi = [];
+    this.upgradeButtons = [];
   }
 
   private burst(x: number, y: number, color: number = PALETTE.coral): void {
