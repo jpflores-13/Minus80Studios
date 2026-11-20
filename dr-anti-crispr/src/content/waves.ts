@@ -52,7 +52,7 @@ export const CAMPAIGN: WaveDef[] = [
   {
     number: 1,
     name: 'Infiltration',
-    intro: 'Move with a finger, the stick or the arrow keys. You fire on your own.',
+    intro: 'The host is throwing its defences at you! Move to dodge. You fire on your own.',
     duration: 32,
     obstacleRate: 0,
     crowding: false,

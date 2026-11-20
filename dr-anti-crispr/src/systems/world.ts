@@ -17,6 +17,10 @@ import { Pool } from './pool';
 
 export const FIELD = { w: 720, h: 1280, top: 150, wall: 28 };
 
+/** Openings in the host's wall (top of the screen) that launch its defences at you. */
+export const HOST_PORTS = [110, 235, 360, 485, 610];
+const LAUNCH_TIME = 0.55;
+
 export type Mode = 'campaign' | 'endless' | 'daily';
 export type Difficulty = 'gentle' | 'normal' | 'fierce';
 
@@ -57,6 +61,8 @@ export interface Enemy {
   grazed: boolean;
   frozenFor: number;
   isBoss: boolean;
+  /** Seconds left of being flung out of the host: it flies on its own velocity until then. */
+  launch: number;
 }
 
 export interface Shot {
@@ -69,12 +75,6 @@ export interface Shot {
   life: number;
   pierce: number;
   ally: boolean;
-}
-
-export interface Pickup {
-  alive: boolean;
-  x: number;
-  y: number;
 }
 
 export interface Obstacle {
@@ -120,7 +120,6 @@ export interface World {
   };
   enemies: Pool<Enemy>;
   shots: Pool<Shot>;
-  pickups: Pool<Pickup>;
   obstacles: Pool<Obstacle>;
   obstacleTimer: number;
   crowd: { x: number; y: number; r: number } | null;
@@ -154,7 +153,7 @@ export type WorldEvent =
   | { type: 'resisted'; x: number; y: number }
   | { type: 'hurt'; amount: number }
   | { type: 'shielded' }
-  | { type: 'pickup' }
+  | { type: 'launched'; x: number; y: number }
   | { type: 'telegraph'; kind: EnemyKind }
   | { type: 'reinforce' }
   | { type: 'cloud' }
@@ -184,6 +183,7 @@ function newEnemy(): Enemy {
     grazed: false,
     frozenFor: 0,
     isBoss: false,
+    launch: 0,
   };
 }
 
@@ -229,7 +229,6 @@ export function createWorld(
       }),
       300,
     ),
-    pickups: new Pool(() => ({ alive: false, x: 0, y: 0 }), 120),
     obstacles: new Pool(() => ({ alive: false, x: 0, y: 0, r: 0, vy: 0 }), 20),
     obstacleTimer: 2,
     crowd: null,
@@ -308,7 +307,6 @@ export function stepWorld(w: World, input: Input, dt: number): WorldEvent[] {
   fire(w, ev, dt);
   stepShots(w, ev, dt);
   stepEnemies(w, ev, dt, diff);
-  stepPickups(w, ev, dt);
   stepSpecials(w, input, ev, dt);
 
   w.hero.hurtFlash = Math.max(0, w.hero.hurtFlash - dt);
@@ -545,14 +543,12 @@ function award(w: World, e: Enemy, weapon: WeaponId, ev: WorldEvent[], bySpecial
   if (bySpecial) w.stats.specialInhibits++;
   if (e.isBoss) w.stats.bossesStopped++;
   w.score += ENEMIES[e.kind].points + (bySpecial ? 20 : 0);
-  const drops = e.isBoss ? 12 : 1;
-  for (let i = 0; i < drops; i++) {
-    const p = w.pickups.spawn();
-    if (p) {
-      p.x = e.x + (w.rng.next() - 0.5) * (e.isBoss ? 120 : 10);
-      p.y = e.y + (w.rng.next() - 0.5) * (e.isBoss ? 80 : 10);
-    }
-  }
+  // every shutdown charges Reinforcements directly (bosses a lot)
+  if (reinforcementsUnlocked(w))
+    w.charge = Math.min(
+      REINFORCEMENTS.charge,
+      w.charge + (e.isBoss ? 60 : REINFORCEMENTS.perInhibit),
+    );
   ev.push({
     type: 'inhibited',
     kind: e.kind,
@@ -629,6 +625,16 @@ export function spawn(w: World, kind: EnemyKind, count: number, formation: Forma
       e.x = mid;
       e.y = FIELD.top + 40;
       e.attackTimer = 3;
+    } else if (formation !== 'sides') {
+      // the host throws it out of the nearest port toward its place in the formation
+      const tx = Math.min(FIELD.w - 60, Math.max(60, e.x));
+      const ty = FIELD.top + 90 + (top - e.y);
+      const port = HOST_PORTS.reduce((a, b) => (Math.abs(b - tx) < Math.abs(a - tx) ? b : a));
+      e.x = port;
+      e.y = FIELD.top - 6;
+      e.vx = (tx - port) / LAUNCH_TIME;
+      e.vy = (ty - e.y) / LAUNCH_TIME;
+      e.launch = LAUNCH_TIME + i * 0.04;
     }
     e.phase = w.rng.next() * Math.PI * 2;
     e.attackTimer ||= 2 + w.rng.next() * 2;
@@ -669,6 +675,12 @@ function stepEnemies(
     }
     if (e.frozenFor > 0) {
       e.frozenFor -= dt;
+      continue;
+    }
+    if (e.launch > 0) {
+      e.launch -= dt;
+      e.x += e.vx * dt;
+      e.y += e.vy * dt;
       continue;
     }
     const sp = def.speed * diff.speed * boost * slowed;
@@ -805,24 +817,7 @@ function hurt(w: World, amount: number, ev: WorldEvent[]): void {
   ev.push({ type: 'hurt', amount });
 }
 
-// ---------- pickups, obstacles, specials ----------
-
-function stepPickups(w: World, ev: WorldEvent[], dt: number): void {
-  const h = w.hero;
-  for (const p of w.pickups.live()) {
-    const d = Math.hypot(h.x - p.x, h.y - p.y);
-    if (d < w.mods.magnet) {
-      p.x += ((h.x - p.x) / d) * 520 * dt;
-      p.y += ((h.y - p.y) / d) * 520 * dt;
-    } else p.y += 30 * dt;
-    if (d < 26) {
-      w.pickups.free(p);
-      w.charge = Math.min(REINFORCEMENTS.charge, w.charge + (reinforcementsUnlocked(w) ? 7 : 0));
-      w.score += 2;
-      ev.push({ type: 'pickup' });
-    } else if (p.y > FIELD.h + 20) w.pickups.free(p);
-  }
-}
+// ---------- obstacles and specials ----------
 
 function stepObstacles(w: World, dt: number): void {
   if (w.wave.obstacleRate > 0) {

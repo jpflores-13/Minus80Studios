@@ -28,9 +28,6 @@ jobs:
       - name: Build Downstream!
         working-directory: downstream
         run: npm ci && npx vite build
-      - name: Build SHORTCUT.
-        working-directory: shortcut
-        run: npm ci && npx vite build
       - name: Build OFF TARGET.
         working-directory: off-target
         run: npm ci && npx vite build
@@ -43,7 +40,6 @@ jobs:
           cp site/index.html _site/
           cp -r snail-assassin/dist _site/snail-assassin
           cp -r downstream/dist _site/downstream
-          cp -r shortcut/dist _site/shortcut
           cp -r off-target/dist _site/off-target
           cp -r dr-anti-crispr/dist _site/dr-anti-crispr
       - uses: actions/upload-pages-artifact@v5

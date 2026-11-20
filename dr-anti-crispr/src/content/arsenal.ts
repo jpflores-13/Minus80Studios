@@ -224,7 +224,14 @@ export const CLOUD = {
 };
 
 /** Phage Reinforcements: an abstract, fictional take on many phages helping each other. */
-export const REINFORCEMENTS = { charge: 100, allies: 4, duration: 6, shotRate: 3, unlockAfter: 4 };
+export const REINFORCEMENTS = {
+  charge: 100,
+  perInhibit: 9,
+  allies: 4,
+  duration: 6,
+  shotRate: 3,
+  unlockAfter: 4,
+};
 
 export function compatible(weapon: WeaponId, enemy: EnemyKind): boolean {
   return WEAPONS[weapon].compatible.includes(enemy);

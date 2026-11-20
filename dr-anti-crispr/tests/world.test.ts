@@ -5,6 +5,7 @@ import { CAMPAIGN, dailySeed, endlessWave } from '../src/content/waves';
 import { createRng } from '../src/utils/rng';
 import { Pool } from '../src/systems/pool';
 import {
+  HOST_PORTS,
   chooseUpgrade,
   createWorld,
   FIELD,
@@ -36,6 +37,7 @@ const place = (w: World, kind: EnemyKind, x: number, y: number) => {
   const e = w.enemies.live().at(-1)!;
   e.x = x;
   e.y = y;
+  e.launch = 0; // already landed
   return e;
 };
 
@@ -98,6 +100,32 @@ describe('enemies', () => {
     expect(onBeam(e, 300, 110)).toBe(true);
     expect(onBeam(e, 300, 200)).toBe(false);
     expect(onBeam(e, 50, 100)).toBe(false);
+  });
+});
+
+describe('the host launches its defences', () => {
+  it('new machines are thrown out of a port in the host wall, then land in formation', () => {
+    const w = quiet();
+    w.equipped = [];
+    spawn(w, 'cutter', 3, 'line');
+    for (const e of w.enemies.live()) {
+      expect(HOST_PORTS).toContain(e.x);
+      expect(e.y).toBeLessThan(FIELD.top);
+      expect(e.launch).toBeGreaterThan(0);
+    }
+    run(w, 1);
+    for (const e of w.enemies.live()) {
+      expect(e.launch).toBeLessThanOrEqual(0);
+      expect(e.y).toBeGreaterThan(FIELD.top);
+    }
+  });
+
+  it('shutting a machine down charges reinforcements (no pickups to chase)', () => {
+    const w = quiet();
+    w.stats.wavesCleared = 5;
+    const e = place(w, 'cutter', 300, 500);
+    inhibit(w, e, 'blockade', []);
+    expect(w.charge).toBeGreaterThan(0);
   });
 });
 

@@ -13,7 +13,6 @@ export interface Mods {
   speed: number;
   allies: number;
   allyTime: number;
-  magnet: number;
 }
 
 export const BASE_MODS: Mods = {
@@ -27,7 +26,6 @@ export const BASE_MODS: Mods = {
   speed: 1,
   allies: 0,
   allyTime: 0,
-  magnet: 90,
 };
 
 export type UpgradeId =
@@ -40,7 +38,6 @@ export type UpgradeId =
   | 'genomeShield'
   | 'agile'
   | 'cooperative'
-  | 'magnet'
   | `weapon:${WeaponId}`;
 
 export interface Upgrade {
@@ -118,12 +115,5 @@ export const UPGRADES: Upgrade[] = [
       m.allies += 2;
       m.allyTime += 2;
     },
-  },
-  {
-    id: 'magnet',
-    name: 'Protein Magnet',
-    text: 'Pick up resources from further away.',
-    max: 2,
-    apply: (m) => void (m.magnet *= 1.6),
   },
 ];

@@ -9,11 +9,13 @@ import {
   cloudReady,
   createWorld,
   FIELD,
+  HOST_PORTS,
   reinforcementsUnlocked,
   seedFromTime,
   stepWorld,
   type Input,
   type Mode,
+  type Enemy,
   type World,
   type WorldEvent,
 } from '../systems/world';
@@ -44,7 +46,6 @@ export class BattleScene extends Phaser.Scene {
   private enemySprites: Phaser.GameObjects.Image[] = [];
   private fxSprites: Phaser.GameObjects.Image[] = [];
   private shotSprites: Phaser.GameObjects.Image[] = [];
-  private pickupSprites: Phaser.GameObjects.Image[] = [];
   private obstacleSprites: Phaser.GameObjects.Image[] = [];
   private allySprites: Phaser.GameObjects.Image[] = [];
   private gfx!: Phaser.GameObjects.Graphics;
@@ -77,7 +78,6 @@ export class BattleScene extends Phaser.Scene {
     this.enemySprites = [];
     this.fxSprites = [];
     this.shotSprites = [];
-    this.pickupSprites = [];
     this.obstacleSprites = [];
     this.allySprites = [];
     this.upgradeUi = [];
@@ -303,8 +303,6 @@ export class BattleScene extends Phaser.Scene {
           break;
         case 'shielded':
           break;
-        case 'pickup':
-          break;
         case 'telegraph':
           sound.play('warn');
           break;
@@ -454,7 +452,9 @@ export class BattleScene extends Phaser.Scene {
       img
         .setTexture(`${e.kind}-${frame}`)
         .setPosition(e.x, e.y)
-        .setScale(SCALE * SIZES[e.kind]);
+        .setScale(SCALE * SIZES[e.kind])
+        // a spin while it's being flung out of the host
+        .setRotation(e.launch > 0 && !reduced ? e.launch * 12 : 0);
       img
         .setAlpha(e.state === 'leaving' ? 0.4 : 1)
         .setTint(e.state === 'inhibited' ? 0x9090b0 : e.frozenFor > 0 ? 0xb0e8ff : 0xffffff);
@@ -517,11 +517,7 @@ export class BattleScene extends Phaser.Scene {
           .setPosition(s.x, s.y)
           .setRotation(Math.atan2(s.vy, s.vx) + Math.PI / 2);
     });
-    const pickups = w.pickups.live();
-    this.pool(this.pickupSprites, pickups.length, 4).forEach((img, i) => {
-      const p = pickups[i];
-      if (p) img.setTexture('protein').setPosition(p.x, p.y);
-    });
+    this.drawHost(g, enemies, time);
     this.pool(this.allySprites, w.allies.length, 9).forEach((img, i) => {
       const a = w.allies[i];
       if (a) img.setTexture('ally').setPosition(a.x, a.y).setScale(2).setAlpha(0.85);
@@ -536,12 +532,30 @@ export class BattleScene extends Phaser.Scene {
     this.drawHud();
   }
 
+  /**
+   * The host bacterium's wall along the top of the battlefield, with the ports it launches its
+   * defences from. A port bulges open while something is being thrown out of it.
+   */
+  private drawHost(g: Phaser.GameObjects.Graphics, enemies: readonly Enemy[], time: number): void {
+    const { width } = this.scale;
+    const y = FIELD.top - 10;
+    g.fillStyle(0x5a1f3a, 1).fillRect(0, y - 26, width, 26);
+    g.fillStyle(0x8f2f55, 1);
+    for (let x = 0; x < width; x += 14) g.fillCircle(x + 7, y, 6);
+    for (const px of HOST_PORTS) {
+      const busy = enemies.some((e) => e.launch > 0 && Math.abs(e.x - px) < 80 && e.y < y + 120);
+      const open = busy ? 22 : 12 + Math.sin(time / 400 + px) * 2;
+      g.fillStyle(0x2a0d1c, 1).fillEllipse(px, y + 2, open * 2.4, open);
+      g.lineStyle(3, busy ? 0xffc0c8 : 0xd06080, 1).strokeEllipse(px, y + 2, open * 2.4, open);
+    }
+  }
+
   private drawHud(): void {
     const w = this.world;
     const g = this.hud;
     const { width } = this.scale;
     g.clear();
-    g.fillStyle(PALETTE.ink, 0.75).fillRect(0, 0, width, FIELD.top - 10);
+    g.fillStyle(PALETTE.ink, 0.75).fillRect(0, 0, width, FIELD.top - 36);
     // genome integrity: a strand that shortens, with the number beside it
     const frac = w.hero.integrity / w.hero.max;
     g.fillStyle(0x2a1b4d, 1).fillRect(20, 58, 360, 22);
