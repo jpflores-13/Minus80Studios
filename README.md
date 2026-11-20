@@ -10,6 +10,7 @@
 | [`off-target/`](off-target/)         | **OFF TARGET.**: a retro arcade rescue platformer                                              | 8084     |
 | [`dr-anti-crispr/`](dr-anti-crispr/) | **DR. ANTI-CRISPR**: a portrait arcade survival shooter                                        | 8085     |
 | [`starstruck/`](starstruck/)         | **STARSTRUCK.**: sensory exploration arcade (prototype)                                        | 8083     |
+| [`heist/`](heist/)                   | **HEIST.**: a stealth-action puzzle game (prototype)                                           | 8086     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 

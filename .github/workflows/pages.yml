@@ -37,6 +37,9 @@ jobs:
       - name: Build STARSTRUCK.
         working-directory: starstruck
         run: npm ci && npx vite build
+      - name: Build HEIST.
+        working-directory: heist
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -46,6 +49,7 @@ jobs:
           cp -r off-target/dist _site/off-target
           cp -r dr-anti-crispr/dist _site/dr-anti-crispr
           cp -r starstruck/dist _site/starstruck
+          cp -r heist/dist _site/heist
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site

@@ -1,0 +1,19 @@
+{
+  "name": "HEIST.",
+  "short_name": "HEIST.",
+  "description": "A Minus 80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#14232b",
+  "theme_color": "#14232b",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

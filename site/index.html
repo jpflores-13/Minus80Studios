@@ -6,7 +6,7 @@
     <title>Minus 80 Studios</title>
     <meta
       name="description"
-      content="Short games inspired by real science. Play Snail Assassin, Downstream!, OFF TARGET. and DR. ANTI-CRISPR in your browser."
+      content="Short games inspired by real science. Play Snail Assassin, Downstream!, OFF TARGET., DR. ANTI-CRISPR, STARSTRUCK. and HEIST. in your browser."
     />
     <style>
       * {
@@ -84,19 +84,6 @@
         border-color: #86b062;
         background: #1d3b2c;
       }
-      a.game.cream {
-        border-color: #e0a526;
-        background: #f3ead8;
-        color: #2d2a26;
-      }
-      a.game.cream .info p,
-      a.game.cream .info .how {
-        color: #4d473f;
-      }
-      a.game.cream .play {
-        background: #44586b;
-        color: #fbf6ea;
-      }
       a.game.violet {
         border-color: #f2b632;
         background: #161235;
@@ -104,6 +91,22 @@
       a.game.violet .play {
         background: #f2b632;
         color: #0d0a1f;
+      }
+      a.game.amber {
+        border-color: #ebc478;
+        background: #171c22;
+      }
+      a.game.amber .play {
+        background: #ebc478;
+        color: #171c22;
+      }
+      a.game.mint {
+        border-color: #65e3bd;
+        background: #14232b;
+      }
+      a.game.mint .play {
+        background: #65e3bd;
+        color: #14232b;
       }
       a.game svg {
         display: block;
@@ -544,6 +547,166 @@
           <p class="how" id="dac-how">
             Made for phones held upright (drag to move). Also plays on computers with the keyboard
             or a gamepad.
+          </p>
+          <span class="play" aria-hidden="true">Play</span>
+        </div>
+      </a>
+
+      <a
+        class="game amber"
+        href="./starstruck/"
+        aria-labelledby="ss-title"
+        aria-describedby="ss-desc ss-how"
+      >
+        <!-- Burrow scene: a mole feeling out a worm in the dark with its star-shaped nose -->
+        <svg
+          viewBox="0 0 160 90"
+          shape-rendering="crispEdges"
+          role="img"
+          aria-label="Pixel art: an underground burrow where a small dark mole reaches a star-shaped, pink nose toward a worm, beside a pebble and a root"
+        >
+          <rect width="160" height="90" fill="#49362c" />
+          <g fill="#56402f">
+            <rect x="10" y="8" width="3" height="3" />
+            <rect x="140" y="14" width="3" height="3" />
+            <rect x="24" y="72" width="3" height="3" />
+            <rect x="122" y="78" width="3" height="3" />
+          </g>
+          <g fill="#3b2b23">
+            <rect x="50" y="6" width="4" height="2" />
+            <rect x="100" y="80" width="5" height="2" />
+            <rect x="6" y="40" width="4" height="2" />
+          </g>
+          <!-- the dark tunnel -->
+          <rect x="0" y="30" width="160" height="34" fill="#171c22" />
+          <rect x="64" y="0" width="18" height="90" fill="#171c22" />
+          <!-- a root growing down from the ceiling -->
+          <path
+            d="M30 30 q4 10 -2 18 q-4 8 3 14"
+            stroke="#829e86"
+            stroke-width="2"
+            fill="none"
+          />
+          <!-- a pebble -->
+          <circle cx="122" cy="50" r="5" fill="#c9ab86" stroke="#0c0f13" stroke-width="1" />
+          <!-- the worm -->
+          <g transform="translate(96 47)">
+            <rect x="0" y="0" width="6" height="4" rx="2" fill="#f0a9a9" />
+            <rect x="5" y="1" width="6" height="4" rx="2" fill="#d98d98" />
+            <rect x="10" y="0" width="6" height="4" rx="2" fill="#f0a9a9" />
+          </g>
+          <!-- a touch mark where the nose meets the worm -->
+          <circle cx="92" cy="50" r="4" fill="#f0a9a9" opacity="0.35" />
+          <!-- Diggy, nose reaching for the worm -->
+          <g transform="translate(55 42)">
+            <ellipse cx="14" cy="10" rx="14" ry="9" fill="#2c2c33" />
+            <ellipse cx="22" cy="10" rx="6" ry="6" fill="#2c2c33" />
+            <g stroke="#d98d98" stroke-width="0.8">
+              <line x1="27" y1="10" x2="40" y2="4" />
+              <line x1="27" y1="10" x2="41" y2="8" />
+              <line x1="27" y1="10" x2="41" y2="10" />
+              <line x1="27" y1="10" x2="41" y2="12" />
+              <line x1="27" y1="10" x2="40" y2="16" />
+            </g>
+            <circle cx="27" cy="10" r="2" fill="#f0a9a9" />
+            <ellipse cx="4" cy="4" rx="4" ry="3" fill="#d98d98" />
+            <ellipse cx="4" cy="16" rx="4" ry="3" fill="#d98d98" />
+            <polygon points="8,6 11,6 9,10 12,10 7,16 8,11 6,11" fill="#ebc478" />
+          </g>
+        </svg>
+        <div class="info">
+          <h2 id="ss-title"><span class="sr-only">Play </span>STARSTRUCK.</h2>
+          <p id="ss-desc">
+            It's not what you see. It's what you feel. Explore a pitch-dark burrow by touch alone,
+            using a star-shaped nose with 22 sensing rays, to find and eat your next meal.
+          </p>
+          <p class="how" id="ss-how">
+            Plays on computers (keyboard or gamepad) and on iPhone, iPad, and Android (touch).
+          </p>
+          <span class="play" aria-hidden="true">Play</span>
+        </div>
+      </a>
+
+      <a
+        class="game mint"
+        href="./heist/"
+        aria-labelledby="heist-title"
+        aria-describedby="heist-desc heist-how"
+      >
+        <!-- Heist scene: a thief near a folded doorway, a guard's cone watching a jewel case, a vault beyond -->
+        <svg
+          viewBox="0 0 160 90"
+          shape-rendering="crispEdges"
+          role="img"
+          aria-label="Pixel art: a thief slips into a glowing mint doorway linked by a dashed ribbon to a second doorway near a vault, while a guard's dashed cone watches a glass jewel case"
+        >
+          <rect width="160" height="90" fill="#14232b" />
+          <rect x="0" y="40" width="160" height="50" fill="#22343d" />
+          <g fill="#2b414b">
+            <rect x="20" y="40" width="20" height="50" />
+            <rect x="60" y="40" width="20" height="50" />
+            <rect x="100" y="40" width="20" height="50" />
+            <rect x="140" y="40" width="20" height="50" />
+          </g>
+          <!-- the service corridor -->
+          <rect x="0" y="12" width="160" height="14" fill="#3a3226" />
+          <g stroke="#4a4030" stroke-width="1">
+            <line x1="0" y1="17" x2="160" y2="17" />
+            <line x1="0" y1="22" x2="160" y2="22" />
+          </g>
+          <!-- a glass display case with the diamond -->
+          <g transform="translate(18 46)">
+            <rect width="18" height="18" fill="#22343d" stroke="#edc77d" stroke-width="1.5" />
+            <rect x="2" y="2" width="14" height="14" fill="#7fb8c8" opacity="0.35" />
+            <polygon points="9,4 14,9 9,16 4,9" fill="#e8e3d3" stroke="#edc77d" stroke-width="0.6" />
+          </g>
+          <!-- the two linked fold doorways, with the Folder device between them -->
+          <path
+            d="M60 20 Q90 6 120 20"
+            stroke="#65e3bd"
+            stroke-width="2"
+            fill="none"
+            stroke-dasharray="3 3"
+            opacity="0.85"
+          />
+          <rect x="48" y="14" width="12" height="12" fill="none" stroke="#65e3bd" stroke-width="2" />
+          <rect x="120" y="14" width="12" height="12" fill="none" stroke="#65e3bd" stroke-width="2" />
+          <g transform="translate(84 12)">
+            <rect width="12" height="12" rx="2" fill="#edc77d" stroke="#0b141a" stroke-width="1" />
+            <rect x="3" y="3" width="6" height="6" fill="#0b141a" />
+            <circle cx="6" cy="6" r="1.5" fill="#65e3bd" />
+          </g>
+          <!-- a guard, watching the case -->
+          <g transform="translate(44 60)">
+            <polygon points="0,0 -22,-14 -22,10" fill="#c56553" opacity="0.18" />
+            <g stroke="#c56553" stroke-width="1" stroke-dasharray="2 2">
+              <line x1="0" y1="0" x2="-22" y2="-14" />
+              <line x1="0" y1="0" x2="-22" y2="10" />
+            </g>
+            <ellipse cx="0" cy="0" rx="5" ry="5" fill="#2f4a6a" />
+            <rect x="-2" y="-7" width="4" height="3" fill="#edc77d" />
+          </g>
+          <!-- the thief, slipping into the doorway -->
+          <g transform="translate(54 24)">
+            <ellipse cx="0" cy="0" rx="5" ry="5" fill="#1c1f24" />
+            <circle cx="2" cy="-1" r="2.6" fill="#c56553" />
+            <rect x="-4" y="3" width="3" height="4" fill="#edc77d" />
+          </g>
+          <!-- the vault -->
+          <g transform="translate(142 58)">
+            <rect width="14" height="20" fill="#0f1a20" stroke="#edc77d" stroke-width="1.5" />
+            <circle cx="7" cy="10" r="3" fill="none" stroke="#edc77d" stroke-width="1" />
+          </g>
+        </svg>
+        <div class="info">
+          <h2 id="heist-title"><span class="sr-only">Play </span>HEIST.</h2>
+          <p id="heist-desc">
+            Distance is your greatest weapon. Deploy the Folder to reel a building's corridor in
+            on itself, slip through a temporary doorway, and steal the diamond before the guards
+            catch on.
+          </p>
+          <p class="how" id="heist-how">
+            Plays on computers (keyboard or gamepad) and on iPhone, iPad, and Android (touch).
           </p>
           <span class="play" aria-hidden="true">Play</span>
         </div>
