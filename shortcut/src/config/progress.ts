@@ -19,6 +19,12 @@ export interface Progress {
   reducedEffects: boolean;
   /** All text 25% bigger. */
   largeText: boolean;
+  /** The player has seen the ending reveal (unlocks Science Mode, City Planner and Blueprint). */
+  revealed: boolean;
+  /** Show the science view instead of the city. */
+  scienceMode: boolean;
+  /** Blueprint challenges solved, by id, with the best similarity. */
+  blueprints: Record<string, number>;
 }
 
 const KEY = 'minus80.shortcut.progress';
@@ -33,6 +39,9 @@ export function progress(): Progress {
     muted: false,
     reducedEffects: prefersReducedMotion(),
     largeText: false,
+    revealed: false,
+    scienceMode: false,
+    blueprints: {},
   };
   try {
     const raw = window.localStorage.getItem(KEY);
@@ -74,4 +83,9 @@ export function isUnlocked(levelIds: readonly string[], index: number): boolean 
 
 export function textScale(): number {
   return progress().largeText ? 1.25 : 1;
+}
+
+/** Science Mode is unlocked by finishing the campaign and watching the reveal. */
+export function view(): 'city' | 'science' {
+  return progress().revealed && progress().scienceMode ? 'science' : 'city';
 }

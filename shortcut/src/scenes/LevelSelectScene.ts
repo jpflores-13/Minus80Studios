@@ -7,7 +7,11 @@ import { announce } from '../ui/announce';
 import { starText } from '../ui/stars';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
-// Pick a level. Arrow keys or number keys, Enter to play, Esc for the title.
+const COLS = 4;
+const CARD_W = 280;
+const CARD_H = 190;
+
+// Pick a level: two rows of four. Arrow keys or number keys, Enter to play, Esc for the title.
 export class LevelSelectScene extends Phaser.Scene {
   private index = 0;
   private cards: Phaser.GameObjects.Rectangle[] = [];
@@ -19,46 +23,45 @@ export class LevelSelectScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.cream);
-    addCenteredText(this, 70, 'FERNGATE', TEXT_STYLES.title);
-    addCenteredText(this, 120, 'Choose a level', TEXT_STYLES.hint);
+    addCenteredText(this, 52, 'FERNGATE', TEXT_STYLES.title);
     const ids = LEVELS.map((l) => l.id);
     this.cards = LEVELS.map((level, i) => {
-      const x = width / 2 + (i - 1) * 380;
+      const col = i % COLS;
+      const row = Math.floor(i / COLS);
+      const x = width / 2 + (col - (COLS - 1) / 2) * (CARD_W + 20);
+      const y = 210 + row * (CARD_H + 24);
       const open = isUnlocked(ids, i);
       const record = progress().levels[level.id];
       const card = this.add
-        .rectangle(x, height / 2, 340, 300, open ? 0xffffff : PALETTE.creamDark)
+        .rectangle(x, y, CARD_W, CARD_H, open ? 0xffffff : PALETTE.creamDark)
         .setStrokeStyle(2, PALETTE.ink);
       this.add
-        .text(x, height / 2 - 110, `${level.number}`, { ...TEXT_STYLES.title, fontSize: '48px' })
+        .text(x, y - 66, `${level.number}`, { ...TEXT_STYLES.title, fontSize: '36px' })
         .setOrigin(0.5);
       this.add
-        .text(x, height / 2 - 50, level.name, {
+        .text(x, y - 24, level.name, {
           ...TEXT_STYLES.body,
+          fontSize: '20px',
           fontStyle: 'bold',
           align: 'center',
-          wordWrap: { width: 300 },
+          wordWrap: { width: CARD_W - 20 },
         })
         .setOrigin(0.5);
       this.add
-        .text(x, height / 2 + 10, level.tagline, {
+        .text(x, y + 18, level.tagline, {
           ...TEXT_STYLES.small,
+          fontSize: '15px',
           align: 'center',
-          wordWrap: { width: 290 },
+          wordWrap: { width: CARD_W - 30 },
           color: PALETTE.textDim,
         })
         .setOrigin(0.5);
       this.add
-        .text(
-          x,
-          height / 2 + 95,
-          open ? starText(record?.bestStars ?? 0) : 'Locked: pass the level before',
-          {
-            ...TEXT_STYLES.body,
-            fontSize: open ? '34px' : '17px',
-            color: open ? '#a8740f' : PALETTE.textDim,
-          },
-        )
+        .text(x, y + 66, open ? starText(record?.bestStars ?? 0) : 'Locked', {
+          ...TEXT_STYLES.body,
+          fontSize: open ? '28px' : '17px',
+          color: open ? '#a8740f' : PALETTE.textDim,
+        })
         .setOrigin(0.5);
       if (open) {
         card.setInteractive({ useHandCursor: true });
@@ -67,8 +70,11 @@ export class LevelSelectScene extends Phaser.Scene {
       }
       return card;
     });
-    addCenteredText(this, height - 60, '← → choose · ENTER play · ESC back', TEXT_STYLES.hint);
-    const back = addCenteredText(this, height - 110, '◂ BACK TO TITLE', {
+    addCenteredText(this, height - 40, '← → ↑ ↓ choose · 1–8 or ENTER play · ESC back', {
+      ...TEXT_STYLES.hint,
+      fontSize: '17px',
+    });
+    const back = addCenteredText(this, height - 84, '◂ BACK TO TITLE', {
       ...TEXT_STYLES.body,
       fontStyle: 'bold',
     }).setInteractive({ useHandCursor: true });
@@ -78,6 +84,8 @@ export class LevelSelectScene extends Phaser.Scene {
     kb?.on('keydown', (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') this.select(this.index - 1);
       else if (e.key === 'ArrowRight') this.select(this.index + 1);
+      else if (e.key === 'ArrowUp') this.select(this.index - COLS);
+      else if (e.key === 'ArrowDown') this.select(this.index + COLS);
       else if (e.key === 'Enter' || e.key === ' ') this.play(this.index);
       else if (e.key === 'Escape') this.scene.start('Title');
       else if (/^[1-9]$/.test(e.key)) this.play(Number(e.key) - 1);

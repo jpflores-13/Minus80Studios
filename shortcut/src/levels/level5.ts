@@ -1,0 +1,66 @@
+import type { LevelConfig } from './types';
+
+// Delivery trucks on the road can shove machine ends along. Held ends mostly stay put.
+export const level5: LevelConfig = {
+  id: 'level-5',
+  number: 5,
+  name: 'Rush Hour',
+  tagline: 'Trucks on the road, and they don’t wait.',
+  intro: [
+    'Trucks now run the long route west from the Factory, all day long.',
+    'A truck that drives into a machine end can shove it along the road. An end held by a checkpoint usually stays put.',
+    'More machines are out today too, and machines still can’t pass each other.',
+    'Place two depots and four checkpoints. Keep the Café and the Factory running, without mix-ups between the districts.',
+  ],
+  hint: 'Trucks drive west (←) along the marked route and can shove machine ends. Held ends resist.',
+  bins: 36,
+  durationSeconds: 60,
+  buildings: [
+    {
+      id: 'bakery',
+      name: 'Bakery',
+      kind: 'bakery',
+      role: 'supplier',
+      resource: 'bread',
+      bin: 4,
+      active: true,
+    },
+    {
+      id: 'cafe',
+      name: 'Café',
+      kind: 'cafe',
+      role: 'consumer',
+      resource: 'bread',
+      bin: 14,
+      active: true,
+    },
+    {
+      id: 'plant',
+      name: 'Power Plant',
+      kind: 'plant',
+      role: 'supplier',
+      resource: 'power',
+      bin: 21,
+      active: true,
+    },
+    {
+      id: 'factory',
+      name: 'Factory',
+      kind: 'factory',
+      role: 'consumer',
+      resource: 'power',
+      bin: 32,
+      active: true,
+    },
+  ],
+  districts: [
+    { id: 'old-town', name: 'Old Town', from: 0, to: 17 },
+    { id: 'works', name: 'The Works', from: 18, to: 35 },
+  ],
+  fixedDepots: [],
+  fixedCheckpoints: [],
+  routes: [{ from: 33, to: 8, rate: 0.5 }],
+  tools: { depots: 2, checkpoints: 4 },
+  engine: { fleet: 6, lifetimeMean: 20, truckSpeed: 4, trafficPush: 0.8, trafficBlock: 0.5 },
+  goal: { metric: 'service', one: 0.35, two: 0.5, three: 0.65, maxMixups: 0.25 },
+};

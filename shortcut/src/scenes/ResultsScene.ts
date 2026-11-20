@@ -3,8 +3,8 @@ import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { recordResult } from '../config/progress';
 import { getLevel, LEVELS } from '../levels';
-import type { LevelConfig } from '../levels/types';
-import { connectivity } from '../systems/extrusion';
+import { drawHeatmap } from '../render/charts';
+import { contactMap } from '../systems/contacts';
 import type { Layout, Run } from '../systems/run';
 import { formatValue, scoreRun, type Score } from '../systems/score';
 import { announce } from '../ui/announce';
@@ -46,7 +46,11 @@ export class ResultsScene extends Phaser.Scene {
       ? (['Nicely connected.', 'The city hums.', 'Ferngate thanks you.'][score.stars - 1] ?? '')
       : score.tooManyMixups
         ? 'Too many mix-ups between the districts.'
-        : 'Not quite. Try a different plan?';
+        : score.tooManyWrong
+          ? 'Too many wrong connections: shortcuts joined buildings that can’t use each other.'
+          : score.someoneLeftOut
+            ? 'Somebody was left out: every open building needs its share.'
+            : 'Not quite. Try a different plan?';
     addCenteredText(this, 170, headline, TEXT_STYLES.body);
 
     const lines = [formatValue(level, score.value)];
@@ -55,6 +59,8 @@ export class ResultsScene extends Phaser.Scene {
         lines.push(`${c.name}: running ${pct(c.uptime)} of the time`);
     if (level.goal.maxMixups !== undefined)
       lines.push(`Mix-ups: ${pct(score.mixups)} (limit ${pct(level.goal.maxMixups)})`);
+    if (level.goal.maxWrong !== undefined)
+      lines.push(`Wrong connections: ${pct(score.wrong)} (limit ${pct(level.goal.maxWrong)})`);
     lines.push(
       `Machines that came and went: ${data.run.engine.released + data.run.engine.machines.length}`,
     );
@@ -69,7 +75,11 @@ export class ResultsScene extends Phaser.Scene {
       },
     );
 
-    this.drawMap(level, data.run, width - 420, 220, 300);
+    drawHeatmap(this, contactMap(data.run.engine), width - 420, 230, 300, {
+      title: 'City Connectivity Map',
+      note: 'darker = those two addresses were joined more often',
+      marks: level.buildings.map((b) => ({ bin: b.bin, label: b.name })),
+    });
 
     const index = LEVELS.findIndex((l) => l.id === level.id);
     const next = LEVELS[index + 1];
@@ -89,15 +99,11 @@ export class ResultsScene extends Phaser.Scene {
         run: () => this.scene.start('Level', { levelId: next.id }),
       });
     if (score.passed && !next)
-      addCenteredText(
-        this,
-        596,
-        'That’s all of Ferngate for now. More of the city is on the way.',
-        {
-          ...TEXT_STYLES.body,
-          color: PALETTE.textDim,
-        },
-      );
+      this.actions.push({
+        key: '3',
+        label: 'WHAT WAS I BUILDING?',
+        run: () => this.scene.start('Reveal'),
+      });
 
     const w = 300;
     const total = this.actions.length * w + (this.actions.length - 1) * 24;
@@ -132,60 +138,6 @@ export class ResultsScene extends Phaser.Scene {
   private go(action: () => void): void {
     sound.play('click');
     action();
-  }
-
-  /** How often each pair of addresses was joined, as a heat map, with the buildings marked. */
-  private drawMap(level: LevelConfig, run: Run, x: number, y: number, size: number): void {
-    const n = level.bins;
-    const cell = size / n;
-    let max = 0;
-    for (let a = 0; a < n; a++)
-      for (let b = 0; b < n; b++) max = Math.max(max, connectivity(run.engine, a, b));
-    const g = this.add.graphics();
-    g.fillStyle(0xffffff, 1).fillRect(x, y, size, size);
-    const low = Phaser.Display.Color.ValueToColor(0xfffaf0);
-    const high = Phaser.Display.Color.ValueToColor(0x7a3e10);
-    for (let a = 0; a < n; a++) {
-      for (let b = 0; b < n; b++) {
-        const v = max > 0 ? Math.sqrt(connectivity(run.engine, a, b) / max) : 0;
-        if (v <= 0) continue;
-        const c = Phaser.Display.Color.Interpolate.ColorWithColor(low, high, 100, v * 100);
-        g.fillStyle(Phaser.Display.Color.GetColor(c.r, c.g, c.b), 1).fillRect(
-          x + b * cell,
-          y + a * cell,
-          cell + 0.5,
-          cell + 0.5,
-        );
-      }
-    }
-    g.lineStyle(2, PALETTE.ink, 1).strokeRect(x, y, size, size);
-    // buildings along both edges
-    for (const b of level.buildings) {
-      const p = (b.bin + 0.5) * cell;
-      g.lineStyle(1, PALETTE.ink, 0.35)
-        .lineBetween(x + p, y, x + p, y + size)
-        .lineBetween(x, y + p, x + size, y + p);
-      this.add
-        .text(x - 6, y + p, b.name, { ...TEXT_STYLES.small, fontSize: '13px' })
-        .setOrigin(1, 0.5);
-      this.add
-        .text(x + p, y + size + 6, b.name, { ...TEXT_STYLES.small, fontSize: '13px' })
-        .setOrigin(0, 0.5)
-        .setAngle(45);
-    }
-    this.add
-      .text(x + size / 2, y - 30, 'City Connectivity Map', {
-        ...TEXT_STYLES.body,
-        fontStyle: 'bold',
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(x + size / 2, y - 8, 'darker = those two addresses were joined more often', {
-        ...TEXT_STYLES.small,
-        fontSize: '13px',
-        color: PALETTE.textDim,
-      })
-      .setOrigin(0.5);
   }
 }
 

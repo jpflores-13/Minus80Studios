@@ -22,6 +22,8 @@ export const PALETTE = {
   accent: 0x44586b,
   bread: 0xd9a05b,
   power: 0x3f7fc4,
+  water: 0x7fb7d9,
+  heat: 0xe8823a,
   oldTown: 0xead9c0,
   works: 0xd3dde2,
   sky: 0xf7f1e4,

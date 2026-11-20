@@ -1,28 +1,34 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
-import { progress } from '../config/progress';
+import { progress, view } from '../config/progress';
 import { TUNING } from '../config/tuning';
+import { buildingName, SCIENCE_TIPS, term, type View } from '../content/terms';
 import { getLevel } from '../levels';
-import type { Building, LevelConfig } from '../levels/types';
-import { districtOf, isRunning, links } from '../systems/city';
+import type { LevelConfig, PolicyOption } from '../levels/types';
+import { RoadView, type Parcel } from '../render/RoadView';
+import { isOpen, isRunning, links } from '../systems/city';
 import type { Checkpoint } from '../systems/extrusion';
-import { checkpoint, isFinished, startRun, stepRun, type Layout, type Run } from '../systems/run';
+import {
+  checkpoint,
+  DEFAULT_POLICY,
+  isFinished,
+  policyCost,
+  startRun,
+  stepRun,
+  type Layout,
+  type PolicyChoice,
+  type Run,
+} from '../systems/run';
 import { formatValue, scoreRun } from '../systems/score';
 import { announce } from '../ui/announce';
 import { Button } from '../ui/Button';
-import {
-  drawBuilding,
-  drawCheckpoint,
-  drawDepot,
-  drawMachineEnd,
-  drawParcel,
-  shortcutCurve,
-} from '../ui/cityArt';
+import { SCI } from '../ui/scienceArt';
 import { TEXT_STYLES } from '../ui/text';
 
 type Phase = 'brief' | 'plan' | 'run';
 type Tool = 'depot' | 'checkpoint';
+type Dial = 'lifetime' | 'loading' | 'fleet';
 
 export interface LevelSceneData {
   levelId: string;
@@ -32,25 +38,18 @@ export interface LevelSceneData {
   warm?: number;
 }
 
-interface Parcel {
-  curve: Phaser.Curves.CubicBezier;
-  t: number;
-  resource: Building['resource'];
-}
-
-// Screen layout
 const X0 = 70;
 const X1 = 1210;
 const ROAD_Y = 470;
-const ROAD_TOP = ROAD_Y - 18;
-const BUILDING_Y = 540;
-const MAX_RISE = 300;
 const BAR_Y = 668;
 
 // One level: read the briefing, plan the layout, then watch a minute of the city.
 export class LevelScene extends Phaser.Scene {
   private level!: LevelConfig;
+  private v: View = 'city';
+  private road!: RoadView;
   private layout: Layout = { depots: [], checkpoints: [] };
+  private history: Layout[] = [];
   private phase: Phase = 'brief';
   private tool: Tool = 'depot';
   private cursor = 0;
@@ -61,22 +60,23 @@ export class LevelScene extends Phaser.Scene {
   private parcels: Parcel[] = [];
   private flashes = new Map<string, number>();
   private wasRunning = new Map<string, boolean>();
+  private weather!: Phaser.GameObjects.Rectangle;
+  private weatherBanner!: Phaser.GameObjects.Text;
 
-  private dyn!: Phaser.GameObjects.Graphics;
-  private cursorGfx!: Phaser.GameObjects.Graphics;
-  private buildingLabels = new Map<string, Phaser.GameObjects.Text>();
   private statusText!: Phaser.GameObjects.Text;
   private timeText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
   private toolButtons: Partial<Record<Tool, Button>> = {};
+  private dialButtons: Partial<Record<Dial, Button>> = {};
+  private budgetText: Phaser.GameObjects.Text | null = null;
+  private planButtons: Button[] = [];
+  private runButtons: Button[] = [];
   private runButton!: Button;
   private fastButton!: Button;
   private pauseButton!: Button;
-  private stopButton!: Button;
-  private menuButton!: Button;
-  private helpButton!: Button;
   private brief: Phaser.GameObjects.GameObject[] = [];
   private briefPage = 0;
+  private picker: Button[] = [];
 
   constructor() {
     super('Level');
@@ -84,12 +84,11 @@ export class LevelScene extends Phaser.Scene {
 
   create(data: LevelSceneData): void {
     this.level = getLevel(data.levelId);
-    this.layout = data.layout
-      ? {
-          depots: [...data.layout.depots],
-          checkpoints: data.layout.checkpoints.map((c) => ({ ...c })),
-        }
-      : { depots: [], checkpoints: [] };
+    this.v = view();
+    const start = data.layout ?? this.level.startLayout ?? { depots: [], checkpoints: [] };
+    this.layout = cloneLayout(start);
+    if (this.level.policies) this.layout.policy ??= { ...DEFAULT_POLICY };
+    this.history = [];
     this.phase = 'plan';
     this.tool = this.level.tools.depots > 0 ? 'depot' : 'checkpoint';
     this.cursor = Math.floor(this.level.bins / 2);
@@ -98,16 +97,42 @@ export class LevelScene extends Phaser.Scene {
     this.fast = false;
     this.paused = false;
     this.parcels = [];
-    this.flashes.clear();
-    this.wasRunning.clear();
-    this.buildingLabels.clear();
+    this.flashes = new Map();
+    this.wasRunning = new Map();
     this.toolButtons = {};
+    this.dialButtons = {};
+    this.budgetText = null;
+    this.planButtons = [];
+    this.runButtons = [];
     this.picker = [];
 
-    this.cameras.main.setBackgroundColor(PALETTE.sky);
-    this.drawStatic();
-    this.dyn = this.add.graphics().setDepth(10);
-    this.cursorGfx = this.add.graphics().setDepth(12);
+    const science = this.v === 'science';
+    this.cameras.main.setBackgroundColor(science ? SCI.bg : PALETTE.sky);
+    this.road = new RoadView(this, this.level, this.v, {
+      x0: X0,
+      x1: X1,
+      roadY: ROAD_Y,
+      maxRise: 300,
+      top: 120,
+      bottom: 620,
+    });
+    this.road.root.setDepth(5);
+    const { width, height } = this.scale;
+    this.weather = this.add
+      .rectangle(0, 0, width, height, PALETTE.heat, 0)
+      .setOrigin(0)
+      .setDepth(7);
+    this.weatherBanner = this.add
+      .text(width / 2, 150, '', {
+        ...TEXT_STYLES.body,
+        fontStyle: 'bold',
+        color: '#7a3a10',
+        backgroundColor: '#fde3c8',
+        padding: { x: 14, y: 6 },
+      })
+      .setOrigin(0.5)
+      .setDepth(25)
+      .setVisible(false);
     this.buildHud();
     this.buildInput();
     this.refresh();
@@ -123,151 +148,8 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  // ---------- geometry ----------
-
-  private binW(): number {
-    return (X1 - X0) / this.level.bins;
-  }
-
-  private binX(bin: number): number {
-    return X0 + (bin + 0.5) * this.binW();
-  }
-
-  private binAt(x: number): number {
-    return Phaser.Math.Clamp(Math.floor((x - X0) / this.binW()), 0, this.level.bins - 1);
-  }
-
-  // ---------- drawing ----------
-
-  private drawStatic(): void {
-    const { width } = this.scale;
-    const g = this.add.graphics().setDepth(0);
-
-    // districts as tinted ground, each with a label
-    for (const d of this.level.districts) {
-      const color = d.id === 'old-town' ? PALETTE.oldTown : PALETTE.works;
-      const left = X0 + d.from * this.binW();
-      const right = X0 + (d.to + 1) * this.binW();
-      g.fillStyle(color, 1).fillRect(left, 120, right - left, 500);
-      this.add
-        .text((left + right) / 2, 132, d.name.toUpperCase(), {
-          ...TEXT_STYLES.small,
-          fontStyle: 'bold',
-          color: PALETTE.textDim,
-        })
-        .setOrigin(0.5, 0)
-        .setDepth(1);
-    }
-    for (let i = 1; i < this.level.districts.length; i++) {
-      const x = X0 + (this.level.districts[i]?.from ?? 0) * this.binW();
-      g.lineStyle(2, 0x8d8578, 1);
-      for (let y = 124; y < 616; y += 16) g.lineBetween(x, y, x, y + 8);
-    }
-
-    // grass strip and road
-    g.fillStyle(PALETTE.sage, 1).fillRect(0, ROAD_Y + 18, width, 120);
-    g.fillStyle(PALETTE.road, 1).fillRect(X0 - 20, ROAD_Y - 18, X1 - X0 + 40, 36);
-    g.lineStyle(2, PALETTE.roadLine, 0.8);
-    for (let x = X0; x < X1; x += 28) g.lineBetween(x, ROAD_Y, x + 14, ROAD_Y);
-    // address ticks so the bins are visible
-    g.lineStyle(1, 0x4c4944, 1);
-    for (let i = 0; i <= this.level.bins; i++) {
-      const x = X0 + i * this.binW();
-      g.lineBetween(x, ROAD_Y + 12, x, ROAD_Y + 18);
-    }
-    // road ends
-    g.fillStyle(PALETTE.ink, 1)
-      .fillRect(X0 - 24, ROAD_Y - 22, 6, 44)
-      .fillRect(X1 + 18, ROAD_Y - 22, 6, 44);
-
-    // buildings below the road
-    for (const b of this.level.buildings) {
-      const label = this.add
-        .text(this.binX(b.bin), BUILDING_Y + 34, '', {
-          ...TEXT_STYLES.small,
-          fontSize: '15px',
-          align: 'center',
-          backgroundColor: '#f7f1e4',
-          padding: { x: 4, y: 1 },
-        })
-        .setOrigin(0.5, 0)
-        .setDepth(6);
-      this.buildingLabels.set(b.id, label);
-    }
-  }
-
-  private drawBuildings(g: Phaser.GameObjects.Graphics): void {
-    for (const b of this.level.buildings) {
-      const lit =
-        b.role === 'supplier' || (this.run ? isRunning(this.run.city, b.id, TUNING.city) : false);
-      const x = this.binX(b.bin);
-      // a short driveway to the road
-      g.fillStyle(PALETTE.creamDark, 1).fillRect(x - 5, ROAD_Y + 18, 10, 10);
-      drawBuilding(g, b.kind, x, BUILDING_Y, lit);
-      const flash = this.flashes.get(b.id) ?? 0;
-      if (flash > 0) {
-        g.lineStyle(3, PALETTE.gold, flash).strokeCircle(x, BUILDING_Y - 4, 44);
-      }
-    }
-  }
-
-  private redraw(): void {
-    const g = this.dyn;
-    g.clear();
-    this.drawBuildings(g);
-
-    const machines = this.run?.engine.machines ?? [];
-
-    // shortcuts first, so the signs and machines sit on top of them
-    for (const m of machines) {
-      if (m.left === m.right) continue;
-      const points = shortcutCurve(
-        this.binX(m.left),
-        this.binX(m.right),
-        ROAD_TOP - 2,
-        MAX_RISE,
-      ).getPoints(48);
-      const dl = districtOf(this.level, m.left);
-      const dr = districtOf(this.level, m.right);
-      if (dl !== null && dr !== null && dl !== dr) {
-        // mix-ups are dashed and terracotta, so they read without colour too
-        g.lineStyle(4, PALETTE.terracottaDark, 1);
-        for (let i = 0; i + 2 < points.length; i += 4) {
-          g.strokePoints(points.slice(i, i + 3));
-        }
-      } else {
-        g.lineStyle(8, PALETTE.goldDark, 0.9).strokePoints(points);
-        g.lineStyle(4, PALETTE.gold, 1).strokePoints(points);
-      }
-    }
-
-    // planned or fixed equipment
-    const fixedDepots = new Set(this.level.fixedDepots);
-    for (const bin of [...this.level.fixedDepots, ...this.layout.depots])
-      drawDepot(g, this.binX(bin), ROAD_TOP, fixedDepots.has(bin));
-    for (const c of this.level.fixedCheckpoints)
-      drawCheckpoint(g, this.binX(c.bin), ROAD_TOP, c.facing, true);
-    for (const c of this.layout.checkpoints)
-      drawCheckpoint(g, this.binX(c.bin), ROAD_TOP, c.facing, false);
-
-    // machine ends and parcels in transit
-    for (const m of machines) {
-      drawMachineEnd(g, this.binX(m.left), ROAD_Y - 2, m.leftStalled);
-      if (m.right !== m.left) drawMachineEnd(g, this.binX(m.right), ROAD_Y - 2, m.rightStalled);
-    }
-    for (const p of this.parcels) {
-      const pt = p.curve.getPoint(p.t);
-      drawParcel(g, pt.x, pt.y, p.resource);
-    }
-
-    // keyboard / hover cursor
-    const cg = this.cursorGfx;
-    cg.clear();
-    if (this.phase === 'plan') {
-      const x = X0 + this.cursor * this.binW();
-      cg.fillStyle(PALETTE.gold, 0.25).fillRect(x, ROAD_Y - 70, this.binW(), 96);
-      cg.lineStyle(3, PALETTE.ink, 1).strokeRect(x + 1, ROAD_Y - 70, this.binW() - 2, 96);
-    }
+  private t(key: Parameters<typeof term>[0]): string {
+    return term(key, this.v);
   }
 
   // ---------- HUD ----------
@@ -275,134 +157,193 @@ export class LevelScene extends Phaser.Scene {
   private buildHud(): void {
     const { width } = this.scale;
     const lv = this.level;
-    this.add.rectangle(0, 0, width, 104, PALETTE.cream).setOrigin(0).setDepth(20);
+    const science = this.v === 'science';
+    const ink = science ? SCI.text : PALETTE.text;
     this.add
-      .text(24, 14, `${lv.number} · ${lv.name}`, { ...TEXT_STYLES.title, fontSize: '32px' })
+      .rectangle(0, 0, width, 104, science ? SCI.panel : PALETTE.cream)
+      .setOrigin(0)
+      .setDepth(20);
+    this.add
+      .text(24, 14, `${lv.number} · ${lv.name}`, {
+        ...TEXT_STYLES.title,
+        fontSize: '32px',
+        color: ink,
+      })
       .setDepth(21);
-    const g = lv.goal;
-    const goalLine =
-      g.metric === 'deliveries'
-        ? `Goal: deliveries in one minute   ★ ${g.one}   ★★ ${g.two}   ★★★ ${g.three}`
-        : `Goal: keep ${lv.buildings
-            .filter((b) => b.role === 'consumer')
-            .map((b) => `the ${b.name}`)
-            .join(
-              ' and ',
-            )} running   ★ ${pct(g.one)}   ★★ ${pct(g.two)}   ★★★ ${pct(g.three)}${g.maxMixups !== undefined ? `   ·   mix-ups under ${pct(g.maxMixups)}` : ''}`;
-    this.add.text(24, 58, goalLine, { ...TEXT_STYLES.small, fontSize: '17px' }).setDepth(21);
+    this.add
+      .text(24, 52, this.goalLine(), {
+        ...TEXT_STYLES.small,
+        fontSize: '15px',
+        color: ink,
+        wordWrap: { width: 800 },
+      })
+      .setDepth(21);
     this.timeText = this.add
-      .text(width - 24, 14, '', { ...TEXT_STYLES.title, fontSize: '32px' })
+      .text(width - 24, 14, '', { ...TEXT_STYLES.title, fontSize: '32px', color: ink })
       .setOrigin(1, 0)
       .setDepth(21);
     this.statusText = this.add
-      .text(width - 24, 60, '', { ...TEXT_STYLES.small, fontSize: '17px', align: 'right' })
+      .text(width - 24, 60, '', {
+        ...TEXT_STYLES.small,
+        fontSize: '17px',
+        align: 'right',
+        color: ink,
+      })
       .setOrigin(1, 0)
       .setDepth(21);
 
     this.hintText = this.add
       .text(width / 2, 630, '', {
         ...TEXT_STYLES.small,
-        fontSize: '17px',
+        fontSize: '16px',
         align: 'center',
-        wordWrap: { width: 1100 },
+        wordWrap: { width: 1180 },
+        color: ink,
       })
       .setOrigin(0.5)
       .setDepth(21);
 
     this.add
-      .rectangle(0, BAR_Y - 22, width, 74, PALETTE.creamDark)
+      .rectangle(0, BAR_Y - 22, width, 74, science ? SCI.panel : PALETTE.creamDark)
       .setOrigin(0)
       .setDepth(20);
-    let x = 110;
-    if (lv.tools.depots > 0) {
-      this.toolButtons.depot = new Button(this, x, BAR_Y + 14, 190, 46, '', () =>
-        this.selectTool('depot'),
-      );
-      x += 205;
+
+    const y = BAR_Y + 14;
+    let x = 20;
+    const addPlan = (w: number, label: string, fn: () => void, color?: number): Button => {
+      const b = new Button(this, x + w / 2, y, w, 46, label, fn, color);
+      x += w + 10;
+      this.planButtons.push(b);
+      return b;
+    };
+    if (lv.tools.depots > 0)
+      this.toolButtons.depot = addPlan(180, '', () => this.selectTool('depot'));
+    if (lv.tools.checkpoints > 0)
+      this.toolButtons.checkpoint = addPlan(230, '', () => this.selectTool('checkpoint'));
+    if (lv.policies) {
+      for (const d of ['lifetime', 'loading', 'fleet'] as const)
+        this.dialButtons[d] = addPlan(215, '', () => this.cycleDial(d));
+      for (const b of Object.values(this.dialButtons)) b.label.setFontSize(14);
+      this.budgetText = this.add
+        .text(x + 4, y, '', { ...TEXT_STYLES.small, fontSize: '16px', color: ink })
+        .setOrigin(0, 0.5)
+        .setDepth(21);
+      x += 110;
+    } else {
+      addPlan(100, 'UNDO', () => this.undo());
+      addPlan(100, 'RESET', () => this.resetLayout());
     }
-    if (lv.tools.checkpoints > 0) {
-      this.toolButtons.checkpoint = new Button(this, x + 15, BAR_Y + 14, 220, 46, '', () =>
-        this.selectTool('checkpoint'),
-      );
-    }
-    this.menuButton = new Button(this, width - 470, BAR_Y + 14, 110, 46, 'MENU', () =>
-      this.toMenu(),
-    );
-    this.helpButton = new Button(this, width - 350, BAR_Y + 14, 110, 46, 'HELP', () =>
-      this.openBrief(),
-    );
+    x = width - 470;
+    addPlan(100, 'MENU', () => this.toMenu());
+    addPlan(100, 'HELP', () => this.openBrief());
     this.runButton = new Button(
       this,
       width - 130,
-      BAR_Y + 14,
+      y,
       220,
       46,
       'RUN ▶  (R)',
       () => this.startRunning(),
       PALETTE.goldDark,
     );
-    this.fastButton = new Button(this, width - 590, BAR_Y + 14, 150, 46, '', () =>
-      this.toggleFast(),
-    );
-    this.pauseButton = new Button(this, width - 430, BAR_Y + 14, 150, 46, '', () =>
-      this.togglePause(),
-    );
-    this.stopButton = new Button(this, width - 130, BAR_Y + 14, 220, 46, 'STOP & EDIT (S)', () =>
+    this.planButtons.push(this.runButton);
+
+    this.fastButton = new Button(this, width - 590, y, 150, 46, '', () => this.toggleFast());
+    this.pauseButton = new Button(this, width - 430, y, 150, 46, '', () => this.togglePause());
+    const stop = new Button(this, width - 130, y, 220, 46, 'STOP & EDIT (S)', () =>
       this.stopRunning(),
     );
+    this.runButtons = [this.fastButton, this.pauseButton, stop];
+  }
+
+  private goalLine(): string {
+    const lv = this.level;
+    const g = lv.goal;
+    const stars = (f: (x: number) => string) =>
+      `★ ${f(g.one)}   ★★ ${f(g.two)}   ★★★ ${f(g.three)}`;
+    if (g.metric === 'deliveries') return `Goal: deliveries in one minute   ${stars(String)}`;
+    const who = lv.buildings
+      .filter((b) => b.role === 'consumer' && b.active)
+      .map((b) => buildingName(b, this.v))
+      .join(', ');
+    const extras = [
+      g.maxMixups !== undefined ? `${this.t('mixups')} under ${pct(g.maxMixups)}` : '',
+      g.maxWrong !== undefined ? `${this.t('wrong')} under ${pct(g.maxWrong)}` : '',
+      g.minEach !== undefined ? `each at least ${pct(g.minEach)}` : '',
+    ].filter(Boolean);
+    return `Keep running: ${who}   ${stars(pct)}${extras.length ? `   ·   ${extras.join(' · ')}` : ''}`;
   }
 
   private refresh(): void {
     const lv = this.level;
     const planning = this.phase !== 'run';
-    const placedDepots = this.layout.depots.length;
-    const placedCheckpoints = this.layout.checkpoints.length;
-    this.toolButtons.depot
-      ?.setText(
-        `${this.tool === 'depot' ? '▸ ' : ''}DEPOT (1)  ${lv.tools.depots - placedDepots} left`,
-      )
-      .setVisible(planning);
-    this.toolButtons.checkpoint
-      ?.setText(
-        `${this.tool === 'checkpoint' ? '▸ ' : ''}CHECKPOINT (2)  ${lv.tools.checkpoints - placedCheckpoints} left`,
-      )
-      .setVisible(planning);
-    this.menuButton.setVisible(planning);
-    this.helpButton.setVisible(planning);
-    this.runButton.setVisible(planning);
-    this.fastButton.setVisible(!planning).setText(this.fast ? 'NORMAL (F)' : 'FAST ⏩ (F)');
-    this.pauseButton.setVisible(!planning).setText(this.paused ? 'GO (P)' : 'PAUSE (P)');
-    this.stopButton.setVisible(!planning);
+    this.toolButtons.depot?.setText(
+      `${this.tool === 'depot' ? '▸ ' : ''}${this.t('depot').toUpperCase()} (1)  ${lv.tools.depots - this.layout.depots.length} left`,
+    );
+    this.toolButtons.checkpoint?.setText(
+      `${this.tool === 'checkpoint' ? '▸ ' : ''}${this.t('checkpoint').toUpperCase()} (2)  ${lv.tools.checkpoints - this.layout.checkpoints.length} left`,
+    );
+    if (lv.policies) {
+      const c = this.layout.policy ?? DEFAULT_POLICY;
+      const label = (name: string, o: PolicyOption | undefined, key: string) =>
+        `${name.toUpperCase()} (${key})\n${o?.label ?? ''} · cost ${o?.cost ?? 0}`;
+      this.dialButtons.lifetime?.setText(
+        label(this.t('maintenance'), lv.policies.lifetime[c.lifetime], '3'),
+      );
+      this.dialButtons.loading?.setText(
+        label(this.t('depotSpeed'), lv.policies.loading[c.loading], '4'),
+      );
+      this.dialButtons.fleet?.setText(label(this.t('fleet'), lv.policies.fleet[c.fleet], '5'));
+      const spent = policyCost(lv, c);
+      this.budgetText?.setText(
+        `Budget\n${spent} of ${lv.policies.budget}${spent > lv.policies.budget ? '  over!' : ''}`,
+      );
+    }
+    for (const b of this.planButtons) b.setVisible(planning);
+    for (const b of this.runButtons) b.setVisible(!planning);
+    this.budgetText?.setVisible(planning);
+    this.fastButton.setText(this.fast ? 'NORMAL (F)' : 'FAST ⏩ (F)');
+    this.pauseButton.setText(this.paused ? 'GO (P)' : 'PAUSE (P)');
     this.runButton.setEnabled(this.canRun());
 
     if (planning) {
       this.timeText.setText(`${lv.durationSeconds}s`);
-      this.statusText.setText('Planning');
-      this.hintText.setText(`${lv.hint}   ·   ← → move · ENTER place · R run`);
+      this.statusText.setText(
+        lv.weather ? `Forecast: ${lv.weather.name} at ${lv.weather.at}s` : 'Planning',
+      );
+      this.hintText.setText(
+        this.v === 'science'
+          ? this.scienceTip(this.cursor)
+          : `${lv.hint}   ·   ← → move · ENTER place · U undo · R run`,
+      );
     } else if (this.run) {
       const left = Math.max(0, lv.durationSeconds - this.run.engine.time);
       this.timeText.setText(`${Math.ceil(left)}s`);
       const score = scoreRun(lv, this.run.city);
-      const mix = lv.goal.maxMixups !== undefined ? `   mix-ups ${pct(score.mixups)}` : '';
-      this.statusText.setText(`${formatValue(lv, score.value)}${mix}`);
+      const parts = [formatValue(lv, score.value)];
+      if (lv.goal.maxMixups !== undefined) parts.push(`${this.t('mixups')} ${pct(score.mixups)}`);
+      if (lv.goal.maxWrong !== undefined) parts.push(`${this.t('wrong')} ${pct(score.wrong)}`);
+      this.statusText.setText(parts.join('   '));
       this.hintText.setText(
         this.paused
           ? 'Paused. Press P or GO to carry on.'
-          : 'Golden arches are shortcuts. When one joins a supplier to the right customer, deliveries can cross.',
+          : this.v === 'science'
+            ? 'Loops form as cohesin extrudes. Matching enhancer–gene contacts make expression likely, not certain.'
+            : 'Golden arches are shortcuts. When one joins a supplier to the right customer, deliveries can cross.',
       );
     }
-
-    for (const b of lv.buildings) {
-      const label = this.buildingLabels.get(b.id);
-      if (!label) continue;
-      if (b.role === 'supplier') label.setText(`${b.name}\nmakes ${b.resource}`);
-      else if (!this.run) label.setText(`${b.name}\nneeds ${b.resource}`);
-      else {
-        const on = isRunning(this.run.city, b.id, TUNING.city);
-        label.setText(`${b.name}\n${on ? 'running ✓' : 'waiting…'}`);
-      }
-    }
     this.redraw();
+  }
+
+  private redraw(): void {
+    this.road.draw({
+      layout: this.layout,
+      run: this.run,
+      cityParams: this.run?.cityParams ?? TUNING.city,
+      cursor: this.phase === 'plan' ? this.cursor : null,
+      parcels: this.parcels,
+      flashes: this.flashes,
+    });
   }
 
   // ---------- input ----------
@@ -416,15 +357,16 @@ export class LevelScene extends Phaser.Scene {
       .setDepth(15);
     zone.on('pointermove', (p: Phaser.Input.Pointer) => {
       if (this.phase !== 'plan' || p.wasTouch) return;
-      const bin = this.binAt(p.worldX);
+      const bin = this.road.binAt(p.worldX);
       if (bin !== this.cursor) {
         this.cursor = bin;
+        if (this.v === 'science') this.hintText.setText(this.scienceTip(bin));
         this.redraw();
       }
     });
     zone.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (this.phase !== 'plan') return;
-      this.cursor = this.binAt(p.worldX);
+      this.cursor = this.road.binAt(p.worldX);
       // Touch: pick the spot first, with big buttons to nudge and confirm. Mouse acts at once.
       if (p.wasTouch) this.openPicker();
       else this.actAt(this.cursor);
@@ -456,6 +398,10 @@ export class LevelScene extends Phaser.Scene {
       else if (key === 'delete' || key === 'backspace') this.removeAt(this.cursor);
       else if (key === '1') this.selectTool('depot');
       else if (key === '2') this.selectTool('checkpoint');
+      else if (key === '3') this.cycleDial('lifetime');
+      else if (key === '4') this.cycleDial('loading');
+      else if (key === '5') this.cycleDial('fleet');
+      else if (key === 'u' || (key === 'z' && (e.ctrlKey || e.metaKey))) this.undo();
       else if (key === 'r') this.startRunning();
       else if (key === 'h') this.openBrief();
       else if (key === 'escape') this.toMenu();
@@ -470,7 +416,7 @@ export class LevelScene extends Phaser.Scene {
 
   private moveCursor(dir: -1 | 1, steps: number): void {
     this.cursor = Phaser.Math.Clamp(this.cursor + dir * steps, 0, this.level.bins - 1);
-    this.redraw();
+    this.refresh();
     announce(this.describe(this.cursor));
   }
 
@@ -483,12 +429,51 @@ export class LevelScene extends Phaser.Scene {
     this.refresh();
     announce(
       tool === 'depot'
-        ? 'Depot selected. Machines start at depots.'
-        : 'Checkpoint selected. A checkpoint stops machine ends coming from the side its arrow points at.',
+        ? `${this.t('depot')} selected. ${this.t('machines')} start here.`
+        : `${this.t('checkpoint')} selected. It stops ends coming from the side its arrow points at.`,
+    );
+  }
+
+  private cycleDial(dial: Dial): void {
+    const pol = this.level.policies;
+    if (!pol || this.phase !== 'plan') return;
+    this.remember();
+    const c: PolicyChoice = { ...(this.layout.policy ?? DEFAULT_POLICY) };
+    c[dial] = (c[dial] + 1) % pol[dial].length;
+    this.layout.policy = c;
+    sound.unlock();
+    sound.play('turn');
+    this.refresh();
+    const o = pol[dial][c[dial]];
+    announce(
+      `${o?.label ?? ''}, costs ${o?.cost ?? 0}. Budget used ${policyCost(this.level, c)} of ${pol.budget}.`,
     );
   }
 
   // ---------- planning ----------
+
+  private remember(): void {
+    this.history.push(cloneLayout(this.layout));
+    if (this.history.length > 50) this.history.shift();
+  }
+
+  private undo(): void {
+    const prev = this.history.pop();
+    if (!prev) return this.deny('Nothing to undo.');
+    this.layout = prev;
+    sound.play('remove');
+    this.refresh();
+    announce('Undone.');
+  }
+
+  private resetLayout(): void {
+    this.remember();
+    this.layout = cloneLayout(this.level.startLayout ?? { depots: [], checkpoints: [] });
+    if (this.level.policies) this.layout.policy = { ...DEFAULT_POLICY };
+    sound.play('remove');
+    this.refresh();
+    announce('Plan reset. U undoes this.');
+  }
 
   private fixedCheckpointAt(bin: number): Checkpoint | undefined {
     return this.level.fixedCheckpoints.find((c) => c.bin === bin);
@@ -503,6 +488,7 @@ export class LevelScene extends Phaser.Scene {
     }
     const cp = this.layout.checkpoints.find((c) => c.bin === bin);
     if (cp) {
+      this.remember();
       if (cp.facing === 1) {
         cp.facing = -1;
         sound.play('turn');
@@ -514,6 +500,7 @@ export class LevelScene extends Phaser.Scene {
       return;
     }
     if (this.layout.depots.includes(bin)) {
+      this.remember();
       this.layout.depots = this.layout.depots.filter((d) => d !== bin);
       sound.play('remove');
       this.afterEdit(bin);
@@ -531,13 +518,18 @@ export class LevelScene extends Phaser.Scene {
     if (tool === 'checkpoint' && checkpointsLeft === 0 && depotsLeft > 0) tool = 'depot';
 
     if (tool === 'depot') {
+      if (lv.tools.depots === 0) return this.deny(`No ${this.t('depot')}s to place in this level.`);
+      this.remember();
       if (depotsLeft > 0) this.layout.depots.push(bin);
       else if (lv.tools.depots === 1)
         this.layout.depots = [bin]; // only one: just move it
-      else return this.deny('No depots left. Tap one to pick it up.');
+      else return this.deny('None left. Tap one to pick it up.');
     } else {
+      if (lv.tools.checkpoints === 0)
+        return this.deny(`No ${this.t('checkpoints')} to place in this level.`);
       if (checkpointsLeft === 0)
-        return this.deny('No checkpoints left. Tap one to turn it around or pick it up.');
+        return this.deny('None left. Tap one to turn it around or pick it up.');
+      this.remember();
       this.layout.checkpoints.push(checkpoint(bin, 1));
     }
     sound.play('place');
@@ -546,9 +538,11 @@ export class LevelScene extends Phaser.Scene {
 
   private removeAt(bin: number): void {
     const before = this.layout.depots.length + this.layout.checkpoints.length;
+    const snapshot = cloneLayout(this.layout);
     this.layout.depots = this.layout.depots.filter((d) => d !== bin);
     this.layout.checkpoints = this.layout.checkpoints.filter((c) => c.bin !== bin);
     if (this.layout.depots.length + this.layout.checkpoints.length < before) {
+      this.history.push(snapshot);
       sound.play('remove');
       this.afterEdit(bin);
     }
@@ -567,11 +561,9 @@ export class LevelScene extends Phaser.Scene {
 
   // ---------- touch picker ----------
 
-  private picker: Button[] = [];
-
   private openPicker(): void {
     this.closePicker();
-    const x = Phaser.Math.Clamp(this.binX(this.cursor), 230, this.scale.width - 230);
+    const x = Phaser.Math.Clamp(this.road.binX(this.cursor), 230, this.scale.width - 230);
     const y = 300;
     const nudge = (dir: -1 | 1) => {
       this.cursor = Phaser.Math.Clamp(this.cursor + dir, 0, this.level.bins - 1);
@@ -601,7 +593,7 @@ export class LevelScene extends Phaser.Scene {
       b.bg.setDepth(60);
       b.label.setDepth(61).setFontSize(22);
     }
-    this.redraw();
+    this.refresh();
   }
 
   private closePicker(): void {
@@ -625,41 +617,77 @@ export class LevelScene extends Phaser.Scene {
           ? 'checkpoint'
           : 'depot';
     if (tool === 'depot')
-      return depotsLeft > 0 || this.level.tools.depots === 1 ? 'DEPOT HERE' : 'NONE LEFT';
-    return cpsLeft > 0 ? 'CHECKPOINT ▶' : 'NONE LEFT';
+      return depotsLeft > 0 || this.level.tools.depots === 1
+        ? `${this.t('depot').toUpperCase()} HERE`
+        : 'NONE LEFT';
+    return cpsLeft > 0 ? `${this.t('checkpoint').toUpperCase()} ▶` : 'NONE LEFT';
   }
 
   /** Spoken description of one address, for screen readers and keyboard play. */
   private describe(bin: number): string {
-    const parts = [`Address ${bin + 1} of ${this.level.bins}`];
-    const district = this.level.districts.find((d) => bin >= d.from && bin <= d.to);
-    if (district) parts.push(district.name);
+    const parts = [`${this.t('address')} ${bin + 1} of ${this.level.bins}`];
+    const di = this.level.districts.findIndex((d) => bin >= d.from && bin <= d.to);
+    const district = this.level.districts[di];
+    if (district) parts.push(this.v === 'science' ? `domain ${di + 1}` : district.name);
     for (const b of this.level.buildings) {
       if (Math.abs(b.bin - bin) <= TUNING.city.reach)
-        parts.push(`${b.bin === bin ? 'at' : 'next to'} the ${b.name}`);
+        parts.push(
+          `${b.bin === bin ? 'at' : 'next to'} ${buildingName(b, this.v)}${b.active ? '' : ` (${this.t('closed')})`}`,
+        );
     }
-    if (this.level.fixedDepots.includes(bin)) parts.push('city depot');
-    if (this.layout.depots.includes(bin)) parts.push('your depot');
+    if (this.level.fixedDepots.includes(bin)) parts.push(`fixed ${this.t('depot')}`);
+    if (this.layout.depots.includes(bin)) parts.push(`your ${this.t('depot')}`);
+    for (const r of this.level.routes ?? [])
+      if (bin >= Math.min(r.from, r.to) && bin <= Math.max(r.from, r.to))
+        parts.push(`on the ${this.t('truck')} route, heading ${r.to < r.from ? 'left' : 'right'}`);
     const cp = this.fixedCheckpointAt(bin) ?? this.layout.checkpoints.find((c) => c.bin === bin);
     if (cp)
       parts.push(
         cp.facing === 1
-          ? 'checkpoint facing right: stops ends coming from the right'
-          : 'checkpoint facing left: stops ends coming from the left',
+          ? `${this.t('checkpoint')} facing right: stops ends coming from the right`
+          : `${this.t('checkpoint')} facing left: stops ends coming from the left`,
       );
-    if (parts.length === 1 || (parts.length === 2 && district)) parts.push('empty road');
+    if (parts.length === 1 || (parts.length === 2 && district))
+      parts.push(`empty ${this.t('road')}`);
     return parts.join(', ') + '.';
   }
 
+  /** Science Mode: a short explanation of whatever is at this bin. */
+  private scienceTip(bin: number): string {
+    if (this.layout.checkpoints.some((c) => c.bin === bin) || this.fixedCheckpointAt(bin))
+      return SCIENCE_TIPS.checkpoint;
+    if (this.layout.depots.includes(bin) || this.level.fixedDepots.includes(bin))
+      return SCIENCE_TIPS.depot;
+    const b = this.level.buildings.find((x) => Math.abs(x.bin - bin) <= TUNING.city.reach);
+    if (b) return b.role === 'supplier' ? SCIENCE_TIPS.enhancer : SCIENCE_TIPS.gene;
+    if (
+      (this.level.routes ?? []).some(
+        (r) => bin >= Math.min(r.from, r.to) && bin <= Math.max(r.from, r.to),
+      )
+    )
+      return SCIENCE_TIPS.truck;
+    if (this.level.districts.length) return SCIENCE_TIPS.domain;
+    return SCIENCE_TIPS.machine;
+  }
+
   private canRun(): boolean {
-    return this.level.fixedDepots.length + this.layout.depots.length > 0;
+    const lv = this.level;
+    const hasDepot = lv.fixedDepots.length + this.layout.depots.length > 0;
+    const affordable =
+      !lv.policies || policyCost(lv, this.layout.policy ?? DEFAULT_POLICY) <= lv.policies.budget;
+    return hasDepot && affordable;
   }
 
   // ---------- running ----------
 
   private startRunning(): void {
     if (this.phase !== 'plan') return;
-    if (!this.canRun()) return this.deny('Place a depot first: machines need somewhere to start.');
+    if (!this.canRun())
+      return this.deny(
+        this.level.policies
+          ? 'Over budget: choose cheaper options first.'
+          : `Place a ${this.t('depot')} first: ${this.t('machines')} need somewhere to start.`,
+      );
     sound.unlock();
     sound.play('click');
     this.closePicker();
@@ -667,10 +695,11 @@ export class LevelScene extends Phaser.Scene {
     this.run = startRun(this.level, this.layout, Math.floor(Math.random() * 2 ** 31));
     this.acc = 0;
     this.parcels = [];
+    this.wasRunning.clear();
+    this.weather.setFillStyle(PALETTE.heat, 0);
+    this.weatherBanner.setVisible(false);
     this.refresh();
-    announce(
-      'Running. Machines are loading at the depot. F for fast, P to pause, S to stop and edit.',
-    );
+    announce('Running. F for fast, P to pause, S to stop and edit.');
   }
 
   private stopRunning(): void {
@@ -680,6 +709,8 @@ export class LevelScene extends Phaser.Scene {
     this.parcels = [];
     this.fast = false;
     this.paused = false;
+    this.weather.setFillStyle(PALETTE.heat, 0);
+    this.weatherBanner.setVisible(false);
     this.refresh();
     announce('Stopped. Back to planning.');
   }
@@ -696,13 +727,14 @@ export class LevelScene extends Phaser.Scene {
     announce(this.paused ? 'Paused' : 'Going');
   }
 
-  override update(_time: number, delta: number): void {
+  override update(time: number, delta: number): void {
     for (const [id, a] of this.flashes) this.flashes.set(id, Math.max(0, a - delta / 600));
     if (this.phase !== 'run' || !this.run || this.paused) {
       if (this.flashes.size) this.redraw();
       return;
     }
     const run = this.run;
+    const hadWeather = run.weatherStarted;
     this.acc += (Math.min(delta, 100) / 1000) * (this.fast ? TUNING.fastForward : 1);
     let stalls = 0;
     while (this.acc >= TUNING.step && !isFinished(run)) {
@@ -714,6 +746,9 @@ export class LevelScene extends Phaser.Scene {
       }
     }
     if (stalls > 0) sound.play('stall');
+    if (run.weatherStarted && !hadWeather) this.startWeather();
+    if (run.weatherStarted && !progress().reducedEffects)
+      this.weather.setFillStyle(PALETTE.heat, 0.08 + Math.sin(time / 400) * 0.03);
     const reduced = progress().reducedEffects;
     const speed = (delta / 1000) * (this.fast ? TUNING.fastForward : 1) * 1.6;
     for (const p of this.parcels) p.t += reduced ? 1 : speed;
@@ -721,6 +756,17 @@ export class LevelScene extends Phaser.Scene {
     this.announceChanges();
     this.refresh();
     if (isFinished(run)) this.finish();
+  }
+
+  private startWeather(): void {
+    const w = this.level.weather;
+    if (!w) return;
+    this.weather.setFillStyle(PALETTE.heat, 0.1);
+    const opening = this.level.buildings.filter((b) => b.activeFrom === w.at);
+    const msg = `☀ ${w.name.toUpperCase()}: demand up, ${this.t('checkpoints')} leakier${opening.length ? `, ${opening.map((b) => buildingName(b, this.v)).join(', ')} open${opening.length === 1 ? 's' : ''}` : ''}`;
+    this.weatherBanner.setText(msg).setVisible(true);
+    sound.play('stall');
+    announce(msg);
   }
 
   private onDelivery(fromId: string, toId: string, machineId: number): void {
@@ -734,23 +780,21 @@ export class LevelScene extends Phaser.Scene {
     if (progress().reducedEffects || this.parcels.length > 12) return;
     if (!links(m, from, to, TUNING.city.reach)) return;
     const forward = from.bin < to.bin;
-    const curve = shortcutCurve(
-      this.binX(forward ? m.left : m.right),
-      this.binX(forward ? m.right : m.left),
-      ROAD_TOP - 2,
-      MAX_RISE,
-    );
+    const curve = forward
+      ? this.road.curve(m.left, m.right)
+      : reversed(this.road.curve(m.left, m.right));
     this.parcels.push({ curve, t: 0, resource: from.resource });
   }
 
   /** Tell screen-reader players when a customer starts or stops running. */
   private announceChanges(): void {
-    if (!this.run) return;
+    const run = this.run;
+    if (!run) return;
     for (const b of this.level.buildings) {
-      if (b.role !== 'consumer') continue;
-      const on = isRunning(this.run.city, b.id, TUNING.city);
+      if (b.role !== 'consumer' || !isOpen(b, run.city.time)) continue;
+      const on = isRunning(run.city, b.id, run.cityParams);
       if (this.wasRunning.get(b.id) !== on && this.wasRunning.has(b.id))
-        announce(`${b.name} ${on ? 'is running' : 'is waiting'}`);
+        announce(`${buildingName(b, this.v)} ${on ? this.t('running') : this.t('waiting')}`);
       this.wasRunning.set(b.id, on);
     }
   }
@@ -807,23 +851,26 @@ export class LevelScene extends Phaser.Scene {
     const counter = this.add
       .text(
         width / 2,
-        height / 2 + 140,
+        height / 2 + 150,
         `${this.briefPage + 1} / ${pages.length}   ·   ENTER next · ESC skip`,
-        TEXT_STYLES.hint,
+        {
+          ...TEXT_STYLES.hint,
+          fontSize: '16px',
+        },
       )
       .setOrigin(0.5)
       .setDepth(82);
     const next = new Button(
       this,
       width / 2 + 250,
-      height / 2 + 120,
+      height / 2 + 110,
       200,
       46,
       last ? 'START ▸' : 'NEXT ▸',
       () => this.nextBriefPage(),
       PALETTE.goldDark,
     );
-    const skip = new Button(this, width / 2 - 250, height / 2 + 120, 140, 46, 'SKIP', () =>
+    const skip = new Button(this, width / 2 - 250, height / 2 + 110, 140, 46, 'SKIP', () =>
       this.closeBrief(),
     );
     for (const b of [next, skip]) {
@@ -850,7 +897,7 @@ export class LevelScene extends Phaser.Scene {
     this.phase = 'plan';
     this.refresh();
     announce(
-      `Planning. ${this.level.hint} Use left and right arrows to move along the road, Enter to place, R to run.`,
+      `Planning. ${this.level.hint} Use left and right arrows to move along the ${this.t('road')}, Enter to place, R to run.`,
     );
   }
 
@@ -862,4 +909,17 @@ export class LevelScene extends Phaser.Scene {
 
 function pct(x: number): string {
   return `${Math.round(x * 100)}%`;
+}
+
+function cloneLayout(l: Layout): Layout {
+  return {
+    depots: [...l.depots],
+    checkpoints: l.checkpoints.map((c) => ({ ...c })),
+    ...(l.policy ? { policy: { ...l.policy } } : {}),
+  };
+}
+
+/** The same arch, travelled from right to left. */
+function reversed(c: Phaser.Curves.CubicBezier): Phaser.Curves.CubicBezier {
+  return new Phaser.Curves.CubicBezier(c.p3, c.p2, c.p1, c.p0);
 }

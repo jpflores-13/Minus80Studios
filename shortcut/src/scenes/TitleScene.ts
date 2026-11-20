@@ -72,6 +72,14 @@ export class TitleScene extends Phaser.Scene {
         action: () => this.scene.start('Level', { levelId: next.id }),
       },
       { label: () => 'CHOOSE A LEVEL', action: () => this.scene.start('LevelSelect') },
+      ...(progress().revealed
+        ? [
+            {
+              label: () => 'SCIENCE MODE, PLANNER & BLUEPRINT',
+              action: () => this.scene.start('Modes'),
+            },
+          ]
+        : []),
       { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
       ...(this.sys.game.device.fullscreen.available
         ? [

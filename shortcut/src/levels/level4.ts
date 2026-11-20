@@ -1,0 +1,62 @@
+import type { LevelConfig } from './types';
+
+// Two kinds of supply side by side. Which way a checkpoint faces decides which buildings get joined.
+export const level4: LevelConfig = {
+  id: 'level-4',
+  number: 4,
+  name: 'Power Play',
+  tagline: 'Connect the right things, not just more things.',
+  intro: [
+    'The Works needs power and the Café needs bread. The Power Plant and the Bakery sit side by side in the middle of town.',
+    'Joining the Power Plant to the Bakery does nothing for anyone. That is a wrong connection, and too many of them fail the level.',
+    'You have two depots and four checkpoints. Where the depots go matters as much as the checkpoints.',
+    'Think about which way each checkpoint faces. The same spot can hold the right shortcut or the wrong one.',
+  ],
+  hint: 'Factory ← power ← Plant · Bakery → bread → Café. Wrong connections count against you.',
+  bins: 34,
+  durationSeconds: 60,
+  buildings: [
+    {
+      id: 'factory',
+      name: 'Factory',
+      kind: 'factory',
+      role: 'consumer',
+      resource: 'power',
+      bin: 5,
+      active: true,
+    },
+    {
+      id: 'plant',
+      name: 'Power Plant',
+      kind: 'plant',
+      role: 'supplier',
+      resource: 'power',
+      bin: 13,
+      active: true,
+    },
+    {
+      id: 'bakery',
+      name: 'Bakery',
+      kind: 'bakery',
+      role: 'supplier',
+      resource: 'bread',
+      bin: 20,
+      active: true,
+    },
+    {
+      id: 'cafe',
+      name: 'Café',
+      kind: 'cafe',
+      role: 'consumer',
+      resource: 'bread',
+      bin: 28,
+      active: true,
+    },
+  ],
+  districts: [],
+  fixedDepots: [],
+  fixedCheckpoints: [],
+  tools: { depots: 2, checkpoints: 4 },
+  engine: { fleet: 4, lifetimeMean: 20 },
+  goal: { metric: 'service', one: 0.4, two: 0.55, three: 0.7, maxWrong: 0.3 },
+};

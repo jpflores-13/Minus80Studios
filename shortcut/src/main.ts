@@ -4,8 +4,12 @@ import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
 import { LevelScene } from './scenes/LevelScene';
+import { BlueprintScene } from './scenes/BlueprintScene';
 import { LevelSelectScene } from './scenes/LevelSelectScene';
+import { ModesScene } from './scenes/ModesScene';
+import { PlannerScene } from './scenes/PlannerScene';
 import { ResultsScene } from './scenes/ResultsScene';
+import { RevealScene } from './scenes/RevealScene';
 import { SettingsScene } from './scenes/SettingsScene';
 import { SplashScene } from './scenes/SplashScene';
 import { TitleScene } from './scenes/TitleScene';
@@ -22,6 +26,10 @@ const game = new Phaser.Game(
     LevelSelectScene,
     LevelScene,
     ResultsScene,
+    RevealScene,
+    ModesScene,
+    PlannerScene,
+    BlueprintScene,
   ]),
 );
 

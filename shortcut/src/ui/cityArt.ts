@@ -103,7 +103,111 @@ export function drawBuilding(
         g.fillRect(x - 26 + i * 20, y - 6, 12, 10).strokeRect(x - 26 + i * 20, y - 6, 12, 10);
       break;
     }
+    case 'tower': {
+      g.fillStyle(PALETTE.slate, 1).fillRect(x - 3, y - 6, 6, 28);
+      g.lineBetween(x - 18, y + 22, x - 8, y - 6).lineBetween(x + 18, y + 22, x + 8, y - 6);
+      g.fillStyle(PALETTE.water, 1)
+        .fillRoundedRect(x - 22, y - 44, 44, 38, 10)
+        .strokeRoundedRect(x - 22, y - 44, 44, 38, 10);
+      // a drop on the tank
+      g.fillStyle(lit ? 0xe8f6ff : 0xb9c7cf, 1).fillCircle(x, y - 22, 7);
+      g.fillTriangle(x - 6, y - 25, x + 6, y - 25, x, y - 36);
+      break;
+    }
+    case 'homes': {
+      for (const dx of [-22, 8]) {
+        g.fillStyle(PALETTE.cream, 1)
+          .fillRect(x + dx - 12, y - 12, 26, 34)
+          .strokeRect(x + dx - 12, y - 12, 26, 34);
+        g.fillStyle(PALETTE.terracotta, 1).fillTriangle(
+          x + dx - 16,
+          y - 12,
+          x + dx + 1,
+          y - 30,
+          x + dx + 18,
+          y - 12,
+        );
+        g.strokeTriangle(x + dx - 16, y - 12, x + dx + 1, y - 30, x + dx + 18, y - 12);
+        g.fillStyle(window, 1)
+          .fillRect(x + dx - 5, y - 4, 12, 10)
+          .strokeRect(x + dx - 5, y - 4, 12, 10);
+      }
+      break;
+    }
+    case 'cooling': {
+      g.fillStyle(PALETTE.slateLight, 1)
+        .fillRect(x - 32, y - 20, 64, 42)
+        .strokeRect(x - 32, y - 20, 64, 42);
+      g.fillStyle(PALETTE.water, 1)
+        .fillRect(x - 32, y - 28, 64, 8)
+        .strokeRect(x - 32, y - 28, 64, 8);
+      // snowflake sign
+      g.lineStyle(3, lit ? 0xffffff : 0x8d8578, 1);
+      for (let i = 0; i < 3; i++) {
+        const a = (i * Math.PI) / 3;
+        g.lineBetween(
+          x - Math.cos(a) * 11,
+          y + 1 - Math.sin(a) * 11,
+          x + Math.cos(a) * 11,
+          y + 1 + Math.sin(a) * 11,
+        );
+      }
+      g.lineStyle(2, PALETTE.ink, 1);
+      break;
+    }
+    case 'workshop': {
+      g.fillStyle(PALETTE.sage, 1)
+        .fillRect(x - 30, y - 20, 60, 42)
+        .strokeRect(x - 30, y - 20, 60, 42);
+      g.fillStyle(PALETTE.slate, 1)
+        .fillRect(x - 34, y - 30, 68, 10)
+        .strokeRect(x - 34, y - 30, 68, 10);
+      g.fillStyle(window, 1)
+        .fillRect(x - 22, y - 12, 44, 14)
+        .strokeRect(x - 22, y - 12, 44, 14);
+      // a gear
+      g.fillStyle(PALETTE.ink, 1).fillCircle(x, y + 12, 6);
+      g.fillStyle(window, 1).fillCircle(x, y + 12, 2);
+      break;
+    }
+    case 'greenhouse': {
+      g.fillStyle(lit ? 0xd8eed4 : 0xc9cfc4, 1);
+      g.fillPoints(
+        [v(x - 32, y + 22), v(x - 32, y - 8), v(x, y - 34), v(x + 32, y - 8), v(x + 32, y + 22)],
+        true,
+      );
+      g.strokePoints(
+        [v(x - 32, y + 22), v(x - 32, y - 8), v(x, y - 34), v(x + 32, y - 8), v(x + 32, y + 22)],
+        true,
+      );
+      g.lineBetween(x, y - 34, x, y + 22).lineBetween(x - 32, y - 8, x + 32, y - 8);
+      // little plants
+      g.fillStyle(PALETTE.sageDark, 1)
+        .fillCircle(x - 16, y + 12, 6)
+        .fillCircle(x + 16, y + 12, 6);
+      break;
+    }
   }
+}
+
+/** Closed buildings are boarded up, so "closed" reads without colour. */
+export function drawClosedSign(g: Phaser.GameObjects.Graphics, x: number, y: number): void {
+  g.fillStyle(0xf7f1e4, 0.55).fillRect(x - 38, y - 50, 76, 76);
+  g.lineStyle(5, PALETTE.ink, 0.8)
+    .lineBetween(x - 26, y - 30, x + 26, y + 14)
+    .lineBetween(x + 26, y - 30, x - 26, y + 14);
+}
+
+/** A delivery truck on its route, pointing the way it drives. */
+export function drawTruck(g: Phaser.GameObjects.Graphics, x: number, y: number, dir: 1 | -1): void {
+  g.lineStyle(2, PALETTE.ink, 1).fillStyle(PALETTE.water, 1);
+  g.fillRect(x - 12, y - 9, 18, 12).strokeRect(x - 12, y - 9, 18, 12);
+  g.fillStyle(PALETTE.cream, 1);
+  const cab = dir === 1 ? x + 6 : x - 18;
+  g.fillRect(cab, y - 5, 12, 8).strokeRect(cab, y - 5, 12, 8);
+  g.fillStyle(PALETTE.ink, 1)
+    .fillCircle(x - 7, y + 4, 3)
+    .fillCircle(x + 7, y + 4, 3);
 }
 
 /** One end of a shortcut machine, sitting on the road. */
@@ -175,7 +279,7 @@ export function drawDepot(
   if (fixed) g.fillStyle(PALETTE.ink, 1).fillCircle(x, roadTop - 44, 3);
 }
 
-/** A delivery parcel: a loaf for bread, a bolt-shaped diamond for power. */
+/** A delivery parcel: a loaf for bread, a diamond for power, a drop for water. */
 export function drawParcel(
   g: Phaser.GameObjects.Graphics,
   x: number,
@@ -185,6 +289,11 @@ export function drawParcel(
   g.lineStyle(2, PALETTE.ink, 1);
   if (resource === 'bread') {
     g.fillStyle(PALETTE.bread, 1).fillEllipse(x, y, 16, 10).strokeEllipse(x, y, 16, 10);
+  } else if (resource === 'water') {
+    g.fillStyle(PALETTE.water, 1)
+      .fillCircle(x, y + 2, 6)
+      .strokeCircle(x, y + 2, 6);
+    g.fillTriangle(x - 5, y, x + 5, y, x, y - 9);
   } else {
     g.fillStyle(PALETTE.power, 1);
     const pts = [v(x, y - 8), v(x + 6, y), v(x, y + 8), v(x - 6, y)];
