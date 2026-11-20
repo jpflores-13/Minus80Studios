@@ -1,0 +1,37 @@
+name: off-target CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['off-target/**', '.github/workflows/off-target.yml']
+  pull_request:
+    paths: ['off-target/**', '.github/workflows/off-target.yml']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: off-target
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: off-target/.node-version
+          cache: npm
+          cache-dependency-path: off-target/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npx vite build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: off-target-web-build
+          path: off-target/dist/
+          retention-days: 14
