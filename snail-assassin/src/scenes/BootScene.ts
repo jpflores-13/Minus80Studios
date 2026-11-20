@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { CHARACTERS } from '../characters';
 import type { CharacterConfig } from '../characters/types';
 import { PALETTE } from '../config/gameConfig';
+import { outlineTexture } from '../utils/outline';
 
 type Draw = (g: Phaser.GameObjects.Graphics) => void;
 
@@ -36,6 +37,15 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
     });
+    for (const key of [
+      ...CHARACTERS.map((c) => `snail-${c.id}`),
+      'fish-0',
+      'fish-1',
+      'fish-2',
+      'octopus',
+    ]) {
+      outlineTexture(this, key);
+    }
     const { scene, data } = this.devStart();
     this.scene.start(scene, data);
   }

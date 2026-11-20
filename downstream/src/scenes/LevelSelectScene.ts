@@ -3,6 +3,7 @@ import { PALETTE } from '../config/gameConfig';
 import { isUnlocked, progress } from '../config/progress';
 import { LEVELS } from '../levels';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 export class LevelSelectScene extends Phaser.Scene {
@@ -17,6 +18,15 @@ export class LevelSelectScene extends Phaser.Scene {
     const ids = LEVELS.map((l) => l.id);
     const targets = LEVELS.map((l) => l.target);
 
+    announce(
+      'Choose a watershed. ' +
+        LEVELS.map((level, i) => {
+          const rec = progress().levels[level.id];
+          if (!isUnlocked(ids, i, targets)) return `${level.number}, locked`;
+          return `${level.number}, ${level.name}${rec ? `, ${rec.bestStars} stars` : ''}`;
+        }).join('. ') +
+        '. Press a number to play, Escape to go back.',
+    );
     LEVELS.forEach((level, i) => {
       const y = 150 + i * 88;
       const open = isUnlocked(ids, i, targets);

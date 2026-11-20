@@ -5,6 +5,7 @@ import { progress, saveProgress } from '../config/progress';
 import { DISCLAIMER, LINKS, RESPONSIBLE, REVEAL, TEAM } from '../content/science';
 import { LEVELS } from '../levels';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 type Step = 'results' | 'reveal' | 'team' | 'more';
@@ -43,6 +44,11 @@ export class EndingScene extends Phaser.Scene {
     kb?.on('keydown-SPACE', () => this.next());
     kb?.on('keydown-ENTER', () => this.next());
     kb?.on('keydown-ESC', () => this.show(STEPS.length - 1));
+    kb?.on('keydown', (e: KeyboardEvent) => {
+      const n = Number(e.key);
+      if (STEPS[this.step] === 'more' && n >= 1 && n <= this.buttons.length)
+        this.buttons[n - 1]?.press();
+    });
     this.input.on(
       'pointerdown',
       (_p: Phaser.Input.Pointer, over: unknown[]) => over.length === 0 && this.next(),
@@ -53,6 +59,18 @@ export class EndingScene extends Phaser.Scene {
     });
     sound.play('win');
     this.show(0);
+  }
+
+  private announceStep(step: Step): void {
+    const texts = this.layer.list
+      .filter((o): o is Phaser.GameObjects.Text => o instanceof Phaser.GameObjects.Text)
+      .map((t) => t.text.trim())
+      .filter(Boolean);
+    const options =
+      step === 'more'
+        ? ' Options: ' + this.buttons.map((b) => b.label.text.replace(/\s+/g, ' ')).join('. ') + '.'
+        : ' Press Space to continue.';
+    announce(texts.join('. ') + options);
   }
 
   private next(): void {
@@ -68,8 +86,16 @@ export class EndingScene extends Phaser.Scene {
     this.cameras.main.fadeIn(450);
     const step = STEPS[i]!;
     this[step]();
-    if (step === 'more') saveProgress({ seenEnding: true });
-    if (HOLD[step] > 0) this.timer = this.time.delayedCall(HOLD[step], () => this.next());
+    if (step === 'more') {
+      saveProgress({ seenEnding: true });
+      // Number the buttons so they work from the keyboard too.
+      this.buttons.forEach((b, n) => b.label.setText(`${n + 1}  ${b.label.text}`));
+    }
+    this.announceStep(step);
+    // Relaxed mode: no auto-advance; move on with Space or a tap.
+    if (HOLD[step] > 0 && !progress().relaxed) {
+      this.timer = this.time.delayedCall(HOLD[step], () => this.next());
+    }
   }
 
   private text(y: number, s: string, style: Phaser.Types.GameObjects.Text.TextStyle) {

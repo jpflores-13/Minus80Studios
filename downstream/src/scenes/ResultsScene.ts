@@ -5,6 +5,7 @@ import { progress, recordResult } from '../config/progress';
 import { getLevel, LEVELS } from '../levels';
 import { performance, stars, type Tally } from '../systems/score';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 export interface ResultsData {
@@ -89,6 +90,12 @@ export class ResultsScene extends Phaser.Scene {
       this.add.text(width / 2 - 260, 330 + i * 30, label, TEXT_STYLES.body);
       this.add.text(width / 2 + 260, 330 + i * 30, String(value), TEXT_STYLES.body).setOrigin(1, 0);
     });
+    announce(
+      `${passed ? 'Watershed protected.' : 'Too much reached the ocean.'} Level ${level.number}, ${level.name}. ` +
+        `${earned} of 3 stars. Kept ${pct(perf)} of the litter out of the ocean; the goal was ${pct(level.target)}. ` +
+        rows.map(([label, value]) => `${label}: ${value}`).join('. ') +
+        `. Press ${passed ? 'Enter for the ' + (isLast ? 'ending' : 'next level') + ', ' : 'Enter or '}R to replay, L for levels, H for home.`,
+    );
     const best = progress().levels[level.id];
     if (best)
       addCenteredText(this, 548, `Your best: ${pct(best.bestPerformance)}`, TEXT_STYLES.hint);

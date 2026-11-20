@@ -15,6 +15,10 @@ export interface Progress {
   volume: number;
   muted: boolean;
   reducedEffects: boolean;
+  /** Flow runs at half speed and pauses by itself when rain starts. */
+  relaxed: boolean;
+  /** All text 25% bigger. */
+  largeText: boolean;
   seenEnding: boolean;
 }
 
@@ -29,6 +33,8 @@ export function progress(): Progress {
     volume: 0.7,
     muted: false,
     reducedEffects: prefersReducedMotion(),
+    relaxed: false,
+    largeText: false,
     seenEnding: false,
   };
   try {
@@ -83,4 +89,8 @@ export function isUnlocked(
   if (index === 0) return true;
   const prev = progress().levels[levelIds[index - 1] ?? ''];
   return prev !== undefined && prev.bestPerformance >= (targets[index - 1] ?? 1);
+}
+
+export function textScale(): number {
+  return progress().largeText ? 1.25 : 1;
 }

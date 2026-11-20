@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE, PIXEL, TOOLBAR_HEIGHT } from '../config/gameConfig';
+import { progress } from '../config/progress';
 import { TUNING } from '../config/tuning';
 import { MapView } from '../entities/MapView';
 import { getLevel } from '../levels';
@@ -9,6 +10,7 @@ import {
   type EquipmentKind,
   type LevelConfig,
   type PollutionSource,
+  type Slot,
 } from '../levels/types';
 import {
   isSlotKind,
@@ -24,11 +26,12 @@ import {
   type PlaceResult,
 } from '../systems/equipment';
 import { scout } from '../systems/gps';
-import { segmentLength } from '../systems/network';
+import { pointAt, segmentLength, type Segment } from '../systems/network';
 import { performance, tally } from '../systems/score';
 import { advance, cleanup, createSim, syncEquipment, type SimState } from '../systems/sim';
 import { forecast, INTENSITY_LABEL } from '../systems/weather';
 import { Button } from '../ui/Button';
+import { announce } from '../ui/announce';
 import { TEXT_STYLES } from '../ui/text';
 
 const NAMES: Record<EquipmentKind, string> = {
@@ -83,6 +86,8 @@ export class LevelScene extends Phaser.Scene {
   private briefing: Phaser.GameObjects.Container | null = null;
   private scoutPanel!: Phaser.GameObjects.Text;
   private hintLabel!: Phaser.GameObjects.Text;
+  private focusFx!: Phaser.GameObjects.Graphics;
+  private focusIndex = -1;
   private inspected = new Set<string>();
   private hintFx!: Phaser.GameObjects.Graphics;
 
@@ -129,6 +134,8 @@ export class LevelScene extends Phaser.Scene {
     this.map = new MapView(this, this.level);
     this.buildTopBar();
     this.buildScoutPanel();
+    this.focusFx = this.add.graphics().setDepth(47);
+    this.focusIndex = -1;
     this.buildToolbar();
     this.bindInput();
     this.enterPhase('investigate');
@@ -148,7 +155,8 @@ export class LevelScene extends Phaser.Scene {
   override update(time: number, deltaMs: number): void {
     const dt = Math.min(deltaMs / 1000, 0.1);
     if (this.sim && this.phase === 'flow' && !this.paused) {
-      for (const e of advance(this.sim, dt * (this.fast ? TUNING.sim.fastForward : 1))) {
+      const speed = (this.fast ? TUNING.sim.fastForward : 1) * (progress().relaxed ? 0.5 : 1);
+      for (const e of advance(this.sim, dt * speed)) {
         if (e.type === 'intercepted') sound.play('catch');
         if (e.type === 'full') {
           sound.play('full');
@@ -158,6 +166,14 @@ export class LevelScene extends Phaser.Scene {
         }
         if (e.type === 'weather') {
           sound.setRain({ dry: 0, light: 1, moderate: 2, heavy: 3 }[e.conditions]);
+          if (progress().relaxed && e.conditions !== 'dry' && !this.paused) {
+            this.togglePause();
+            this.say(
+              `${INTENSITY_LABEL[e.conditions]} is starting. Paused so you can get ready. Press P or Space to continue.`,
+              6000,
+            );
+            continue;
+          }
           this.say(
             e.conditions === 'dry'
               ? 'Dry again. Litter piles up on the streets and the water slows down.'
@@ -181,6 +197,7 @@ export class LevelScene extends Phaser.Scene {
       this.sim?.conditions ?? 'dry',
     );
     this.drawScoutHints(time);
+    this.drawFocus(time);
     this.updateHud();
   }
 
@@ -188,6 +205,7 @@ export class LevelScene extends Phaser.Scene {
 
   private enterPhase(phase: Phase): void {
     this.phase = phase;
+    this.focusIndex = -1;
     this.selected = null;
     if (phase === 'investigate') {
       this.mainButton.setText('PLAN DEPLOYMENT  →');
@@ -382,7 +400,18 @@ export class LevelScene extends Phaser.Scene {
         if (kind) this.select(kind);
       }),
     );
-    kb?.on('keydown-ENTER', () => this.onMainButton());
+    kb?.on('keydown-ENTER', () => {
+      if (!this.activateFocus()) this.onMainButton();
+    });
+    // Keyboard play: Tab / arrows move between places and spots, Delete takes equipment back.
+    kb?.addCapture('TAB');
+    kb?.on('keydown-TAB', (e: KeyboardEvent) => this.moveFocus(e.shiftKey ? -1 : 1));
+    kb?.on('keydown-RIGHT', () => this.moveFocus(1));
+    kb?.on('keydown-DOWN', () => this.moveFocus(1));
+    kb?.on('keydown-LEFT', () => this.moveFocus(-1));
+    kb?.on('keydown-UP', () => this.moveFocus(-1));
+    kb?.on('keydown-DELETE', () => this.removeFocused());
+    kb?.on('keydown-BACKSPACE', () => this.removeFocused());
     kb?.on('keydown-F', () => (this.map.showFlowArrows = !this.map.showFlowArrows));
     kb?.on('keydown-G', () => (this.map.showTrails = !this.map.showTrails));
     kb?.on('keydown-P', () => this.togglePause());
@@ -418,6 +447,7 @@ export class LevelScene extends Phaser.Scene {
       return this.say(problem);
     }
     this.selected = this.selected === kind ? null : kind;
+    this.focusIndex = -1;
     sound.play('click');
     if (this.selected) this.say(`${NAMES[kind]}: ${HELP[kind]}`, 3500);
     this.refreshToolbar();
@@ -502,6 +532,177 @@ export class LevelScene extends Phaser.Scene {
     if (first) this.hintLabel.setPosition(first.pos.x, first.pos.y + 62);
   }
 
+  // Keyboard and screen-reader play
+
+  private focusTargets(): FocusTarget[] {
+    const targets: FocusTarget[] = [];
+    const sel = this.selected;
+    const sources = () => {
+      for (const src of this.level.sources) {
+        targets.push({
+          x: src.pos.x,
+          y: src.pos.y,
+          describe: () => `${src.label}. ${PLACE_DESCRIPTIONS[src.look]}`,
+          verb: sel === 'gps' ? 'learn about it and drop a GPS bottle' : 'learn about it',
+          activate: () => {
+            this.showInspect(src);
+            if (this.selected === 'gps') this.releaseGps(src);
+          },
+        });
+      }
+    };
+    if (this.phase === 'investigate') {
+      sources();
+    } else if (sel && isSlotKind(sel) && (this.phase === 'deploy' || this.phase === 'flow')) {
+      for (const slot of this.level.slots) {
+        if (slot.kind !== sel || this.dep[slot.id]) continue;
+        targets.push({
+          x: slot.pos.x,
+          y: slot.pos.y,
+          describe: () => `${NAMES[sel]} spot, ${this.describeSlot(slot)}`,
+          verb: `place the ${NAMES[sel].toLowerCase()}`,
+          activate: () => this.tryPlace(slot.id, sel),
+        });
+      }
+    } else if (sel === 'cleanup' && this.phase === 'flow') {
+      for (const [slotId, kind] of Object.entries(this.dep)) {
+        if (kind !== 'trap' && kind !== 'filter') continue;
+        const pos = this.map.containerPosition(slotId);
+        const slot = this.level.slots.find((x) => x.id === slotId);
+        const c = this.sim?.containers.find((x) => x.slotId === slotId);
+        targets.push({
+          x: pos.x,
+          y: pos.y,
+          describe: () =>
+            `${NAMES[kind]}, ${slot ? this.describeSlot(slot) : ''}, holding ${c?.count ?? 0} of ${c?.capacity ?? 0}`,
+          verb: 'send the cleanup crew',
+          activate: () => this.useCleanup(pos.x, pos.y),
+        });
+      }
+      for (const h of this.level.hotspots) {
+        const pos = this.map.hotspotCenter(h);
+        const stuck =
+          this.sim?.items.filter((i) => i.state === 'retained' && i.holder === h.id).length ?? 0;
+        targets.push({
+          x: pos.x,
+          y: pos.y,
+          describe: () => `${h.label}, ${stuck} pieces of litter stuck`,
+          verb: 'send the cleanup crew',
+          activate: () => this.useCleanup(pos.x, pos.y),
+        });
+      }
+    } else if (this.phase === 'deploy') {
+      for (const [slotId, kind] of Object.entries(this.dep)) {
+        const slot = this.level.slots.find((x) => x.id === slotId);
+        if (!slot) continue;
+        const pos = kind === 'trap' ? this.map.containerPosition(slotId) : slot.pos;
+        targets.push({
+          x: pos.x,
+          y: pos.y,
+          describe: () => `Placed ${NAMES[kind].toLowerCase()}, ${this.describeSlot(slot)}`,
+          verb: kind === 'boom' ? 'flip it. Delete takes it back' : 'take it back',
+          activate: () => {
+            if (kind === 'boom') {
+              rotateBoom(this.dep, this.orient, this.phase, slotId);
+              this.map.syncEquipment(this.dep, this.orient);
+              this.say(`Boom flipped. ${this.describeSlot(slot)}.`);
+            } else {
+              this.takeBack(slotId);
+            }
+          },
+        });
+      }
+      sources();
+    } else {
+      sources();
+    }
+    return targets;
+  }
+
+  private moveFocus(dir: 1 | -1): void {
+    if (this.briefing) return;
+    const targets = this.focusTargets();
+    if (targets.length === 0) {
+      this.say('Nothing to choose here right now.');
+      return;
+    }
+    this.focusIndex =
+      this.focusIndex < 0
+        ? dir === 1
+          ? 0
+          : targets.length - 1
+        : (this.focusIndex + dir + targets.length) % targets.length;
+    const t = targets[this.focusIndex]!;
+    announce(`${t.describe()}. ${this.focusIndex + 1} of ${targets.length}. Enter to ${t.verb}.`);
+  }
+
+  private activateFocus(): boolean {
+    if (this.briefing || this.focusIndex < 0) return false;
+    const t = this.focusTargets()[this.focusIndex];
+    if (!t) return false;
+    t.activate();
+    // The list may have changed (a spot got filled), so keep the index in range.
+    const n = this.focusTargets().length;
+    this.focusIndex = n === 0 ? -1 : Math.min(this.focusIndex, n - 1);
+    return true;
+  }
+
+  private removeFocused(): void {
+    if (this.phase !== 'deploy' || this.focusIndex < 0 || this.selected) return;
+    const placed = Object.keys(this.dep);
+    const slotId = placed[this.focusIndex];
+    if (slotId) this.takeBack(slotId);
+  }
+
+  private takeBack(slotId: string): void {
+    const kind = this.dep[slotId];
+    if (!kind || !remove(this.dep, this.phase, slotId)) return;
+    delete this.orient[slotId];
+    sound.play('pickup');
+    this.map.syncEquipment(this.dep, this.orient);
+    this.refreshToolbar();
+    this.say(`${NAMES[kind]} back in your kit.`);
+  }
+
+  private drawFocus(time: number): void {
+    const g = this.focusFx;
+    g.clear();
+    if (this.focusIndex < 0 || this.briefing) return;
+    const t = this.focusTargets()[this.focusIndex];
+    if (!t) return;
+    const pulse = 0.5 + 0.5 * Math.sin(time / 180);
+    g.lineStyle(4, PALETTE.warn, 1);
+    g.strokeCircle(t.x, t.y, 30 + pulse * 4);
+    g.lineStyle(2, 0xffffff, 1);
+    g.strokeCircle(t.x, t.y, 36 + pulse * 4);
+  }
+
+  // Plain-words location of a spot, for screen readers.
+  private describeSlot(slot: Slot): string {
+    if (slot.kind === 'bin' || slot.kind === 'filter') {
+      const src = this.level.sources.find((x) => x.id === slot.sourceId);
+      return `by ${src?.label ?? 'a neighbourhood'}`;
+    }
+    const seg = this.level.segments.find((x) => x.id === slot.segmentId);
+    if (!seg || slot.s === undefined) return 'on the water';
+    const frac = slot.s / segmentLength(seg);
+    const where =
+      seg.downstream === null && frac > 0.6
+        ? 'close to the ocean'
+        : frac < 0.33
+          ? 'upstream'
+          : 'mid-stream';
+    if (slot.kind === 'trap') {
+      const wide = (slot.coverage ?? 0.8) >= 0.8;
+      const side = wide
+        ? 'covers the whole width'
+        : `covers the ${bankName(seg, slot.s, Math.sign(slot.offset ?? 0) || 1)} side`;
+      return `across the water, ${where}, ${side}`;
+    }
+    const dir = this.orient[slot.id] ?? 1;
+    return `on the water, ${where}, pushes litter to the ${bankName(seg, slot.s, dir)} bank`;
+  }
+
   // Briefing
 
   private showBriefing(): void {
@@ -537,6 +738,7 @@ export class LevelScene extends Phaser.Scene {
       .setStrokeStyle(3, PALETTE.ink);
     panel.add([bg, text]);
     this.briefing = panel;
+    announce(lines.filter(Boolean).join('. '));
   }
 
   private closeBriefing(): void {
@@ -766,6 +968,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   private say(message: string, ms = 2400): void {
+    announce(message);
     this.toast.setText(message).setVisible(true);
     this.toastUntil = this.time.now + ms;
   }
@@ -801,12 +1004,30 @@ export class LevelScene extends Phaser.Scene {
         ? `Equipment spots here: ${spots.join(', ')}`
         : 'No equipment spots right here',
     ];
+    announce(lines.join('. '));
     this.inspect
       .setText(lines.join('\n'))
       .setWordWrapWidth(360)
       .setPosition(Math.min(src.pos.x + 40, this.scale.width - 400), Math.max(src.pos.y - 30, 70))
       .setVisible(true);
   }
+}
+
+interface FocusTarget {
+  x: number;
+  y: number;
+  describe: () => string;
+  verb: string;
+  activate: () => void;
+}
+
+// Which compass side of the channel a lateral direction (+1 or -1) points to.
+function bankName(seg: Segment, s: number, side: number): string {
+  const { tangent } = pointAt(seg, s);
+  const nx = -tangent.y * side;
+  const ny = tangent.x * side;
+  if (Math.abs(ny) >= Math.abs(nx)) return ny < 0 ? 'north' : 'south';
+  return nx < 0 ? 'west' : 'east';
 }
 
 // What each kind of place is, in a sentence. Matches the litter mix in tuning.ts.

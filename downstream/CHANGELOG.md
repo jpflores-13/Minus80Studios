@@ -4,6 +4,12 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- **Accessibility** (Settings & Accessibility): relaxed mode (half-speed water, auto-pause when rain starts), large
+  text, full keyboard play with Tab/arrows and Enter, screen reader announcements, number keys on the ending's
+  buttons, and dark outlines on litter and GPS bottles. See docs/ACCESSIBILITY.md.
+
 ### Fixed
 
 - Tool cards no longer overlap: icon on top, name underneath, count in a corner badge (the trash trap icon used to

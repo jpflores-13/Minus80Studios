@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
+import { outlineTexture } from '../utils/outline';
 
 type Draw = (g: Phaser.GameObjects.Graphics) => void;
 
@@ -170,6 +171,8 @@ export class BootScene extends Phaser.Scene {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
     });
+
+    for (const key of ['bottle', 'bag', 'wrapper', 'ball', 'toy', 'gps']) outlineTexture(this, key);
 
     // Dev shortcut: ?scene=Level&level=level-3 (also Ending, LevelSelect).
     const params = new URLSearchParams(window.location.search);

@@ -6,6 +6,7 @@ import { TEXT_STYLES } from './text';
 export class Button {
   readonly bg: Phaser.GameObjects.Rectangle;
   readonly label: Phaser.GameObjects.Text;
+  readonly press: () => void;
   private enabled = true;
 
   constructor(
@@ -24,7 +25,10 @@ export class Button {
       .setOrigin(0.5)
       .setDepth(51);
     this.bg.setInteractive({ useHandCursor: true });
-    this.bg.on('pointerup', () => this.enabled && onClick());
+    this.press = () => {
+      if (this.enabled) onClick();
+    };
+    this.bg.on('pointerup', this.press);
     this.bg.on('pointerover', () => this.enabled && this.bg.setAlpha(0.85));
     this.bg.on('pointerout', () => this.bg.setAlpha(this.enabled ? 1 : 0.4));
   }

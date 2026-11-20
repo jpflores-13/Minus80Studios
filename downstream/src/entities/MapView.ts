@@ -388,10 +388,16 @@ export class MapView {
         view.shownUntil + dt * TUNING.gps.playbackSpeed,
       );
       const pts = view.track.points.filter((p) => p.t <= view.shownUntil);
-      g.lineStyle(3, PALETTE.gpsPink, 0.85);
-      g.beginPath();
-      pts.forEach((p, i) => (i === 0 ? g.moveTo(p.pos.x, p.pos.y) : g.lineTo(p.pos.x, p.pos.y)));
-      g.strokePath();
+      // White edge under the pink line keeps the trail visible on water for colour-blind players.
+      for (const [width, color, alpha] of [
+        [6, 0xffffff, 0.9],
+        [3, PALETTE.gpsPink, 1],
+      ] as const) {
+        g.lineStyle(width, color, alpha);
+        g.beginPath();
+        pts.forEach((p, i) => (i === 0 ? g.moveTo(p.pos.x, p.pos.y) : g.lineTo(p.pos.x, p.pos.y)));
+        g.strokePath();
+      }
       for (const stop of view.track.stops) {
         g.lineStyle(2, PALETTE.gpsPink, 1);
         g.strokeCircle(stop.pos.x, stop.pos.y, 10);

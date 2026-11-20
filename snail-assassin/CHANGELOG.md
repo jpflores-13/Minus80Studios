@@ -4,6 +4,12 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- **Accessibility** (Settings & Accessibility): relaxed mode (no timer, no octopus grabs), large text, assist
+  (auto-aim and auto-capture), remappable keys, screen reader announcements, number keys on the ending's buttons,
+  and dark outlines on sprites and reef text. See docs/ACCESSIBILITY.md.
+
 ### Added (Android and tablets)
 
 - FULL SCREEN option on the title menu where the browser supports it (Android, tablets, desktop), which

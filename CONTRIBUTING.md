@@ -26,7 +26,8 @@ Pushing to `main` runs CI for the game you changed and republishes both games to
   Scenes read input and draw.
 - **Balance tests.** `tests/hunt.test.ts` (Snail Assassin) and `tests/sim.test.ts` (Downstream!) check that every
   character/level can be won and that shortcuts fail. Keep them passing when you tune.
-- **Accessibility.** Everything works with keyboard and mouse, nothing relies on colour alone, and reduced
-  effects is respected.
+- **Accessibility.** Everything works with keyboard, mouse and touch; nothing relies on colour alone; reduced
+  effects is respected; important text goes through `announce()` for screen readers; and `tests/colors.test.ts`
+  must keep passing. See each game's `docs/ACCESSIBILITY.md`.
 - **Assets.** Original or properly licensed only, and credited in `docs/ASSET_CREDITS.md`.
 - **Secrets.** Never commit `.env` files, keys, or tokens.

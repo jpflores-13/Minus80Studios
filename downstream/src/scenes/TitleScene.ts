@@ -2,8 +2,9 @@ import Phaser from 'phaser';
 import { toggleFullscreen } from '../ui/fullscreen';
 import { sound } from '../audio/Sound';
 import { PALETTE, PIXEL } from '../config/gameConfig';
-import { isUnlocked, progress, saveProgress } from '../config/progress';
+import { isUnlocked, progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface Item {
@@ -47,15 +48,7 @@ export class TitleScene extends Phaser.Scene {
       },
       { label: () => 'CHOOSE A LEVEL', action: () => this.scene.start('LevelSelect') },
       { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
-      {
-        label: () =>
-          `SOUND: ${progress().muted ? 'OFF' : `${Math.round(progress().volume * 100)}%`}  (M mute, − / + volume)`,
-        action: () => sound.toggleMute(),
-      },
-      {
-        label: () => `EFFECTS: ${progress().reducedEffects ? 'REDUCED' : 'FULL'}`,
-        action: () => saveProgress({ reducedEffects: !progress().reducedEffects }),
-      },
+      { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
       ...(this.sys.game.device.fullscreen.available
         ? [
             {
@@ -109,6 +102,8 @@ export class TitleScene extends Phaser.Scene {
   private select(i: number): void {
     this.index = (i + this.items.length) % this.items.length;
     this.refresh();
+    const item = this.items[this.index]?.item;
+    if (item) announce(`${item.label()}, ${this.index + 1} of ${this.items.length}`);
   }
 
   private refresh(): void {

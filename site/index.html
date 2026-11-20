@@ -67,6 +67,19 @@
         transform: translateY(-4px);
         box-shadow: 0 10px 30px #0008;
       }
+      a.game:focus-visible {
+        outline: 4px solid #ffd36b;
+        outline-offset: 4px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        a.game {
+          transition: none;
+        }
+        a.game:hover,
+        a.game:focus-visible {
+          transform: none;
+        }
+      }
       a.game.green {
         border-color: #86b062;
         background: #1d3b2c;
@@ -109,6 +122,14 @@
         background: #f4ead2;
         color: #2d2a26;
       }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
       footer {
         color: #7fa8b5;
         font-size: 0.85rem;
@@ -120,18 +141,24 @@
   </head>
   <body>
     <header>
-      <h1>-80</h1>
-      <p class="tag">STUDIOS</p>
+      <h1 aria-label="Minus 80 Studios"><span aria-hidden="true">-80</span></h1>
+      <p class="tag" aria-hidden="true">STUDIOS</p>
       <p style="color: #c9dde0">Short games inspired by real discoveries.</p>
     </header>
 
     <main class="games">
-      <a class="game" href="./snail-assassin/">
+      <a
+        class="game"
+        href="./snail-assassin/"
+        aria-labelledby="snail-title"
+        aria-describedby="snail-desc snail-how"
+      >
         <!-- Reef scene: a cone snail stalking fish while an octopus patrols -->
         <svg
           viewBox="0 0 160 90"
           shape-rendering="crispEdges"
-          aria-hidden="true"
+          role="img"
+          aria-label="Pixel art: a cone snail on a sandy reef, a venom cloud over a small school of fish, and an octopus on patrol"
         >
           <rect width="160" height="90" fill="#cdb58a" />
           <g fill="#b39a70">
@@ -229,26 +256,34 @@
           <rect width="160" height="90" fill="#06192b" opacity="0.18" />
         </svg>
         <div class="info">
-          <h2>Snail Assassin</h2>
-          <p>
+          <h2 id="snail-title">
+            <span class="sr-only">Play </span>Snail Assassin
+          </h2>
+          <p id="snail-desc">
             Hunt the reef as one of three venomous cone snails. Slow, patient,
             and armed with real-world chemistry. Hold still when the octopus is
             near.
           </p>
-          <p class="how">
+          <p class="how" id="snail-how">
             Plays on computers (keyboard and mouse) and on iPhone, iPad, and
             Android (touch). Turn phones sideways.
           </p>
-          <span class="play">Play</span>
+          <span class="play" aria-hidden="true">Play</span>
         </div>
       </a>
 
-      <a class="game green" href="./downstream/">
+      <a
+        class="game green"
+        href="./downstream/"
+        aria-labelledby="down-title"
+        aria-describedby="down-desc down-how"
+      >
         <!-- Map scene: rain over a creek, street litter, a storm drain filter, a trap, and a pink GPS bottle -->
         <svg
           viewBox="0 0 160 90"
           shape-rendering="crispEdges"
-          aria-hidden="true"
+          role="img"
+          aria-label="Pixel art: rain over a creek through town, litter on the streets, a storm drain filter, a trash trap, and a pink GPS bottle"
         >
           <rect width="160" height="90" fill="#6f9a52" />
           <g fill="#5c8445">
@@ -358,16 +393,16 @@
           </g>
         </svg>
         <div class="info">
-          <h2>Downstream!</h2>
-          <p>
+          <h2 id="down-title"><span class="sr-only">Play </span>Downstream!</h2>
+          <p id="down-desc">
             Every creek leads to the sea, and the rain carries the litter. Place
             bins, storm drain filters, traps and booms to stop it on the way.
           </p>
-          <p class="how">
+          <p class="how" id="down-how">
             Plays on computers (mouse) and on iPhone, iPad, and Android (touch).
             Turn phones sideways.
           </p>
-          <span class="play">Play</span>
+          <span class="play" aria-hidden="true">Play</span>
         </div>
       </a>
     </main>
