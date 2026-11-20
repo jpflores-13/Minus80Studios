@@ -2,9 +2,11 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
+import { LEVELS } from '../levels';
 import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
+import { clearedCount } from './LevelSelectScene';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -36,14 +38,19 @@ export class TitleScene extends Phaser.Scene {
       ...TEXT_STYLES.hud,
       color: PALETTE.textRose,
     });
-    const best = progress().best['level-1'];
+    const cleared = clearedCount();
+    const next = LEVELS[Math.min(cleared, LEVELS.length - 1)] ?? LEVELS[0]!;
     new Menu(
       this,
       [
         {
-          label: () => `PLAY: HELLO, DARKNESS${best ? `  ${'★'.repeat(best.stars)}` : ''}`,
-          action: () => this.scene.start('Level', { levelId: 'level-1' }),
+          label: () => (cleared > 0 ? `CONTINUE: ${next.name.toUpperCase()}` : 'PLAY'),
+          action: () =>
+            progress().seenIntro
+              ? this.scene.start('Level', { levelId: next.id })
+              : this.scene.start('Intro'),
         },
+        { label: () => 'LEVELS', action: () => this.scene.start('LevelSelect') },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
         {
           label: () => 'WATCH THE OPENING',
@@ -61,12 +68,7 @@ export class TitleScene extends Phaser.Scene {
       520,
       70,
     );
-    addCenteredText(
-      this,
-      height - 30,
-      'Prototype: Level 1 · A Minus 80 Studios game',
-      TEXT_STYLES.hint,
-    );
+    addCenteredText(this, height - 30, 'A Minus 80 Studios game', TEXT_STYLES.hint);
     sound.playSong('title');
   }
 }

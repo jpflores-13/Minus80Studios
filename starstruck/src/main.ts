@@ -7,6 +7,7 @@ import { EndingScene } from './scenes/EndingScene';
 import { HudScene } from './scenes/HudScene';
 import { IntroScene } from './scenes/IntroScene';
 import { LevelScene } from './scenes/LevelScene';
+import { LevelSelectScene } from './scenes/LevelSelectScene';
 import { PauseScene } from './scenes/PauseScene';
 import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
@@ -23,6 +24,7 @@ const game = new Phaser.Game(
     IntroScene,
     TitleScene,
     SettingsScene,
+    LevelSelectScene,
     LevelScene,
     HudScene,
     PauseScene,

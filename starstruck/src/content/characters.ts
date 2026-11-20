@@ -161,3 +161,8 @@ export const CHARACTER_ORDER: CharacterId[] = [
   'sniffs',
   'starfather',
 ];
+
+/** Characters unlocked once this many levels have ever been cleared. */
+export function unlockedCharacters(clearedCount: number): CharacterId[] {
+  return CHARACTER_ORDER.filter((id) => CHARACTERS[id].unlockedAfter <= clearedCount);
+}

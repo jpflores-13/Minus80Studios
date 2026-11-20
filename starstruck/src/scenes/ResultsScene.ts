@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { getLevel, LEVELS } from '../levels';
 import { stars, type GameState } from '../systems/game';
 import { announce } from '../ui/announce';
 import { Menu } from '../ui/Menu';
@@ -29,7 +30,13 @@ export class ResultsScene extends Phaser.Scene {
     addCenteredText(
       this,
       90,
-      won ? 'BELLY FULL!' : s.lostReason === 'energy' ? 'OUT OF ENERGY' : 'OUT OF TIME',
+      won
+        ? 'BELLY FULL!'
+        : s.lostReason === 'energy'
+          ? 'OUT OF ENERGY'
+          : s.lostReason === 'predator'
+            ? 'CAUGHT!'
+            : 'OUT OF TIME',
       {
         ...TEXT_STYLES.title,
         color: won ? PALETTE.textAmber : PALETTE.textRose,
@@ -50,14 +57,26 @@ export class ResultsScene extends Phaser.Scene {
     ];
     this.add.text(width / 2 - 200, 230, lines.join('\n'), { ...TEXT_STYLES.hud, lineSpacing: 10 });
     const again = () => this.scene.start('Level', { levelId: data.levelId });
+    const next = LEVELS.find((l) => l.number === getLevel(data.levelId).number + 1);
     const items = [
       { label: () => 'PLAY AGAIN (R)', action: again },
-      ...(won
+      ...(won && next
+        ? [
+            {
+              label: () => `NEXT: ${next.name.toUpperCase()}`,
+              action: () => this.scene.start('Level', { levelId: next.id }),
+            },
+          ]
+        : []),
+      ...(won && !next
         ? [{ label: () => 'WHAT WAS THAT ALL ABOUT?', action: () => this.scene.start('Ending') }]
         : []),
-      { label: () => 'TITLE', action: () => this.scene.start('Title') },
+      { label: () => 'LEVELS', action: () => this.scene.start('LevelSelect') },
     ];
-    new Menu(this, items, width / 2, 540, 420, 72, () => this.scene.start('Title'));
+    const menu = new Menu(this, items, width / 2, 540, 420, 64, () =>
+      this.scene.start('LevelSelect'),
+    );
+    if (won && items.length > 2) menu.focus(1, false);
     this.input.keyboard?.on('keydown-R', again);
     sound.playSong('title');
     announce(

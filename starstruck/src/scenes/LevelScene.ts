@@ -47,7 +47,11 @@ export class LevelScene extends Phaser.Scene {
 
   create(data: { levelId?: string }): void {
     this.levelId = data.levelId ?? 'level-1';
-    this.state = createGame(getLevel(this.levelId), 'diggy', Math.floor(Math.random() * 1e9));
+    this.state = createGame(
+      getLevel(this.levelId),
+      progress().character,
+      Math.floor(Math.random() * 1e9),
+    );
     this.state.memory.memory *= progress().memoryScale;
     this.acc = 0;
     this.ended = false;
