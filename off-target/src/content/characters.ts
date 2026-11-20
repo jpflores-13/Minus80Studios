@@ -125,7 +125,8 @@ export const BOSSES: Record<BossKind, BossInfo> = {
     kind: 'snip',
     name: 'SNIP',
     inspiredBy: 'a different CRISPR cutting machine (fictional; to be assigned after review)',
-    blurb: 'Smaller and quicker than CHOP, with a different set of blades.',
+    blurb:
+      'Smaller and quicker than CHOP, with a different set of blades. Some ground shockwaves give a warning flash first.',
     color: 0x7a3fc4,
   },
 };

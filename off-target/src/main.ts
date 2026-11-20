@@ -7,6 +7,7 @@ import { EndingScene } from './scenes/EndingScene';
 import { HeroSelectScene } from './scenes/HeroSelectScene';
 import { HudScene } from './scenes/HudScene';
 import { IntroScene } from './scenes/IntroScene';
+import { MachinesScene } from './scenes/MachinesScene';
 import { PauseScene } from './scenes/PauseScene';
 import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
@@ -25,6 +26,7 @@ const game = new Phaser.Game(
     TitleScene,
     SettingsScene,
     IntroScene,
+    MachinesScene,
     StageSelectScene,
     HeroSelectScene,
     StageScene,

@@ -67,6 +67,7 @@ export class TitleScene extends Phaser.Scene {
           },
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
+        { label: () => 'THE MACHINES', action: () => this.scene.start('Machines') },
         { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         ...(this.sys.game.device.fullscreen.available
           ? [
