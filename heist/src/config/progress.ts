@@ -1,9 +1,16 @@
+import type { CrewId } from '../content/crew';
+import type { UpgradeId } from '../content/upgrades';
 import { prefersReducedMotion } from '../utils/accessibility';
 
 // Saved in this browser only; every access is wrapped because storage can be blocked.
 
 export interface Progress {
   best: Record<string, { score: number; stars: number; time: number }>;
+  /** Jobs cleared with everSeen false the whole run. */
+  perfectCrime: Record<string, boolean>;
+  crew: CrewId;
+  /** Permanent upgrades picked after a job's first clear. Each can repeat up to its own max. */
+  upgrades: UpgradeId[];
   volume: number;
   muted: boolean;
   music: boolean;
@@ -20,6 +27,9 @@ export function progress(): Progress {
   if (cached) return cached;
   cached = {
     best: {},
+    perfectCrime: {},
+    crew: 'ghost',
+    upgrades: [],
     volume: 0.7,
     muted: false,
     music: true,

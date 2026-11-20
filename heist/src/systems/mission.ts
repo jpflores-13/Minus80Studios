@@ -33,6 +33,8 @@ export const RULES = {
   crossCooldown: 0.6,
 };
 
+export type Rules = typeof RULES;
+
 export interface Input {
   dx: number;
   dy: number;
@@ -71,6 +73,8 @@ export interface Camera {
 export interface Mission {
   job: JobConfig;
   crew: CrewMember;
+  /** RULES, merged with any per-run overrides (upgrades change coolRate/detection range). */
+  rules: Rules;
   b: Building;
   folds: Folds;
   player: { x: number; y: number; heading: number; moving: boolean; onPath: number };
@@ -100,13 +104,20 @@ export type MissionEvent =
   | { type: 'won' }
   | { type: 'lost'; reason: 'caught' | 'time' };
 
-export function createMission(job: JobConfig, crewId: CrewId = 'ghost', seed = 1): Mission {
+export function createMission(
+  job: JobConfig,
+  crewId: CrewId | CrewMember = 'ghost',
+  seed = 1,
+  ruleOverrides: Partial<Rules> = {},
+): Mission {
   const b = parseBuilding(job.map);
-  const crew = CREW[crewId];
+  const crew = typeof crewId === 'string' ? CREW[crewId] : crewId;
+  const rules: Rules = { ...RULES, ...ruleOverrides };
   const start = centre(b.start);
   return {
     job,
     crew,
+    rules,
     b,
     folds: createFolds(b.path.length, b.anchors, crew.folder, seed, b.oneWayAnchors),
     player: { x: start.x, y: start.y, heading: -Math.PI / 2, moving: false, onPath: -1 },
@@ -166,7 +177,7 @@ export function stepMission(m: Mission, input: Input, dt: number): MissionEvent[
   movePlayer(m, input, dt);
   const crossed = crossFold(m, m.player, m.crossCooldown);
   if (crossed) {
-    m.crossCooldown = RULES.crossCooldown;
+    m.crossCooldown = m.rules.crossCooldown;
     m.crossings++;
     ev.push({ type: 'crossed', who: 'player', ...crossed });
   }
@@ -254,11 +265,11 @@ function movePlayer(m: Mission, input: Input, dt: number): void {
   const dx = input.dx / Math.max(1, len);
   const dy = input.dy / Math.max(1, len);
   p.heading = Math.atan2(dy, dx);
-  const speed = m.crew.moveSpeed * (input.sprint ? RULES.sprint : 1);
+  const speed = m.crew.moveSpeed * (input.sprint ? m.rules.sprint : 1);
   const nx = p.x + dx * speed * dt;
   const ny = p.y + dy * speed * dt;
-  if (walkable(m, nx, p.y, RULES.radius)) p.x = nx;
-  if (walkable(m, p.x, ny, RULES.radius)) p.y = ny;
+  if (walkable(m, nx, p.y, m.rules.radius)) p.x = nx;
+  if (walkable(m, p.x, ny, m.rules.radius)) p.y = ny;
 }
 
 function pickUp(m: Mission, ev: MissionEvent[]): void {
@@ -302,35 +313,44 @@ function security(m: Mission, input: Input, dt: number, ev: MissionEvent[]): voi
     const t = (m.time % c.period) / c.period;
     const s = t < 0.5 ? t * 2 : 2 - t * 2;
     c.angle = ((c.sweep[0] + (c.sweep[1] - c.sweep[0]) * s) * Math.PI) / 180;
-    const now = inCone(m, c.x, c.y, c.angle, RULES.cameraRange, RULES.cameraHalfAngle, p.x, p.y);
+    const now = inCone(
+      m,
+      c.x,
+      c.y,
+      c.angle,
+      m.rules.cameraRange,
+      m.rules.cameraHalfAngle,
+      p.x,
+      p.y,
+    );
     if (now && !c.sees) ev.push({ type: 'spotted', by: 'camera' });
     c.sees = now;
     if (now) {
-      m.suspicion += RULES.cameraRate * dt;
+      m.suspicion += m.rules.cameraRate * dt;
       seen = true;
     }
   }
   for (const g of m.guards) {
-    if (inCone(m, g.x, g.y, g.heading, RULES.guardRange, RULES.guardHalfAngle, p.x, p.y)) {
+    if (inCone(m, g.x, g.y, g.heading, m.rules.guardRange, m.rules.guardHalfAngle, p.x, p.y)) {
       if (m.suspicion < 0.05) ev.push({ type: 'spotted', by: 'guard' });
-      m.suspicion += RULES.seenRate * (input.sprint ? 1.3 : 1) * dt;
+      m.suspicion += m.rules.seenRate * (input.sprint ? 1.3 : 1) * dt;
       seen = true;
     }
   }
   if (seen) m.everSeen = true;
-  else m.suspicion = Math.max(0, m.suspicion - RULES.coolRate * dt);
+  else m.suspicion = Math.max(0, m.suspicion - m.rules.coolRate * dt);
   if (m.suspicion >= 1) {
     m.suspicion = 1;
     lose(m, 'caught', ev);
   }
   // a guard that catches up with you also ends it
   for (const g of m.guards)
-    if (Math.hypot(g.x - p.x, g.y - p.y) < RULES.radius * 2) lose(m, 'caught', ev);
+    if (Math.hypot(g.x - p.x, g.y - p.y) < m.rules.radius * 2) lose(m, 'caught', ev);
 }
 
 function moveGuard(m: Mission, g: Guard, dt: number, ev: MissionEvent[]): void {
   g.crossCooldown = Math.max(0, g.crossCooldown - dt);
-  const chasing = m.suspicion >= RULES.chaseAt;
+  const chasing = m.suspicion >= m.rules.chaseAt;
   if (chasing && g.state !== 'chase') {
     g.state = 'chase';
     ev.push({ type: 'chase' });
@@ -364,7 +384,7 @@ function moveGuard(m: Mission, g: Guard, dt: number, ev: MissionEvent[]): void {
   const dy = target.y - g.y;
   const d = Math.hypot(dx, dy);
   if (d > 0.5) {
-    const speed = g.speed * (g.state === 'chase' ? RULES.chaseSpeed : 1);
+    const speed = g.speed * (g.state === 'chase' ? m.rules.chaseSpeed : 1);
     const step = Math.min(d, speed * dt);
     g.x += (dx / d) * step;
     g.y += (dy / d) * step;
@@ -377,7 +397,7 @@ function moveGuard(m: Mission, g: Guard, dt: number, ev: MissionEvent[]): void {
   // guards use folds too
   const crossed = crossFold(m, g, g.crossCooldown);
   if (crossed) {
-    g.crossCooldown = RULES.crossCooldown * 2;
+    g.crossCooldown = m.rules.crossCooldown * 2;
     g.repath = 0;
     ev.push({ type: 'crossed', who: 'guard', ...crossed });
   }

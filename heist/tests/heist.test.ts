@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { CREW } from '../src/content/crew';
+import { CREW, unlockedCrew } from '../src/content/crew';
+import {
+  applyRuleMods,
+  applyUpgrades,
+  computeMods,
+  offerUpgrades,
+  type UpgradeId,
+} from '../src/content/upgrades';
 import { JOBS } from '../src/levels';
 import type { JobConfig } from '../src/levels/types';
 import {
@@ -24,6 +31,7 @@ import {
   createMission,
   findPath,
   NO_INPUT,
+  RULES,
   score,
   stepMission,
   type Mission,
@@ -331,5 +339,49 @@ describe('every registered job', () => {
     expect(west).toBeLessThan(east);
     expect(b.oneWayAnchors[0]!.bin).toBeGreaterThan(west);
     expect(b.oneWayAnchors[0]!.bin).toBeLessThan(east);
+  });
+});
+
+describe('upgrades', () => {
+  it('each upgrade nudges its own stat, and stacks', () => {
+    const base = computeMods([]);
+    expect(base.moveSpeed).toBe(1);
+    const once = computeMods(['quickFeet']);
+    const twice = computeMods(['quickFeet', 'quickFeet']);
+    expect(once.moveSpeed).toBeGreaterThan(1);
+    expect(twice.moveSpeed).toBeGreaterThan(once.moveSpeed);
+  });
+
+  it('applyUpgrades folds mods into a crew member without touching the original', () => {
+    const boosted = applyUpgrades(CREW.ghost, ['quickFeet', 'extraCharge']);
+    expect(boosted.moveSpeed).toBeGreaterThan(CREW.ghost.moveSpeed);
+    expect(boosted.folder.charges).toBe(CREW.ghost.folder.charges + 1);
+    expect(CREW.ghost.moveSpeed).toBe(140);
+  });
+
+  it('applyRuleMods only changes coolRate and detection range', () => {
+    const overrides = applyRuleMods(['coldBlood', 'lowProfile'], RULES);
+    expect(overrides.coolRate).toBeGreaterThan(RULES.coolRate);
+    expect(overrides.guardRange).toBeLessThan(RULES.guardRange);
+    expect(overrides.cameraRange).toBeLessThan(RULES.cameraRange);
+  });
+
+  it('createMission applies rule overrides from upgrades', () => {
+    const overrides = applyRuleMods(['lowProfile', 'lowProfile', 'lowProfile'], RULES);
+    const m = createMission(job, 'ghost', 1, overrides);
+    expect(m.rules.guardRange).toBeLessThan(RULES.guardRange);
+  });
+
+  it('offerUpgrades never offers something already maxed out', () => {
+    const owned: UpgradeId[] = Array(4).fill('quickFeet');
+    const rng = () => 0;
+    const offered = offerUpgrades(owned, rng);
+    expect(offered.every((u) => u.id !== 'quickFeet')).toBe(true);
+  });
+
+  it('a crew member unlocks only after enough jobs are cleared', () => {
+    expect(unlockedCrew(0)).toContain('ghost');
+    expect(unlockedCrew(0)).not.toContain('architect');
+    expect(unlockedCrew(3)).toContain('architect');
   });
 });

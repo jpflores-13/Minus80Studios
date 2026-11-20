@@ -26,6 +26,8 @@ export interface CrewMember {
   folder: FolderSpec;
   moveSpeed: number;
   special: string;
+  /** Jobs that must be cleared before this crew member is available (0 = from the start). */
+  unlockedAfter: number;
 }
 
 export const CREW: Record<CrewId, CrewMember> = {
@@ -37,6 +39,7 @@ export const CREW: Record<CrewId, CrewMember> = {
     folder: { speed: 4.5, lifetime: 14, cooldown: 3, charges: 4, bypass: 0.1, devices: 1 },
     moveSpeed: 140,
     special: 'Slip past cameras for a moment',
+    unlockedAfter: 0,
   },
   flash: {
     id: 'flash',
@@ -46,6 +49,7 @@ export const CREW: Record<CrewId, CrewMember> = {
     folder: { speed: 8, lifetime: 8, cooldown: 3, charges: 4, bypass: 0.1, devices: 1 },
     moveSpeed: 160,
     special: 'A short burst of speed',
+    unlockedAfter: 0,
   },
   anchor: {
     id: 'anchor',
@@ -55,6 +59,7 @@ export const CREW: Record<CrewId, CrewMember> = {
     folder: { speed: 3, lifetime: 24, cooldown: 4, charges: 3, bypass: 0.05, devices: 1 },
     moveSpeed: 130,
     special: 'Hold an active fold steady',
+    unlockedAfter: 1,
   },
   phantom: {
     id: 'phantom',
@@ -64,6 +69,7 @@ export const CREW: Record<CrewId, CrewMember> = {
     folder: { speed: 4.5, lifetime: 14, cooldown: 3, charges: 4, bypass: 0.35, devices: 1 },
     moveSpeed: 140,
     special: 'Switch off a camera for a while',
+    unlockedAfter: 2,
   },
   architect: {
     id: 'architect',
@@ -73,5 +79,13 @@ export const CREW: Record<CrewId, CrewMember> = {
     folder: { speed: 4, lifetime: 14, cooldown: 3, charges: 5, bypass: 0.1, devices: 2 },
     moveSpeed: 135,
     special: 'Run two folds at once',
+    unlockedAfter: 3,
   },
 };
+
+export const CREW_ORDER: CrewId[] = ['ghost', 'flash', 'anchor', 'phantom', 'architect'];
+
+/** Which crew members a player with this many jobs cleared can pick. */
+export function unlockedCrew(jobsCleared: number): CrewId[] {
+  return CREW_ORDER.filter((id) => CREW[id].unlockedAfter <= jobsCleared);
+}
