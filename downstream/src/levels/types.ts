@@ -89,4 +89,9 @@ export interface LevelConfig {
   slots: Slot[];
   hotspots: Hotspot[];
   weather: WeatherEvent[];
+  /**
+   * Year-long levels: the level is one year, and its rain comes from the player's chosen climate
+   * instead of `weather`. Litter is dropped for the first `generationMonths` months.
+   */
+  year?: { generationMonths: number };
 }

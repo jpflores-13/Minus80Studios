@@ -28,3 +28,10 @@ these should feel harder than the numbers suggest. Check with playtests.
 
 Since the rain update, litter only moves during showers, so every level has a rain timeline and its last
 shower runs close to the end.
+
+## Year-long levels (in progress)
+
+Level 1 is one year (72 s, 6 s a month) whose rain comes from the chosen climate (`src/levels/climates.ts`).
+Litter drops for the first nine months, so the last rains can clear most of it. The balance tests run Level 1 in
+every climate. Plan for the other levels, one seasonal idea each: the school year (2), storm season (3), autumn
+leaves clogging filters and traps (4), and a mid-year check-in where you can move one piece of equipment (5).

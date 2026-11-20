@@ -77,6 +77,20 @@ Treat as expert guidance, pending written confirmation.
 - Which plain-language findings are you comfortable seeing in the ending (e.g., rainfall and travel distance)?
 - Is the "prevention vs. interception" framing a fair representation of the toolkit's goals?
 
+## Climates (year-long levels)
+
+Millbrook is a made-up town. Players choose a climate based on real regions, which sets the shape of the year.
+Month-by-month patterns are **simplified for play** (one shower per rainy month, made-up intensities).
+
+| Climate                            | What the source says                                                                                                                                                         | Source                                                                                                                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Four Seasons (like North Carolina) | Precipitation is generally highest in summer, driven by thunderstorms and tropical systems; fall is the driest season.                                                       | NOAA NCEI State Climate Summaries, North Carolina: https://statesummaries.ncics.org/chapter/nc/                                                                               |
+| Four Seasons                       | The Atlantic hurricane season runs from June 1 to November 30.                                                                                                               | NOAA National Hurricane Center: https://www.nhc.noaa.gov/climo/                                                                                                               |
+| Monsoon (like South Asia)          | The southwest monsoon normally sets in over Kerala around 1 June and covers the whole country around 15 July; it withdraws from the southern peninsula only after 1 October. | India Meteorological Department: https://mausam.imd.gov.in/responsive/monsooninformation_onset.php and https://mausam.imd.gov.in/responsive/monsooninformation_withdrawal.php |
+
+**Abstraction:** the length of the Monsoon dry stretch and every month's rain intensity are gameplay choices, not data.
+No source used here gives a share of yearly rainfall, so the game doesn't claim one.
+
 ## Links used in the game
 
 Every link in the ending (`src/content/science.ts`) must appear here; a test checks this.

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 import { isUnlocked, progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { CLIMATES } from '../levels/climates';
 import { Button } from '../ui/Button';
 import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
@@ -54,7 +55,20 @@ export class LevelSelectScene extends Phaser.Scene {
 
     new Button(
       this,
-      width / 2,
+      width / 2 - 260,
+      height - 50,
+      300,
+      52,
+      `CLIMATE: ${CLIMATES[progress().climate].name.toUpperCase()}  [C]`,
+      () => this.scene.start('Climate', { next: { scene: 'LevelSelect' } }),
+      PALETTE.accent,
+    );
+    this.input.keyboard?.on('keydown-C', () =>
+      this.scene.start('Climate', { next: { scene: 'LevelSelect' } }),
+    );
+    new Button(
+      this,
+      width / 2 + 200,
       height - 50,
       240,
       52,

@@ -1,3 +1,4 @@
+import type { ClimateId } from '../levels/climates';
 import type { Tally } from '../systems/score';
 import { prefersReducedMotion } from '../utils/accessibility';
 
@@ -20,6 +21,9 @@ export interface Progress {
   /** All text 25% bigger. */
   largeText: boolean;
   seenEnding: boolean;
+  climate: ClimateId;
+  /** Whether the player has picked a climate yet (asked once, before Level 1). */
+  climateChosen: boolean;
 }
 
 const KEY = 'minus80.downstream.progress';
@@ -36,6 +40,8 @@ export function progress(): Progress {
     relaxed: false,
     largeText: false,
     seenEnding: false,
+    climate: 'four-seasons',
+    climateChosen: false,
   };
   try {
     const raw = window.localStorage.getItem(KEY);

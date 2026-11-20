@@ -10,7 +10,8 @@ export const LEVEL_1: LevelConfig = {
   id: 'level-1',
   number: 1,
   name: 'The Neighborhood',
-  intro: 'A small creek winds through town toward the sea. Where will you intervene?',
+  intro:
+    'A year in Millbrook. A small creek winds through town toward the sea. Where will you intervene?',
   teaches: [
     'Litter sits on the streets until rain washes it into the creek',
     'Trash bins prevent litter at its source',
@@ -18,10 +19,12 @@ export const LEVEL_1: LevelConfig = {
     'GPS research bottles reveal where litter travels',
   ],
   seed: 101,
-  generationSeconds: 50,
-  durationSeconds: 62,
+  // One year: 6 seconds a month.
+  generationSeconds: 60,
+  durationSeconds: 72,
+  year: { generationMonths: 9 },
   target: 0.75,
-  stars: { one: 0.75, two: 0.8, three: 0.85 },
+  stars: { one: 0.75, two: 0.79, three: 0.83 },
   inventory: { gps: 1, bin: 3, trap: 1 },
   segments: [
     {
@@ -47,7 +50,7 @@ export const LEVEL_1: LevelConfig = {
       runoffResponse: 0.9,
       label: 'Corner Store',
       pos: { x: 230, y: 300 },
-      rate: 0.7,
+      rate: 0.58,
       entry: { segmentId: 'creek', s: 240 },
       look: 'store',
     },
@@ -55,8 +58,8 @@ export const LEVEL_1: LevelConfig = {
       id: 'park',
       runoffResponse: 0.3,
       label: 'Park',
-      pos: { x: 520, y: 140 },
-      rate: 0.4,
+      pos: { x: 520, y: 175 },
+      rate: 0.33,
       entry: { segmentId: 'creek', s: 470 },
       look: 'park',
     },
@@ -65,7 +68,7 @@ export const LEVEL_1: LevelConfig = {
       runoffResponse: 0.5,
       label: 'Houses',
       pos: { x: 640, y: 420 },
-      rate: 0.3,
+      rate: 0.25,
       entry: { segmentId: 'creek', s: 620 },
       look: 'houses',
     },
@@ -74,19 +77,16 @@ export const LEVEL_1: LevelConfig = {
       runoffResponse: 0.7,
       label: 'School',
       pos: { x: 1060, y: 230 },
-      rate: 0.6,
+      rate: 0.5,
       entry: { segmentId: 'creek', s: 1140 },
       look: 'school',
     },
   ],
   hotspots: [],
-  weather: [
-    { at: 10, duration: 12, intensity: 'light' },
-    { at: 34, duration: 26, intensity: 'moderate' },
-  ],
+  weather: [], // comes from the chosen climate
   slots: [
     { id: 'bin-store', kind: 'bin', pos: { x: 230, y: 370 }, sourceId: 'store' },
-    { id: 'bin-park', kind: 'bin', pos: { x: 600, y: 140 }, sourceId: 'park' },
+    { id: 'bin-park', kind: 'bin', pos: { x: 600, y: 175 }, sourceId: 'park' },
     { id: 'bin-houses', kind: 'bin', pos: { x: 720, y: 420 }, sourceId: 'houses' },
     { id: 'bin-school', kind: 'bin', pos: { x: 1140, y: 230 }, sourceId: 'school' },
     {

@@ -44,7 +44,12 @@ export class TitleScene extends Phaser.Scene {
     const menu: Item[] = [
       {
         label: () => (progress().levels['level-1'] ? `CONTINUE: ${nextLevel.name}` : 'PLAY'),
-        action: () => this.scene.start('Level', { levelId: nextLevel.id }),
+        action: () =>
+          progress().climateChosen
+            ? this.scene.start('Level', { levelId: nextLevel.id })
+            : this.scene.start('Climate', {
+                next: { scene: 'Level', data: { levelId: nextLevel.id } },
+              }),
       },
       { label: () => 'CHOOSE A LEVEL', action: () => this.scene.start('LevelSelect') },
       { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },

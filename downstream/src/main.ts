@@ -3,6 +3,7 @@ import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
+import { ClimateScene } from './scenes/ClimateScene';
 import { EndingScene } from './scenes/EndingScene';
 import { LevelScene } from './scenes/LevelScene';
 import { LevelSelectScene } from './scenes/LevelSelectScene';
@@ -20,6 +21,7 @@ const game = new Phaser.Game(
     SplashScene,
     TitleScene,
     SettingsScene,
+    ClimateScene,
     LevelSelectScene,
     LevelScene,
     ResultsScene,

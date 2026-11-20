@@ -24,7 +24,7 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   create(data: ResultsData): void {
-    const level = getLevel(data.levelId);
+    const level = getLevel(data.levelId, progress().climate);
     const t = data.tally;
     const perf = performance(t);
     const earned = stars(perf, level.stars);

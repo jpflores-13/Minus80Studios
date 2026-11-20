@@ -5,6 +5,7 @@ import { progress } from '../config/progress';
 import { TUNING } from '../config/tuning';
 import { MapView } from '../entities/MapView';
 import { getLevel } from '../levels';
+import { CLIMATES, monthAt } from '../levels/climates';
 import {
   EQUIPMENT_ORDER,
   type EquipmentKind,
@@ -32,6 +33,7 @@ import { advance, cleanup, createSim, syncEquipment, type SimState } from '../sy
 import { forecast, INTENSITY_LABEL } from '../systems/weather';
 import { Button } from '../ui/Button';
 import { announce } from '../ui/announce';
+import { drawMonthIcon } from '../ui/calendar';
 import { TEXT_STYLES } from '../ui/text';
 
 const NAMES: Record<EquipmentKind, string> = {
@@ -117,7 +119,7 @@ export class LevelScene extends Phaser.Scene {
   }
 
   create(data: { levelId?: string }): void {
-    this.level = getLevel(data.levelId ?? 'level-1');
+    this.level = getLevel(data.levelId ?? 'level-1', progress().climate);
     this.dep = {};
     this.orient = {};
     this.used = {};
@@ -133,6 +135,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.map = new MapView(this, this.level);
     this.buildTopBar();
+    this.buildCalendar();
     this.buildScoutPanel();
     this.focusFx = this.add.graphics().setDepth(47);
     this.focusIndex = -1;
@@ -496,7 +499,7 @@ export class LevelScene extends Phaser.Scene {
       `${gps > 0 ? 4 : 3}. Ready? Press PLAN DEPLOYMENT.`,
     ];
     this.scoutPanel = this.add
-      .text(16, 74, steps.join('\n'), {
+      .text(16, this.contentTop(), steps.join('\n'), {
         ...TEXT_STYLES.small,
         fontSize: '15px',
         lineSpacing: 3,
@@ -703,6 +706,54 @@ export class LevelScene extends Phaser.Scene {
     return `on the water, ${where}, pushes litter to the ${bankName(seg, slot.s, dir)} bank`;
   }
 
+  // Year-long levels: a twelve-month calendar strip under the top bar, with a marker for "now".
+  private calendarCells: Phaser.GameObjects.Rectangle[] = [];
+
+  private climate() {
+    return CLIMATES[progress().climate];
+  }
+
+  private contentTop(): number {
+    return this.level.year ? 102 : 74;
+  }
+
+  private buildCalendar(): void {
+    this.calendarCells = [];
+    if (!this.level.year) return;
+    const { width } = this.scale;
+    const c = this.climate();
+    const x0 = 12;
+    const cellW = (width - 24) / 12;
+    const y = 66;
+    this.add.rectangle(0, 64, width, 36, PALETTE.ink, 0.65).setOrigin(0).setDepth(40);
+    const g = this.add.graphics().setDepth(42);
+    c.months.forEach((rain, i) => {
+      const cx = x0 + i * cellW;
+      const cell = this.add
+        .rectangle(cx + 1, y, cellW - 2, 32, PALETTE.cream, 0.9)
+        .setOrigin(0)
+        .setDepth(41)
+        .setStrokeStyle(0, PALETTE.warn);
+      this.calendarCells.push(cell);
+      drawMonthIcon(g, cx + 22, y + 15, rain);
+      this.add
+        .text(cx + 42, y + 8, c.monthNames[i] ?? '', { ...TEXT_STYLES.small, fontSize: '14px' })
+        .setDepth(42);
+    });
+  }
+
+  private updateCalendar(t: number): void {
+    if (this.calendarCells.length === 0) return;
+    const month = this.sim ? monthAt(this.level.durationSeconds, t) : -1;
+    this.calendarCells.forEach((cell, i) => {
+      const now = i === month;
+      cell
+        .setStrokeStyle(now ? 4 : 0, PALETTE.warn)
+        .setFillStyle(now ? 0xffffff : PALETTE.cream, now ? 1 : 0.9);
+      cell.setAlpha(month >= 0 && i < month ? 0.5 : 1);
+    });
+  }
+
   // Briefing
 
   private showBriefing(): void {
@@ -720,7 +771,9 @@ export class LevelScene extends Phaser.Scene {
       '',
       `Your kit: ${kit}`,
       `Goal: keep at least ${Math.round(this.level.target * 100)}% of the litter out of the ocean.`,
-      this.forecastSummary(),
+      this.level.year
+        ? `Climate: ${this.climate().name} (${this.climate().basedOn}). ${this.climate().summary} The calendar at the top shows the year ahead.`
+        : this.forecastSummary(),
       '',
       'First, scout: tap places on the map to learn what they are and where their litter goes.',
       'Tap, click, or press ENTER to start scouting',
@@ -798,7 +851,7 @@ export class LevelScene extends Phaser.Scene {
     new Button(this, width - 52, 32, 84, 40, 'HOME', () => this.scene.start('Title'), PALETTE.ink);
     // Messages sit top-right, just under the forecast, where they cover the least of the map.
     this.toast = this.add
-      .text(width - 300, 72, '', {
+      .text(width - 300, this.contentTop() - 2, '', {
         ...TEXT_STYLES.smallLight,
         fontSize: '16px',
         align: 'center',
@@ -948,7 +1001,16 @@ export class LevelScene extends Phaser.Scene {
       next && next.inSeconds > 0
         ? `   ·   ${INTENSITY_LABEL[next.intensity]} in ${Math.ceil(next.inSeconds)}s`
         : '';
-    this.weatherText.setText(this.sim ? `Weather: ${now}${ahead}` : this.shortForecast());
+    this.weatherText.setText(
+      this.level.year
+        ? this.sim
+          ? `${this.climate().name} year · ${this.climate().monthNames[monthAt(this.level.durationSeconds, t)]} · ${now}`
+          : `${this.climate().name} year · starts in ${this.climate().monthNames[0]}`
+        : this.sim
+          ? `Weather: ${now}${ahead}`
+          : this.shortForecast(),
+    );
+    this.updateCalendar(t);
     if (this.sim) {
       const tl = tally(this.sim.items);
       const left = Math.max(0, this.level.durationSeconds - this.sim.time);
@@ -1008,7 +1070,10 @@ export class LevelScene extends Phaser.Scene {
     this.inspect
       .setText(lines.join('\n'))
       .setWordWrapWidth(360)
-      .setPosition(Math.min(src.pos.x + 40, this.scale.width - 400), Math.max(src.pos.y - 30, 70))
+      .setPosition(
+        Math.min(src.pos.x + 40, this.scale.width - 400),
+        Math.max(src.pos.y - 30, this.contentTop()),
+      )
       .setVisible(true);
   }
 }

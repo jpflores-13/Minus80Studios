@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TUNING } from '../src/config/tuning';
 import { getLevel, LEVELS } from '../src/levels';
+import { CLIMATE_ORDER } from '../src/levels/climates';
 import type { LevelConfig } from '../src/levels/types';
 import { performance, stars, tally } from '../src/systems/score';
 import {
@@ -159,7 +160,18 @@ describe('filters, booms, snags, weather, cleanup', () => {
   });
 });
 
-describe.each(LEVELS.map((l) => [l.number, l] as const))('level %i balance', (_n, level) => {
+const BALANCE_CASES: [string, LevelConfig][] = [
+  ...LEVELS.map((l): [string, LevelConfig] => [`level ${l.number}`, l]),
+  // Year-long levels must work in every climate.
+  ...CLIMATE_ORDER.filter((c) => c !== 'four-seasons').flatMap((c) =>
+    LEVELS.filter((l) => l.year).map((l): [string, LevelConfig] => [
+      `level ${l.number} (${c})`,
+      getLevel(l.id, c),
+    ]),
+  ),
+];
+
+describe.each(BALANCE_CASES)('%s balance', (_name, level) => {
   const results = allStrategies(level).map((st) => ({ st, p: perf(level, st) }));
   const best = results.reduce((a, b) => (a.p >= b.p ? a : b));
 
