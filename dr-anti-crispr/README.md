@@ -5,7 +5,7 @@ _One phage. An entire army._ A portrait, phone-first arcade survival shooter fro
 at the Broad Institute (name and credits pending approval).
 
 **Status:** v0.1, first playable. Eight-wave campaign with two bosses, Endless Survival, Daily Challenge,
-four weapons, ACR Cloud, Phage Reinforcements, ten stacking upgrades, three difficulties.
+four weapons, ACR Cloud, Phage Reinforcements, nine stacking upgrades, three difficulties.
 
 ## Quick start
 
