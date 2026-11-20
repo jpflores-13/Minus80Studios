@@ -29,8 +29,8 @@ npm run dev       # http://localhost:8082  (dev shortcuts: ?scene=Level&level=le
 src/
   main.ts          Entry point
   config/          gameConfig.ts (resolution, palette), tuning.ts (gameplay numbers)
-  levels/          Level data (Level 1), with slot positions derived from the network
-  scenes/          Boot → Title → Level → Results
+  levels/          Level data (5 levels), with slot positions derived from the network
+  scenes/          Boot → Splash → Title → Climate → LevelSelect → Level → Results → Ending, Settings
   entities/        MapView (terrain, creek, sources, slots, equipment, litter)
   systems/         Pure, unit-tested: network, litter ledger, sim, equipment, score
   ui/  utils/      Text styles; small helpers
