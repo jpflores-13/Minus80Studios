@@ -3,10 +3,12 @@ import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
+import { CrewSelectScene } from './scenes/CrewSelectScene';
 import { EndingScene } from './scenes/EndingScene';
 import { HudScene } from './scenes/HudScene';
 import { IntroScene } from './scenes/IntroScene';
 import { JobScene } from './scenes/JobScene';
+import { JobSelectScene } from './scenes/JobSelectScene';
 import { PauseScene } from './scenes/PauseScene';
 import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
@@ -23,6 +25,8 @@ const game = new Phaser.Game(
     IntroScene,
     TitleScene,
     SettingsScene,
+    JobSelectScene,
+    CrewSelectScene,
     JobScene,
     HudScene,
     PauseScene,

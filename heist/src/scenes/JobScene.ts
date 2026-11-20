@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE, ZOOM } from '../config/gameConfig';
 import { progress } from '../config/progress';
+import { applyRuleMods, applyUpgrades } from '../content/upgrades';
+import { CREW } from '../content/crew';
 import { getJob } from '../levels';
 import { drawBuilding, makeArt, makeThief } from '../render/art';
 import { centre, lineOfSight, TILE, type Spot } from '../systems/building';
@@ -47,7 +49,15 @@ export class JobScene extends Phaser.Scene {
 
   create(data: { jobId?: string }): void {
     this.jobId = data.jobId ?? 'job-1';
-    this.m = createMission(getJob(this.jobId), 'ghost', Math.floor(Math.random() * 1e9));
+    const owned = progress().upgrades;
+    const crew = applyUpgrades(CREW[progress().crew], owned);
+    const ruleOverrides = applyRuleMods(owned, RULES);
+    this.m = createMission(
+      getJob(this.jobId),
+      crew,
+      Math.floor(Math.random() * 1e9),
+      ruleOverrides,
+    );
     this.acc = 0;
     this.ended = false;
     this.briefing = true;

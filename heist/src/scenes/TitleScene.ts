@@ -1,10 +1,11 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
-import { progress } from '../config/progress';
+import { JOBS } from '../levels';
 import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
+import { clearedCount } from './JobSelectScene';
 
 export class TitleScene extends Phaser.Scene {
   constructor() {
@@ -29,19 +30,17 @@ export class TitleScene extends Phaser.Scene {
       ...TEXT_STYLES.hud,
       color: PALETTE.text,
     });
-    const best1 = progress().best['job-1'];
-    const best2 = progress().best['job-2'];
+    const cleared = clearedCount();
+    const next = JOBS[Math.min(cleared, JOBS.length - 1)] ?? JOBS[0]!;
     new Menu(
       this,
       [
         {
-          label: () => `JOB 01: THE DIAMOND DISTRICT${best1 ? `  ${'★'.repeat(best1.stars)}` : ''}`,
-          action: () => this.scene.start('Job', { jobId: 'job-1' }),
+          label: () => (cleared > 0 ? `CONTINUE: JOB ${next.number}` : 'PLAY'),
+          action: () => this.scene.start('Job', { jobId: next.id }),
         },
-        {
-          label: () => `JOB 02: ONE-WAY STREET${best2 ? `  ${'★'.repeat(best2.stars)}` : ''}`,
-          action: () => this.scene.start('Job', { jobId: 'job-2' }),
-        },
+        { label: () => 'JOBS', action: () => this.scene.start('JobSelect') },
+        { label: () => 'CREW', action: () => this.scene.start('CrewSelect') },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
         {
           label: () => 'WATCH THE OPENING',
@@ -61,7 +60,7 @@ export class TitleScene extends Phaser.Scene {
     addCenteredText(
       this,
       height - 34,
-      'Prototype: Jobs 01–02 · A Minus 80 Studios game',
+      'Prototype: Jobs 01–05 · A Minus 80 Studios game',
       TEXT_STYLES.hint,
     );
     sound.playSong('title');
