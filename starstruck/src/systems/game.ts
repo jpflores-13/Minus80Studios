@@ -9,6 +9,7 @@ import type { LevelConfig, Objective, PromptTrigger } from '../levels/types';
 import { createRng, type Rng } from '../utils/rng';
 import { pointSegment, type Vec } from './geometry';
 import { probe, RAYS, SensoryMemory, nosePoint, type Contact, type Touchable } from './senses';
+import type { WormageddonState } from './wormageddon';
 
 // One level as plain data plus stepGame(). Scenes draw it; tests drive it.
 
@@ -131,6 +132,9 @@ export interface GameState {
   lostReason: 'energy' | 'time' | 'predator' | null;
   seen: Set<PromptTrigger>;
   touchedRays: Set<number>;
+  /** Only set for a WORMAGEDDON run; everything it changes is read through optional chaining,
+   *  so the six-level campaign is byte-for-byte unaffected when it's absent. */
+  wormageddon?: WormageddonState;
 }
 
 export type GameEvent =
@@ -146,6 +150,7 @@ export type GameEvent =
   | { type: 'gasp' }
   | { type: 'predatorHit' }
   | { type: 'special'; effect: SpecialEffect }
+  | { type: 'upgradeOffer' }
   | { type: 'prompt'; text: string }
   | { type: 'won' }
   | { type: 'lost'; reason: 'energy' | 'time' | 'predator' };
@@ -165,6 +170,16 @@ export function comboLabel(n: number): string | null {
 
 export function multiplier(combo: number): number {
   return 1 + Math.max(0, combo - 1) * 0.5;
+}
+
+/** The combo window, lengthened by COMBO KING in WORMAGEDDON. */
+export function effectiveComboWindow(s: GameState): number {
+  return s.character.comboWindow + (s.wormageddon?.mods.comboWindowBonus ?? 0);
+}
+
+/** Max energy, raised by BIG APPETITE in WORMAGEDDON. */
+export function effectiveMaxEnergy(s: GameState): number {
+  return s.character.maxEnergy + (s.wormageddon?.mods.maxEnergyBonus ?? 0);
 }
 
 export function createGame(
@@ -283,7 +298,7 @@ export function createGame(
   return s;
 }
 
-function chainThing(
+export function chainThing(
   id: number,
   material: 'worm' | 'larva' | 'aquaWorm' | 'aquaLarva',
   c: Vec,
@@ -395,6 +410,7 @@ function checkObjective(s: GameState): boolean {
   const o: Objective = s.level.objective;
   if (o.kind === 'eat') return o.materials.reduce((n, m) => n + (s.eaten[m] ?? 0), 0) >= o.count;
   if (o.kind === 'combo') return s.bestCombo >= o.target;
+  if (o.kind === 'endless') return false;
   if (!s.exit) return false;
   return Math.hypot(s.mole.x - s.exit.x, s.mole.y - s.exit.y) < TILE * 0.7;
 }
@@ -429,7 +445,10 @@ function moveMole(s: GameState, input: Input, dt: number, ev: GameEvent[]): void
   m.heading += diff * Math.min(1, dt * 12);
   if (input.focus && !s.seen.has('focus') && s.time > 2) prompt(s, 'focus', ev);
   const rush = s.special.timer > 0 && s.character.specialEffect === 'starRush' ? 1.5 : 1;
-  const speed = TUNING.moveSpeed * s.character.speed * rush * (input.focus ? TUNING.focusSlow : 1);
+  // WORMAGEDDON swims slower than it walks, by default; MUD SKIPPER earns that speed back
+  const waterMult = s.wormageddon && s.inWater ? 0.8 * s.wormageddon.mods.waterSpeedMult : 1;
+  const speed =
+    TUNING.moveSpeed * s.character.speed * rush * waterMult * (input.focus ? TUNING.focusSlow : 1);
   const r = TUNING.bodyRadius;
   for (const [ax, ay] of [
     [dx, 0],
@@ -449,7 +468,9 @@ function moveMole(s: GameState, input: Input, dt: number, ev: GameEvent[]): void
     if (s.soil[blocked.i] === 'soft') {
       // push into soft soil to dig it out
       m.digging = true;
-      const p = (s.dig.get(blocked.i) ?? 0) + (dt * s.character.digSpeed) / TUNING.digTime;
+      const digMult = s.wormageddon?.mods.digSpeedMult ?? 1;
+      const p =
+        (s.dig.get(blocked.i) ?? 0) + (dt * s.character.digSpeed * digMult) / TUNING.digTime;
       s.dig.set(blocked.i, p);
       if (p >= 1) {
         s.soil[blocked.i] = 'tunnel';
@@ -623,6 +644,7 @@ function sense(s: GameState, focus: boolean, dt: number, ev: GameEvent[]): void 
     return soil === 'tunnel' || soil === 'water' ? null : soil === 'rock' ? 'stone' : 'soil';
   };
   const elementary = s.special.timer > 0 && s.character.specialEffect === 'elementary';
+  const senseMult = s.wormageddon?.mods.senseMult ?? 1;
   RAYS.forEach((ray, i) => {
     const rate = ray.number === 11 && focus ? TUNING.focusTapRate : TUNING.tapRate;
     const t = (s.tapTimers[i] ?? 0) - dt;
@@ -636,7 +658,7 @@ function sense(s: GameState, focus: boolean, dt: number, ev: GameEvent[]): void 
     if (!c) return;
     s.touchedRays.add(ray.number * ray.side);
     const before = c.id >= 0 ? s.memory.confidence(c.id, s.time) : 0;
-    s.memory.add(c, s.time, s.character.acuity * (elementary ? 2 : 1));
+    s.memory.add(c, s.time, s.character.acuity * (elementary ? 2 : 1) * senseMult);
     if (c.id < 0) return;
     const thing = s.things.find((x) => x.id === c.id);
     if (!thing) return;
@@ -686,8 +708,10 @@ export function isIdentified(s: GameState, t: Thing): boolean {
 function sniff(s: GameState, ev: GameEvent[]): void {
   const bonanza = s.special.timer > 0 && s.character.specialEffect === 'bubbleBonanza';
   if (!s.inWater || s.bubble || (s.bubbleCooldown > 0 && !bonanza)) return;
-  s.bubbleCooldown = bonanza ? 0 : TUNING.bubbleCooldown;
-  const range = TUNING.bubbleRange * (bonanza ? 1.6 : 1);
+  const cooldownMult = s.wormageddon?.mods.bubbleCooldownMult ?? 1;
+  s.bubbleCooldown = bonanza ? 0 : TUNING.bubbleCooldown * cooldownMult;
+  const rangeMult = s.wormageddon?.mods.bubbleRangeMult ?? 1;
+  const range = TUNING.bubbleRange * (bonanza ? 1.6 : 1) * rangeMult;
   let best: Thing | null = null;
   let bestD = range;
   for (const t of s.things) {
@@ -760,7 +784,7 @@ function activateSpecial(s: GameState, ev: GameEvent[]): void {
 
 function bite(s: GameState, ev: GameEvent[]): void {
   if (s.biteCooldown > 0) return;
-  s.biteCooldown = TUNING.biteCooldown;
+  s.biteCooldown = TUNING.biteCooldown * (s.wormageddon?.mods.biteCooldownMult ?? 1);
   const t = underNose(s);
   if (!t) {
     s.energy -= TUNING.whiff;
@@ -784,13 +808,16 @@ function eatThing(s: GameState, t: Thing, ev: GameEvent[]): void {
   s.memory.forget(t.id);
   const rush = s.special.timer > 0 && s.character.specialEffect === 'starRush';
   s.combo = s.comboTimer > 0 || s.combo === 0 ? s.combo + 1 : 1;
-  s.comboTimer = s.character.comboWindow * (rush ? 1.6 : 1);
+  s.comboTimer = effectiveComboWindow(s) * (rush ? 1.6 : 1);
   s.bestCombo = Math.max(s.bestCombo, s.combo);
-  s.energy = Math.min(s.character.maxEnergy, s.energy + def.energy);
+  s.energy = Math.min(effectiveMaxEnergy(s), s.energy + def.energy);
   s.eaten[t.material] = (s.eaten[t.material] ?? 0) + 1;
   s.special.charge = Math.min(100, s.special.charge + s.character.chargePerBite);
   const offer = s.special.timer > 0 && s.character.specialEffect === 'theOffer';
-  s.score += Math.round(def.points * multiplier(s.combo) * (offer ? 1.5 : 1));
+  const comboScoreBonus = s.wormageddon?.mods.comboScoreBonus ?? 0;
+  s.score += Math.round(
+    def.points * multiplier(s.combo) * (offer ? 1.5 : 1) * (1 + comboScoreBonus),
+  );
   const head = t.shape.kind === 'circle' ? t.shape.c : (t.shape.points[0] as Vec);
   if (s.combo >= 3) prompt(s, 'firstCombo', ev);
   ev.push({
@@ -813,6 +840,7 @@ export function describeObjective(s: GameState): string {
     return `${names.toUpperCase()}S ${got}/${o.count}`;
   }
   if (o.kind === 'combo') return `BEST COMBO ${s.bestCombo}/${o.target}`;
+  if (o.kind === 'endless') return `SURVIVED ${Math.floor(s.time)}S`;
   if (!s.exit) return 'REACH THE EXIT';
   const d = Math.hypot(s.mole.x - s.exit.x, s.mole.y - s.exit.y);
   return `REACH THE EXIT ${d < TILE * 3 ? '(close!)' : ''}`.trim();

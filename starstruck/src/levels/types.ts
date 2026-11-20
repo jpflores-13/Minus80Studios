@@ -29,7 +29,9 @@ export type Objective =
   /** Reach this combo (in one chain) before time runs out. */
   | { kind: 'combo'; target: number }
   /** Reach the exit tile (E) with energy to spare. */
-  | { kind: 'reach' };
+  | { kind: 'reach' }
+  /** Never completes. The run only ends when energy runs out (WORMAGEDDON). */
+  | { kind: 'endless' };
 
 export interface LevelConfig {
   id: string;
