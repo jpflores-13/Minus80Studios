@@ -100,26 +100,58 @@ export class ResultsScene extends Phaser.Scene {
     new Menu(this, items, width / 2, 560, 420, 70, () => this.scene.start('Title'));
   }
 
+  /** A soft, layered glow: a cheap stand-in for a radial gradient using Graphics alone. */
+  private halo(
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    r: number,
+    color: number,
+  ): void {
+    for (let i = 5; i > 0; i--) g.fillStyle(color, 0.05 * (6 - i)).fillCircle(x, y, (r * i) / 5);
+  }
+
+  /** A bright burst at the moment an upgrade is picked. */
+  private flashAt(x: number, y: number): void {
+    if (progress().reducedEffects) return;
+    this.cameras.main.flash(180, 240, 220, 150);
+    const burst = this.add.circle(x, y, 10, PALETTE.gold, 0.9).setDepth(90);
+    this.tweens.add({
+      targets: burst,
+      radius: 200,
+      alpha: 0,
+      duration: 450,
+      ease: 'Cubic.easeOut',
+      onComplete: () => burst.destroy(),
+    });
+  }
+
   private showUpgradeOffer(onDone: () => void): void {
     const { width, height } = this.scale;
     const offers = offerUpgrades(progress().upgrades, Math.random);
     if (offers.length === 0) return onDone();
+    const glowColors = [PALETTE.gold, PALETTE.mint, PALETTE.terracotta];
     const shade = this.add
       .rectangle(0, 0, width, height, PALETTE.ink, 0.92)
       .setOrigin(0)
       .setDepth(80)
       .setInteractive();
+    const glow = this.add.graphics().setDepth(80);
+    this.halo(glow, width / 2, 140, 220, PALETTE.gold);
+    offers.forEach((_, i) => this.halo(glow, width / 2, 300 + i * 80, 120, glowColors[i % 3]!));
     const title = this.add
       .text(width / 2, 140, 'FIRST CLEAR: CHOOSE A PERMANENT UPGRADE', TEXT_STYLES.title)
       .setOrigin(0.5)
       .setDepth(81);
     const items: { label: () => string; help?: string; action: () => void }[] = offers.map(
-      (u: Upgrade) => ({
+      (u: Upgrade, i: number) => ({
         label: () => u.name.toUpperCase(),
         help: u.text,
         action: () => {
+          this.flashAt(width / 2, 300 + i * 80);
           saveProgress({ upgrades: [...progress().upgrades, u.id] });
           shade.destroy();
+          glow.destroy();
           title.destroy();
           menu.destroy();
           onDone();
