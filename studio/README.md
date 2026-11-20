@@ -19,16 +19,15 @@ The studio's shared brain: vision, process, catalog, roadmap, and brand.
 
 ## Games
 
-| Game           | Folder           | Status                     |
-| -------------- | ---------------- | -------------------------- |
-| Snail Assassin | `snail-assassin` | v0.2: Atlas vertical slice |
-| Downstream!    | `downstream`     | v0.2: Level 1 playable     |
+See [GAME_CATALOG.md](GAME_CATALOG.md) for the full table (status, science theme, scientist partner, dev port).
+Six games are live: Snail Assassin, Downstream!, OFF TARGET., DR. ANTI-CRISPR., STARSTRUCK. and HEIST.
 
 ## Local workspace
 
 ```
 ~/Developer/Minus80Studios/           ← the monorepo (github.com/jpflores-13/Minus80Studios)
 ├── Minus80Studios.code-workspace   ← open this in VS Code
-├── .github/workflows/             ← one CI workflow per game
-├── studio/  snail-assassin/  downstream/
+├── .github/workflows/             ← one CI workflow per game, plus a shared Pages deploy
+├── site/                          ← the landing page that links every game
+├── studio/  snail-assassin/  downstream/  off-target/  dr-anti-crispr/  starstruck/  heist/
 ```

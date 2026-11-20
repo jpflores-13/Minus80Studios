@@ -28,8 +28,9 @@ A player should first enjoy the game, and only afterwards realise: _"Wait, a rea
 ## Signature: "Did You Know?"
 
 Every game ends with a short, skippable discovery sequence that reveals the real organism or phenomenon, the research
-behind it, and links to learn more. The reusable format is documented per game (`docs/ENDING_SEQUENCE.md`) and will be
-standardized here once the first game ships it.
+behind it, and links to learn more. All six games now ship this. Each game documents its own sourcing in
+`docs/SCIENCE.md` (Snail Assassin and Downstream! also keep a separate `docs/ENDING_SEQUENCE.md`); there's no
+single shared studio-wide format doc yet, since the per-game pattern has worked fine so far.
 
 ## Audiences
 

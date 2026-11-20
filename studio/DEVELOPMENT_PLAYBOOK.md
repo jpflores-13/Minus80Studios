@@ -54,12 +54,12 @@ Checklist for every release:
 
 ### 8. Visual polish
 
-- Replace placeholders with original or licensed art and audio, and log each in `ASSET_ATTRIBUTION.md`.
+- Replace placeholders with original or licensed art and audio, and log each in `docs/ASSET_CREDITS.md`.
 - Add juice: transitions, particles, sound feedback. Only after the loop is proven fun.
 
 ### 9. Publishing
 
-- `npm run build` → static `dist/`. Host on a static host (to be chosen: GitHub Pages, itch.io, Netlify, etc.).
+- `npm run build` → static `dist/`. Hosted on GitHub Pages, built by `.github/workflows/pages.yml`.
 - Release checklist: version bump + CHANGELOG, credits screen, scientist approval of final text, asset licenses verified, performance check on low-end devices.
 
 ### 10. Evaluation and iteration
@@ -79,5 +79,5 @@ Checklist for every release:
 ## Starting a new game
 
 1. Copy an existing game folder's tooling (everything except `src/`, `docs/`, `tests/`), and copy one of the CI workflows in `.github/workflows/`, changing the folder name.
-2. Change name, description, dev port (next free: 8083), and title.
+2. Change name, description, dev port (next free: 8087), and title.
 3. Create docs from the existing games' templates, then add the game to `GAME_CATALOG.md`.

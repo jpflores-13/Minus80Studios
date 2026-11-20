@@ -1,27 +1,41 @@
 # Studio Roadmap
 
-## Phase 0: Foundation ✅ (Nov 2026)
+## Phase 0: Foundation ✅
 
 - [x] Workspace, shared tooling and CI
 - [x] Studio vision, playbook, catalog
 - [x] Public monorepo on GitHub (`jpflores-13/Minus80Studios`)
-- [ ] GitHub Project "Minus 80 Studios — Development"
+- [ ] GitHub Project "Minus 80 Studios — Development" (couldn't confirm either way while updating this doc;
+      left unchecked rather than guessed)
 
-## Phase 1: First playable demos
+## Phase 1: First playable demos ✅
 
-- [ ] Snail Assassin: 2–3 minute vertical slice with character select and "Did You Know?" ending
-- [ ] Downstream!: first puzzle level
-- [ ] First round of playtests (5 per game)
-- [ ] Scientist conversations and validation for both games
+- [x] Snail Assassin: vertical slice with character select and a "Did You Know?" ending
+- [x] Downstream!: full level campaign
+- [x] OFF TARGET., DR. ANTI-CRISPR., STARSTRUCK. and HEIST. added to the roster, each with its own
+      "Did You Know?" science reveal (checked citations; researcher credit still pending written approval)
 
-## Phase 2: Public demos
+## Phase 2: Public demos ✅
 
-- [ ] Choose hosting (decide public vs. private repos, GitHub Pages / itch.io / other)
-- [ ] Studio landing page with both demos and science pages
-- [ ] Branding v1 (logo, palette, typography)
+- [x] Hosting: public monorepo, GitHub Pages (one workflow per game, a shared Pages build for all six)
+- [x] Studio landing page (`site/index.html`) linking every game, with a way back to it from each title screen
+- [x] Branding v1 (logo, palette, typography; see `branding/`)
 
-## Phase 3: Expansion
+## Phase 3: Finishing the current roster
+
+- [ ] STARSTRUCK.: WORMAGEDDON endless mode, an achievements system, a character-select screen (the six
+      characters currently play as unlockable variants, not something you choose from a menu)
+- [ ] HEIST.: Jobs 2 through 7, the remaining crew (FLASH, ANCHOR, PHANTOM, ARCHITECT) and a select screen for
+      them, directional security anchors, multiple simultaneous Folders, upgrades, achievements, The Perfect
+      Crime challenge mode, and the optional Science Mode
+- [ ] A dedicated accessibility pass (and `docs/ACCESSIBILITY.md`) for OFF TARGET., DR. ANTI-CRISPR.,
+      STARSTRUCK. and HEIST., matching what Snail Assassin and Downstream! already have
+- [ ] Scientist conversations and written sign-off, so the placeholder "Meet the Scientist" sections across
+      all six games can carry real names, bios and credit
+
+## Phase 4: Expansion
 
 - [ ] Touch/iPad optimisation, arcade-cabinet build profile
-- [ ] Extract shared studio code (ending sequence, accessibility, UI) into a package, if it's genuinely duplicated
+- [ ] Extract shared studio code (ending sequence, accessibility, UI) into a package, if it's genuinely
+      duplicated across games and stable
 - [ ] Next game from the idea backlog
