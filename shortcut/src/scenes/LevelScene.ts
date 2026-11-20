@@ -102,6 +102,7 @@ export class LevelScene extends Phaser.Scene {
     this.wasRunning.clear();
     this.buildingLabels.clear();
     this.toolButtons = {};
+    this.picker = [];
 
     this.cameras.main.setBackgroundColor(PALETTE.sky);
     this.drawStatic();
@@ -264,7 +265,8 @@ export class LevelScene extends Phaser.Scene {
     cg.clear();
     if (this.phase === 'plan') {
       const x = X0 + this.cursor * this.binW();
-      cg.lineStyle(3, PALETTE.ink, 1).strokeRect(x + 1, ROAD_Y - 66, this.binW() - 2, 88);
+      cg.fillStyle(PALETTE.gold, 0.25).fillRect(x, ROAD_Y - 70, this.binW(), 96);
+      cg.lineStyle(3, PALETTE.ink, 1).strokeRect(x + 1, ROAD_Y - 70, this.binW() - 2, 96);
     }
   }
 
@@ -406,13 +408,14 @@ export class LevelScene extends Phaser.Scene {
   // ---------- input ----------
 
   private buildInput(): void {
+    // The whole city is the tap target, so only left-right position matters.
     const zone = this.add
-      .zone(X0, ROAD_Y - 70, X1 - X0, 100)
+      .zone(X0, 110, X1 - X0, 505)
       .setOrigin(0)
       .setInteractive({ useHandCursor: true })
       .setDepth(15);
     zone.on('pointermove', (p: Phaser.Input.Pointer) => {
-      if (this.phase !== 'plan') return;
+      if (this.phase !== 'plan' || p.wasTouch) return;
       const bin = this.binAt(p.worldX);
       if (bin !== this.cursor) {
         this.cursor = bin;
@@ -422,7 +425,9 @@ export class LevelScene extends Phaser.Scene {
     zone.on('pointerup', (p: Phaser.Input.Pointer) => {
       if (this.phase !== 'plan') return;
       this.cursor = this.binAt(p.worldX);
-      this.actAt(this.cursor);
+      // Touch: pick the spot first, with big buttons to nudge and confirm. Mouse acts at once.
+      if (p.wasTouch) this.openPicker();
+      else this.actAt(this.cursor);
     });
 
     const kb = this.input.keyboard;
@@ -560,6 +565,70 @@ export class LevelScene extends Phaser.Scene {
     announce(this.describe(bin));
   }
 
+  // ---------- touch picker ----------
+
+  private picker: Button[] = [];
+
+  private openPicker(): void {
+    this.closePicker();
+    const x = Phaser.Math.Clamp(this.binX(this.cursor), 230, this.scale.width - 230);
+    const y = 300;
+    const nudge = (dir: -1 | 1) => {
+      this.cursor = Phaser.Math.Clamp(this.cursor + dir, 0, this.level.bins - 1);
+      sound.play('click');
+      this.openPicker();
+      announce(this.describe(this.cursor));
+    };
+    this.picker = [
+      new Button(this, x - 160, y, 90, 80, '◀', () => nudge(-1)),
+      new Button(
+        this,
+        x,
+        y,
+        210,
+        80,
+        this.actionLabel(this.cursor),
+        () => {
+          this.actAt(this.cursor);
+          this.openPicker();
+        },
+        PALETTE.goldDark,
+      ),
+      new Button(this, x + 160, y, 90, 80, '▶', () => nudge(1)),
+      new Button(this, x + 160, y - 70, 64, 44, '✕', () => this.closePicker()),
+    ];
+    for (const b of this.picker) {
+      b.bg.setDepth(60);
+      b.label.setDepth(61).setFontSize(22);
+    }
+    this.redraw();
+  }
+
+  private closePicker(): void {
+    for (const b of this.picker) b.destroy();
+    this.picker = [];
+  }
+
+  private actionLabel(bin: number): string {
+    if (this.level.fixedDepots.includes(bin) || this.fixedCheckpointAt(bin)) return 'FIXED';
+    const cp = this.layout.checkpoints.find((c) => c.bin === bin);
+    if (cp) return cp.facing === 1 ? 'TURN ◀' : 'PICK UP';
+    if (this.layout.depots.includes(bin)) return 'PICK UP';
+    const depotsLeft = this.level.tools.depots - this.layout.depots.length;
+    const cpsLeft = this.level.tools.checkpoints - this.layout.checkpoints.length;
+    const tool =
+      this.tool === 'depot'
+        ? depotsLeft > 0 || cpsLeft === 0
+          ? 'depot'
+          : 'checkpoint'
+        : cpsLeft > 0 || depotsLeft === 0
+          ? 'checkpoint'
+          : 'depot';
+    if (tool === 'depot')
+      return depotsLeft > 0 || this.level.tools.depots === 1 ? 'DEPOT HERE' : 'NONE LEFT';
+    return cpsLeft > 0 ? 'CHECKPOINT ▶' : 'NONE LEFT';
+  }
+
   /** Spoken description of one address, for screen readers and keyboard play. */
   private describe(bin: number): string {
     const parts = [`Address ${bin + 1} of ${this.level.bins}`];
@@ -593,6 +662,7 @@ export class LevelScene extends Phaser.Scene {
     if (!this.canRun()) return this.deny('Place a depot first: machines need somewhere to start.');
     sound.unlock();
     sound.play('click');
+    this.closePicker();
     this.phase = 'run';
     this.run = startRun(this.level, this.layout, Math.floor(Math.random() * 2 ** 31));
     this.acc = 0;
@@ -696,6 +766,7 @@ export class LevelScene extends Phaser.Scene {
 
   private openBrief(): void {
     if (this.phase === 'run') return;
+    this.closePicker();
     this.phase = 'brief';
     this.briefPage = 0;
     this.drawBriefPage();
