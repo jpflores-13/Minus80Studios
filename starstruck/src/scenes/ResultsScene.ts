@@ -50,18 +50,14 @@ export class ResultsScene extends Phaser.Scene {
     ];
     this.add.text(width / 2 - 200, 230, lines.join('\n'), { ...TEXT_STYLES.hud, lineSpacing: 10 });
     const again = () => this.scene.start('Level', { levelId: data.levelId });
-    new Menu(
-      this,
-      [
-        { label: () => 'PLAY AGAIN (R)', action: again },
-        { label: () => 'TITLE', action: () => this.scene.start('Title') },
-      ],
-      width / 2,
-      540,
-      420,
-      72,
-      () => this.scene.start('Title'),
-    );
+    const items = [
+      { label: () => 'PLAY AGAIN (R)', action: again },
+      ...(won
+        ? [{ label: () => 'WHAT WAS THAT ALL ABOUT?', action: () => this.scene.start('Ending') }]
+        : []),
+      { label: () => 'TITLE', action: () => this.scene.start('Title') },
+    ];
+    new Menu(this, items, width / 2, 540, 420, 72, () => this.scene.start('Title'));
     this.input.keyboard?.on('keydown-R', again);
     sound.playSong('title');
     announce(

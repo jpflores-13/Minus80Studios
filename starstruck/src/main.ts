@@ -3,6 +3,7 @@ import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
+import { EndingScene } from './scenes/EndingScene';
 import { HudScene } from './scenes/HudScene';
 import { IntroScene } from './scenes/IntroScene';
 import { LevelScene } from './scenes/LevelScene';
@@ -26,6 +27,7 @@ const game = new Phaser.Game(
     HudScene,
     PauseScene,
     ResultsScene,
+    EndingScene,
   ]),
 );
 

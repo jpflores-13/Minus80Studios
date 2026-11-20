@@ -17,6 +17,7 @@ export interface Progress {
   autoBite: boolean;
   haptics: boolean;
   seenIntro: boolean;
+  seenEnding: boolean;
 }
 
 const KEY = 'minus80.starstruck.progress';
@@ -36,6 +37,7 @@ export function progress(): Progress {
     autoBite: false,
     haptics: true,
     seenIntro: false,
+    seenEnding: false,
   };
   try {
     const raw = window.localStorage.getItem(KEY);
