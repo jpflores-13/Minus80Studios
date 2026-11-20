@@ -58,6 +58,7 @@ export class BattleScene extends Phaser.Scene {
   private cloudBtn!: Button;
   private reinforceBtn!: Button;
   private upgradeUi: (Button | Phaser.GameObjects.GameObject)[] = [];
+  private upgradeButtons: Button[] = [];
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private drag: { x: number; y: number } | null = null;
   private wantCloud = false;
@@ -388,6 +389,20 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  /** A bright burst at the moment an upgrade is picked. */
+  private flashAt(x: number, y: number, color: number): void {
+    this.cameras.main.flash(180, 240, 220, 150);
+    const burst = this.add.circle(x, y, 10, color, 0.9).setDepth(80);
+    this.tweens.add({
+      targets: burst,
+      radius: 220,
+      alpha: 0,
+      duration: 450,
+      ease: 'Cubic.easeOut',
+      onComplete: () => burst.destroy(),
+    });
+  }
+
   private puff(x: number, y: number, effect: string): void {
     if (progress().reducedEffects) return;
     const ring = this.add
@@ -627,13 +642,28 @@ export class BattleScene extends Phaser.Scene {
 
   // ---------- upgrades ----------
 
+  /** A soft, layered glow: cheap stand-in for a radial gradient using Graphics alone. */
+  private halo(
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    r: number,
+    color: number,
+  ): void {
+    for (let i = 5; i > 0; i--) g.fillStyle(color, 0.05 * (6 - i)).fillCircle(x, y, (r * i) / 5);
+  }
+
   private showUpgrades(): void {
     const { width, height } = this.scale;
+    const reduced = progress().reducedEffects;
+    const glowColors = [PALETTE.gold, PALETTE.mint, PALETTE.violet];
     const shade = this.add
-      .rectangle(0, 0, width, height, PALETTE.ink, 0.85)
+      .rectangle(0, 0, width, height, PALETTE.ink, 0.88)
       .setOrigin(0)
       .setDepth(70)
       .setInteractive();
+    const glow = this.add.graphics().setDepth(70);
+    this.halo(glow, width / 2, 220, 240, PALETTE.goldLight);
     const title = this.add
       .text(width / 2, 220, 'CHOOSE AN UPGRADE', TEXT_STYLES.title)
       .setOrigin(0.5)
@@ -644,21 +674,47 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(71);
-    this.upgradeUi = [shade, title, note];
+    this.upgradeUi = [shade, glow, title, note];
+    this.upgradeButtons = [];
     this.world.offers.forEach((u, i) => {
+      const y = 380 + i * 170;
+      const color = glowColors[i % glowColors.length] ?? PALETTE.gold;
+      this.halo(glow, width / 2, y, 150, color);
       const b = new Button(
         this,
         width / 2,
-        380 + i * 170,
+        y,
         600,
         140,
         `${i + 1}. ${u.name.toUpperCase()}\n\n${u.text}`,
         () => this.pick(i),
         0x3d2a6e,
       );
-      b.bg.setDepth(72);
+      b.bg.setDepth(72).setStrokeStyle(3, color);
       b.label.setDepth(73).setFontSize(20).setWordWrapWidth(560);
+      this.upgradeButtons.push(b);
       this.upgradeUi.push(b);
+      if (!reduced) {
+        b.bg.setAlpha(0);
+        b.label.setAlpha(0);
+        this.tweens.add({
+          targets: [b.bg, b.label],
+          alpha: 1,
+          duration: 300,
+          delay: i * 110,
+          ease: 'Sine.easeOut',
+        });
+        this.tweens.add({
+          targets: b.bg,
+          scaleX: 1.03,
+          scaleY: 1.03,
+          duration: 1100,
+          yoyo: true,
+          repeat: -1,
+          delay: i * 110 + 350,
+          ease: 'Sine.easeInOut',
+        });
+      }
     });
     announce(
       `Choose an upgrade: ${this.world.offers.map((u, i) => `${i + 1}, ${u.name}: ${u.text}`).join('. ')}`,
@@ -668,9 +724,13 @@ export class BattleScene extends Phaser.Scene {
   private pick(i: number): void {
     if (this.world.phase !== 'upgrade') return;
     sound.play('power');
+    const chosen = this.upgradeButtons[i];
+    if (chosen && !progress().reducedEffects)
+      this.flashAt(chosen.bg.x, chosen.bg.y, PALETTE.goldLight);
     chooseUpgrade(this.world, i);
     for (const o of this.upgradeUi) o.destroy();
     this.upgradeUi = [];
+    this.upgradeButtons = [];
     saveProgress({});
   }
 }
