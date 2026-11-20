@@ -53,6 +53,13 @@ export class TitleScene extends Phaser.Scene {
         },
         { label: () => 'LEVELS', action: () => this.scene.start('LevelSelect') },
         {
+          label: () => {
+            const best = progress().bestWormageddon;
+            return `WORMAGEDDON${best.score ? `  (best ${best.score}, ${best.seconds}s)` : ''}`;
+          },
+          action: () => this.scene.start('Level', { wormageddon: true }),
+        },
+        {
           label: () =>
             `ACHIEVEMENTS (${progress().achievements.length}/${ACHIEVEMENT_ORDER.length})`,
           action: () => this.scene.start('Achievements'),

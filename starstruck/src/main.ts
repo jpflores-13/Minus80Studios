@@ -14,6 +14,7 @@ import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
 import { SplashScene } from './scenes/SplashScene';
 import { TitleScene } from './scenes/TitleScene';
+import { WormageddonResultsScene } from './scenes/WormageddonResultsScene';
 import { installTextScaling } from './ui/textScaling';
 
 installTextScaling(textScale);
@@ -31,6 +32,7 @@ const game = new Phaser.Game(
     HudScene,
     PauseScene,
     ResultsScene,
+    WormageddonResultsScene,
     EndingScene,
   ]),
 );

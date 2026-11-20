@@ -1,6 +1,12 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
-import { describeObjective, hasWater, multiplier } from '../systems/game';
+import {
+  describeObjective,
+  effectiveComboWindow,
+  effectiveMaxEnergy,
+  hasWater,
+  multiplier,
+} from '../systems/game';
 import { Button } from '../ui/Button';
 import { TEXT_STYLES } from '../ui/text';
 import { touchInput, type LevelScene } from './LevelScene';
@@ -181,7 +187,7 @@ export class HudScene extends Phaser.Scene {
     const g = this.g;
     g.clear();
     // energy: a bar with the value written beside it
-    const frac = s.energy / s.character.maxEnergy;
+    const frac = s.energy / effectiveMaxEnergy(s);
     g.fillStyle(0x2a211c, 1).fillRect(20, 20, 320, 22);
     g.fillStyle(frac > 0.35 ? PALETTE.amber : PALETTE.rose, 1).fillRect(20, 20, 320 * frac, 22);
     g.lineStyle(2, PALETTE.sand, 1).strokeRect(20, 20, 320, 22);
@@ -204,16 +210,17 @@ export class HudScene extends Phaser.Scene {
     );
     g.lineStyle(2, PALETTE.sand, 1).strokeRect(20, y + 24, 320, 16);
 
-    const left = Math.max(0, Math.ceil(s.level.timeLimit - s.time));
+    const finite = Number.isFinite(s.level.timeLimit);
+    const left = finite ? `   ${Math.max(0, Math.ceil(s.level.timeLimit - s.time))}s` : '';
     this.stats.setText(
-      `${describeObjective(s)}   ${left}s\nSCORE ${s.score}${s.combo > 1 ? `   COMBO ×${multiplier(s.combo)}` : ''}`,
+      `${describeObjective(s)}${left}\nSCORE ${s.score}${s.combo > 1 ? `   COMBO ×${multiplier(s.combo)}` : ''}`,
     );
     // combo timer: a shrinking line under the energy bar
     if (s.combo > 0)
       g.fillStyle(PALETTE.coral, 1).fillRect(
         20,
         44,
-        320 * Math.max(0, s.comboTimer / s.character.comboWindow),
+        320 * Math.max(0, s.comboTimer / effectiveComboWindow(s)),
         4,
       );
   }

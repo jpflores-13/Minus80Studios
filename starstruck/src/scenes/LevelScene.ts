@@ -4,6 +4,7 @@ import { PALETTE, ZOOM } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { OBJECTS } from '../content/objects';
 import { getLevel } from '../levels';
+import { wormageddon } from '../levels/wormageddon';
 import { drawSenses } from '../render/senseView';
 import {
   createGame,
@@ -16,7 +17,15 @@ import {
   type GameState,
   type Input,
 } from '../systems/game';
+import {
+  applyWormMagnet,
+  chooseWormageddonUpgrade,
+  createWormageddonState,
+  stepWormageddon,
+} from '../systems/wormageddon';
 import { announce } from '../ui/announce';
+import { Button } from '../ui/Button';
+import { TEXT_STYLES } from '../ui/text';
 
 /** Touch input shared with the HUD's on-screen controls. */
 export const touchInput = { dx: 0, dy: 0, focus: false, bite: false, sniff: false, special: false };
@@ -39,23 +48,28 @@ export class LevelScene extends Phaser.Scene {
   private specialPressed = false;
   private padPrev = { a: false, start: false, b: false, y: false };
   private ended = false;
+  private wormageddonMode = false;
+  private upgradeUi: (Phaser.GameObjects.GameObject | Button)[] = [];
   focusing = false;
 
   constructor() {
     super('Level');
   }
 
-  create(data: { levelId?: string }): void {
-    this.levelId = data.levelId ?? 'level-1';
+  create(data: { levelId?: string; wormageddon?: boolean }): void {
+    this.wormageddonMode = data.wormageddon ?? false;
+    this.levelId = this.wormageddonMode ? 'wormageddon' : (data.levelId ?? 'level-1');
     this.state = createGame(
-      getLevel(this.levelId),
+      this.wormageddonMode ? wormageddon : getLevel(this.levelId),
       progress().character,
       Math.floor(Math.random() * 1e9),
     );
+    if (this.wormageddonMode) this.state.wormageddon = createWormageddonState(this.state);
     this.state.memory.memory *= progress().memoryScale;
     this.acc = 0;
     this.ended = false;
     this.tiles = [];
+    this.upgradeUi = [];
     this.bitePressed = false;
     const s = this.state;
     const cam = this.cameras.main;
@@ -115,7 +129,9 @@ export class LevelScene extends Phaser.Scene {
       kb.on('keydown-V', () => (this.specialPressed = true));
       kb.on('keydown-ESC', () => this.pause());
       kb.on('keydown-P', () => this.pause());
-      kb.on('keydown-R', () => this.scene.restart({ levelId: this.levelId }));
+      kb.on('keydown-R', () =>
+        this.scene.restart({ levelId: this.levelId, wormageddon: this.wormageddonMode }),
+      );
     }
     this.scene.launch('Hud', { level: this });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -174,20 +190,30 @@ export class LevelScene extends Phaser.Scene {
   override update(time: number, delta: number): void {
     const s = this.state;
     const reduced = progress().reducedEffects;
-    if (s.status === 'playing') {
+    const paused = s.wormageddon?.phase === 'upgrade';
+    if (s.status === 'playing' && !paused) {
       this.acc += Math.min(delta, 100) / 1000;
       let input = this.readInput();
       while (this.acc >= STEP && s.status === 'playing') {
         this.acc -= STEP;
-        this.handle(stepGame(s, input, STEP));
+        const events = stepGame(s, input, STEP);
+        if (s.wormageddon) {
+          applyWormMagnet(s, STEP);
+          events.push(...stepWormageddon(s));
+        }
+        this.handle(events);
         input = { ...input, bite: false, sniff: false, special: false };
+        if (s.wormageddon?.phase === 'upgrade') break;
       }
-    } else if (!this.ended) {
+    } else if (s.status !== 'playing' && !this.ended) {
       this.ended = true;
       sound.stopSong();
       sound.play(s.status === 'won' ? 'win' : 'lose');
       this.time.delayedCall(1400, () =>
-        this.scene.start('Results', { levelId: this.levelId, state: s }),
+        this.scene.start(this.wormageddonMode ? 'WormageddonResults' : 'Results', {
+          levelId: this.levelId,
+          state: s,
+        }),
       );
     }
 
@@ -302,6 +328,10 @@ export class LevelScene extends Phaser.Scene {
           this.events.emit('special', this.state.character.special);
           announce(`${this.state.character.special}!`);
           break;
+        case 'upgradeOffer':
+          sound.play('identify');
+          this.showWormageddonUpgrades();
+          break;
         case 'prompt':
           this.events.emit('prompt', e.text);
           announce(e.text);
@@ -320,6 +350,56 @@ export class LevelScene extends Phaser.Scene {
           break;
       }
     }
+  }
+
+  private showWormageddonUpgrades(): void {
+    const w = this.state.wormageddon;
+    if (!w) return;
+    const { width, height } = this.scale;
+    const shade = this.add
+      .rectangle(0, 0, width, height, PALETTE.charcoal, 0.85)
+      .setOrigin(0)
+      .setScrollFactor(0)
+      .setDepth(70)
+      .setInteractive();
+    const title = this.add
+      .text(width / 2, height * 0.22, 'CHOOSE AN UPGRADE', TEXT_STYLES.title)
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(71);
+    const note = this.add
+      .text(width / 2, height * 0.22 + 44, 'Arcade upgrades: a game mechanic, not real biology.', {
+        ...TEXT_STYLES.hint,
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setDepth(71);
+    this.upgradeUi = [shade, title, note];
+    w.offers.forEach((u, i) => {
+      const b = new Button(
+        this,
+        width / 2,
+        height * 0.4 + i * 150,
+        Math.min(620, width - 80),
+        120,
+        `${i + 1}. ${u.name.toUpperCase()}\n\n${u.text}`,
+        () => this.pickUpgrade(i),
+        PALETTE.coral,
+      );
+      b.label.setFontSize(18).setWordWrapWidth(560);
+      this.upgradeUi.push(b);
+    });
+    announce(
+      `Choose an upgrade: ${w.offers.map((u, i) => `${i + 1}, ${u.name}: ${u.text}`).join('. ')}`,
+    );
+  }
+
+  private pickUpgrade(index: number): void {
+    if (this.state.wormageddon?.phase !== 'upgrade') return;
+    sound.play('special');
+    chooseWormageddonUpgrade(this.state, index);
+    for (const o of this.upgradeUi) o.destroy();
+    this.upgradeUi = [];
   }
 
   private burst(x: number, y: number, color: number = PALETTE.coral): void {

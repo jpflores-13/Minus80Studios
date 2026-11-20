@@ -11,6 +11,7 @@ export interface Progress {
   /** Tiles dug and worms eaten, across every level ever played (not just the current best). */
   lifetimeDug: number;
   lifetimeWormsEaten: number;
+  bestWormageddon: { score: number; seconds: number };
   volume: number;
   muted: boolean;
   music: boolean;
@@ -38,6 +39,7 @@ export function progress(): Progress {
     achievements: [],
     lifetimeDug: 0,
     lifetimeWormsEaten: 0,
+    bestWormageddon: { score: 0, seconds: 0 },
     volume: 0.7,
     muted: false,
     music: true,
