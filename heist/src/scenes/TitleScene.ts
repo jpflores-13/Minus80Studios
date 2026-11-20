@@ -29,13 +29,18 @@ export class TitleScene extends Phaser.Scene {
       ...TEXT_STYLES.hud,
       color: PALETTE.text,
     });
-    const best = progress().best['job-1'];
+    const best1 = progress().best['job-1'];
+    const best2 = progress().best['job-2'];
     new Menu(
       this,
       [
         {
-          label: () => `JOB 01: THE DIAMOND DISTRICT${best ? `  ${'★'.repeat(best.stars)}` : ''}`,
+          label: () => `JOB 01: THE DIAMOND DISTRICT${best1 ? `  ${'★'.repeat(best1.stars)}` : ''}`,
           action: () => this.scene.start('Job', { jobId: 'job-1' }),
+        },
+        {
+          label: () => `JOB 02: ONE-WAY STREET${best2 ? `  ${'★'.repeat(best2.stars)}` : ''}`,
+          action: () => this.scene.start('Job', { jobId: 'job-2' }),
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
         {
@@ -56,7 +61,7 @@ export class TitleScene extends Phaser.Scene {
     addCenteredText(
       this,
       height - 34,
-      'Prototype: Job 01 · A Minus 80 Studios game',
+      'Prototype: Jobs 01–02 · A Minus 80 Studios game',
       TEXT_STYLES.hint,
     );
     sound.playSong('title');

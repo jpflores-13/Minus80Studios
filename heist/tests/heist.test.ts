@@ -303,3 +303,33 @@ describe('security and the job', () => {
     expect(walk).toBeGreaterThan(30);
   });
 });
+
+describe('every registered job', () => {
+  for (const j of JOBS) {
+    it(`${j.id} is structurally sound`, () => {
+      const b = parseBuilding(j.map);
+      expect(new Set(j.map.map((r) => r.length)).size).toBe(1);
+      expect(b.path.length).toBeGreaterThan(0);
+      for (const i of b.anchors) expect(i).toBeGreaterThanOrEqual(0);
+      for (const a of b.oneWayAnchors) expect(a.bin).toBeGreaterThanOrEqual(0);
+      // diamond and van must be reachable on foot alone, with no fold needed
+      const m = quiet(createMission(j));
+      expect(
+        findPath(m, { tx: m.b.start.tx, ty: m.b.start.ty }, m.b.diamond).length,
+      ).toBeGreaterThan(1);
+      expect(findPath(m, m.b.diamond, { tx: m.b.van.tx, ty: m.b.van.ty }).length).toBeGreaterThan(
+        1,
+      );
+    });
+  }
+
+  it('Job 2’s west anchor sits behind its one-way lock, the east one does not', () => {
+    const j = JOBS.find((x) => x.id === 'job-2')!;
+    const b = parseBuilding(j.map);
+    expect(b.oneWayAnchors).toHaveLength(1);
+    const [west, east] = b.anchors as [number, number];
+    expect(west).toBeLessThan(east);
+    expect(b.oneWayAnchors[0]!.bin).toBeGreaterThan(west);
+    expect(b.oneWayAnchors[0]!.bin).toBeLessThan(east);
+  });
+});
