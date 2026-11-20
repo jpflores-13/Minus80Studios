@@ -1,7 +1,7 @@
 # Downstream!
 
 _An environmental strategy and puzzle game about plastic pollution, river transport, and waste interception._
-A [-80 Studios](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
+A [Minus 80 Studios](../studio/README.md) prototype · Phaser 4 + TypeScript + Vite.
 
 **Status:** v0.3. Five-level campaign with scouting, weather, six kinds of equipment, and the "Did you know?" ending.
 
@@ -44,5 +44,5 @@ tests/  docs/
 
 ## License
 
-Proprietary, © -80 Studios (to be finalized before public release).
+Proprietary, © Minus 80 Studios (to be finalized before public release).
 Scaffolded from [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`).

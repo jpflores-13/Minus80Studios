@@ -215,7 +215,7 @@ export class EndingScene extends Phaser.Scene {
       wordWrap: { width: width * 0.7 },
     });
     this.text(height * 0.72, '-80', { ...TEXT_STYLES.display, fontSize: '64px' });
-    this.text(height * 0.82, '-80 STUDIOS', TEXT_STYLES.bodyLight);
+    this.text(height * 0.82, 'MINUS 80 STUDIOS', TEXT_STYLES.bodyLight);
     this.text(height * 0.88, 'Inspired by real discoveries.', TEXT_STYLES.smallLight);
   }
 }

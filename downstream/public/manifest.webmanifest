@@ -1,7 +1,7 @@
 {
   "name": "Downstream!",
   "short_name": "Downstream!",
-  "description": "A -80 Studios game.",
+  "description": "A Minus 80 Studios game.",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

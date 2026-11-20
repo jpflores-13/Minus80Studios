@@ -1,6 +1,6 @@
 # Branding
 
-Placeholder home for the -80 Studios identity.
+Placeholder home for the Minus 80 Studios identity.
 
 | Folder        | Contents                                                               |
 | ------------- | ---------------------------------------------------------------------- |
@@ -11,7 +11,7 @@ Placeholder home for the -80 Studios identity.
 
 ## Working identity (draft)
 
-- **Name:** -80 Studios, always written with a plain hyphen: "-80" (never spelled "Minus").
+- **Name:** Minus 80 Studios (in text). **Logo / wordmark:** "-80" with a plain hyphen, usually stacked over "STUDIOS".
 - **Tagline:** _Inspired by real discoveries._
 - **Voice:** curious, confident, playful. Never preachy. Science is the twist, not the lecture.
 

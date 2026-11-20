@@ -25,7 +25,7 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 - Weather with forecasts: light rain, moderate rain, and storms. Paved areas respond more than parks.
 - Level briefings, level select with unlocks and best scores, and a "Did you know?" ending that links to the
   real NC State / NC Sea Grant research.
-- -80 Studios splash, title menu, synthesized sound (water, birds, rain), mute and volume, reduced effects, HOME buttons.
+- Minus 80 Studios splash, title menu, synthesized sound (water, birds, rain), mute and volume, reduced effects, HOME buttons.
 - Dev-only balancing panel (backtick key).
 - Tests for every new mechanic, plus balance checks for all five levels.
 

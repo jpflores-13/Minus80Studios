@@ -4,8 +4,8 @@
 
 - [x] Workspace, shared tooling and CI
 - [x] Studio vision, playbook, catalog
-- [x] Public monorepo on GitHub (`jpflores-13/-80Studios`)
-- [ ] GitHub Project "-80 Studios — Development"
+- [x] Public monorepo on GitHub (`jpflores-13/Minus80Studios`)
+- [ ] GitHub Project "Minus 80 Studios — Development"
 
 ## Phase 1: First playable demos
 

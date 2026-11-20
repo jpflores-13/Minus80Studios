@@ -1,4 +1,4 @@
-# Working on -80 Studios games
+# Working on Minus 80 Studios games
 
 ## Setup
 
@@ -20,7 +20,7 @@ Pushing to `main` runs CI for the game you changed and republishes both games to
   the game unless it's in that file with a source. If something is a guess or a gameplay simplification, say so.
 - **People.** This repo is public. No researcher names, photos, quotes, or bios until that person has said yes
   in writing. Name institutions and link published sources instead.
-- **Name.** The studio is "-80 Studios" (plain hyphen). Don't spell out "minus".
+- **Name.** In text, the studio is "Minus 80 Studios". The logo and wordmark are "-80" (plain hyphen).
 - **Tuning.** Balance numbers live in `src/config/tuning.ts` and the character/level data, not in scenes.
 - **Logic vs. drawing.** Game rules go in `src/systems/` with no Phaser imports, so they can be tested.
   Scenes read input and draw.

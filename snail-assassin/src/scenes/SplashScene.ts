@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
-/** Studio splash: "-80 STUDIOS". Any key or click skips. */
+/** Studio splash: the -80 logo. Any key or click skips. */
 export class SplashScene extends Phaser.Scene {
   constructor() {
     super('Splash');

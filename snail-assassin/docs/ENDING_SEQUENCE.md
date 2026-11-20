@@ -1,4 +1,4 @@
-# Ending Sequence: "Did You Know?" (-80 Studios format)
+# Ending Sequence: "Did You Know?" (Minus 80 Studios format)
 
 Every -80 game ends with a short, skippable discovery sequence (target: 20–30 s of reading).
 
@@ -9,7 +9,7 @@ Every -80 game ends with a short, skippable discovery sequence (target: 20–30 
 | C   | Discovery              | 40–70 validated words per species                                                                 | Milestone 6 (text needs expert review) |
 | D   | From venom to medicine | Ziconotide (origin species stated correctly); experimental leads clearly labelled as experimental | Milestone 6                            |
 | E   | Discover more          | Explore the Real Science · Read the Research · Choose Another Assassin · Play Again · Main Menu   | Milestone 6                            |
-| F   | Studio signature       | "-80 STUDIOS / Inspired by real discoveries." plus disclaimer                                     | Milestone 6                            |
+| F   | Studio signature       | "MINUS 80 STUDIOS / Inspired by real discoveries." plus disclaimer                                | Milestone 6                            |
 
 Rules: all text is drawn from `docs/SCIENCE.md` (Verified rows only); links live in one config file and are tested;
 repeat players can skip with one key; the sequence is reachable from the main menu.

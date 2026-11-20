@@ -278,7 +278,7 @@ export class DiscoveryScene extends Phaser.Scene {
     });
     // Sequence F: studio signature.
     this.text(height * 0.74, '-80', { ...TEXT_STYLES.display, fontSize: '64px', color: '#cfe9ef' });
-    this.text(height * 0.84, '-80 STUDIOS', { ...TEXT_STYLES.hud, color: '#9fc0c8' });
+    this.text(height * 0.84, 'MINUS 80 STUDIOS', { ...TEXT_STYLES.hud, color: '#9fc0c8' });
     this.text(height * 0.9, 'Inspired by real discoveries.', TEXT_STYLES.warm);
   }
 }

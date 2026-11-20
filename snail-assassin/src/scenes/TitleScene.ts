@@ -97,7 +97,7 @@ export class TitleScene extends Phaser.Scene {
     addCenteredText(
       this,
       height * 0.95,
-      '↑ ↓ choose · ENTER select   ·   A -80 Studios game',
+      '↑ ↓ choose · ENTER select   ·   A Minus 80 Studios game',
       TEXT_STYLES.hint,
     );
 

@@ -1,4 +1,4 @@
-# -80 Studios
+# Minus 80 Studios
 
 **Short indie games where science is the mechanic.** Browser-playable games inspired by real research.
 
@@ -18,8 +18,8 @@ npm run check       # typecheck, lint, format, tests
 npm run build       # static files in dist/
 ```
 
-Open `-80Studios.code-workspace` in VS Code for the multi-folder workspace. See [CONTRIBUTING.md](CONTRIBUTING.md) for the house rules.
+Open `Minus80Studios.code-workspace` in VS Code for the multi-folder workspace. See [CONTRIBUTING.md](CONTRIBUTING.md) for the house rules.
 
-**Play the latest builds:** https://jpflores-13.github.io/-80Studios/
+**Play the latest builds:** https://jpflores-13.github.io/Minus80Studios/
 
 _Inspired by real discoveries. Gameplay simplifies the science for play; see each game's `docs/SCIENCE.md`._

@@ -1,8 +1,8 @@
-# -80 Studios
+# Minus 80 Studios
 
 **Short indie games where science is the mechanic.**
 
--80 Studios makes short (7–10 minute), visually compelling browser games inspired by real scientific discoveries
+Minus 80 Studios makes short (7–10 minute), visually compelling browser games inspired by real scientific discoveries
 and the scientists who make them. The name nods to the -80 °C freezer, where every lab keeps its most precious samples.
 
 ## This folder
@@ -27,8 +27,8 @@ The studio's shared brain: vision, process, catalog, roadmap, and brand.
 ## Local workspace
 
 ```
-~/Developer/-80Studios/              ← the monorepo (github.com/jpflores-13/-80Studios)
-├── -80Studios.code-workspace   ← open this in VS Code
+~/Developer/Minus80Studios/           ← the monorepo (github.com/jpflores-13/Minus80Studios)
+├── Minus80Studios.code-workspace   ← open this in VS Code
 ├── .github/workflows/             ← one CI workflow per game
 ├── studio/  snail-assassin/  downstream/
 ```
