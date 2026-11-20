@@ -77,7 +77,7 @@ export const CAMPAIGN: WaveDef[] = [
   {
     number: 3,
     name: 'Molecular Traffic',
-    intro: 'Crowded in here. Big things drift past and soak up your shots.',
+    intro: 'Crowded in here. Ribosomes drift past, block your shots and push you aside.',
     duration: 42,
     obstacleRate: 0.35,
     crowding: true,

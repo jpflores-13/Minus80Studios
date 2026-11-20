@@ -54,6 +54,7 @@ export class BattleScene extends Phaser.Scene {
   private waveText!: Phaser.GameObjects.Text;
   private weaponText!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
+  private newEnemyText!: Phaser.GameObjects.Text;
   private cloudBtn!: Button;
   private reinforceBtn!: Button;
   private upgradeUi: (Button | Phaser.GameObjects.GameObject)[] = [];
@@ -158,6 +159,16 @@ export class BattleScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(60)
+      .setAlpha(0);
+    this.newEnemyText = this.add
+      .text(width - 20, height - 20, '', {
+        ...TEXT_STYLES.hud,
+        fontSize: '18px',
+        color: PALETTE.textMint,
+        align: 'right',
+      })
+      .setOrigin(1, 1)
+      .setDepth(55)
       .setAlpha(0);
     this.cloudBtn = new Button(
       this,
@@ -272,6 +283,7 @@ export class BattleScene extends Phaser.Scene {
         this.handle(stepWorld(w, input, STEP));
         input = { ...input, reinforce: false, cloud: false };
       }
+      this.checkEncounters();
     } else if ((w.phase === 'won' || w.phase === 'lost') && !this.ended) {
       this.ended = true;
       sound.stopSong();
@@ -280,6 +292,20 @@ export class BattleScene extends Phaser.Scene {
       this.time.delayedCall(1800, () => this.scene.start('Results', { mode: this.mode, world: w }));
     }
     this.draw(time);
+  }
+
+  /** The first time a given machine kind shows up, name it and remember it for Enemy Intel. */
+  private checkEncounters(): void {
+    const known = new Set(progress().encountered);
+    const newly: EnemyKind[] = [];
+    for (const e of this.world.enemies.live())
+      if (!known.has(e.kind) && !newly.includes(e.kind)) newly.push(e.kind);
+    if (!newly.length) return;
+    saveProgress({ encountered: [...progress().encountered, ...newly] });
+    const names = newly.map((k) => ENEMIES[k].name);
+    this.newEnemyText.setText(`FIRST SIGHTING: ${names.join(', ')}`).setAlpha(1);
+    this.tweens.add({ targets: this.newEnemyText, alpha: 0, delay: 2600, duration: 500 });
+    announce(`First sighting: ${names.join(', ')}.`);
   }
 
   private handle(events: WorldEvent[]): void {

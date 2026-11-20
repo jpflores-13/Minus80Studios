@@ -1,3 +1,4 @@
+import type { EnemyKind } from '../content/arsenal';
 import { prefersReducedMotion } from '../utils/accessibility';
 import type { Difficulty } from '../systems/world';
 
@@ -11,6 +12,8 @@ export interface Progress {
   campaignWon: boolean;
   difficulty: Difficulty;
   autoAim: boolean;
+  /** Enemy and boss kinds seen at least once, for the Enemy Intel screen. */
+  encountered: EnemyKind[];
   volume: number;
   muted: boolean;
   music: boolean;
@@ -33,6 +36,7 @@ export function progress(): Progress {
     campaignWon: false,
     difficulty: 'normal',
     autoAim: true,
+    encountered: [],
     volume: 0.7,
     muted: false,
     music: true,
