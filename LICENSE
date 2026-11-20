@@ -1,0 +1,18 @@
+Copyright (c) 2026 Minus 80 Studios. All rights reserved.
+
+This repository and its contents (source code, game design, art, audio, writing, and branding)
+are made available for viewing only. No license is granted to copy, modify, distribute,
+sublicense, or create derivative works from any part of this repository, in whole or in part,
+for any purpose, without prior written permission from Minus 80 Studios.
+
+The games in this repository are playable at https://jpflores-13.github.io/Minus80Studios/ and at
+each project's own listed storefronts. Playing a game does not grant any rights to its underlying
+code or assets.
+
+Each project folder vendors a starter template under its own `TEMPLATE_LICENSE.txt`
+(phaserjs/template-vite-ts, MIT License); that license applies only to the original template
+files it covers, not to this project's own code, content, or assets.
+
+Scientific citations and factual information referenced within these games remain the property
+of their respective authors and publishers, and are used here for educational, non-commercial
+reference under fair use.

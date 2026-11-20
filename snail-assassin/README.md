@@ -53,5 +53,5 @@ docs/              Design, science, art, playtesting, roadmap
 
 ## License
 
-Proprietary, © Minus 80 Studios. All rights reserved (to be finalized before any public release).
-Scaffolded from the official [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`).
+© 2026 Minus 80 Studios. All rights reserved. See the [repo-wide LICENSE](../LICENSE) for details.
+Scaffolded from the official [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`), which covers only those original template files.

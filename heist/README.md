@@ -49,3 +49,8 @@ src/
 ```
 
 [Science notes and open questions](docs/SCIENCE.md) · [Changelog](CHANGELOG.md)
+
+## License
+
+© 2026 Minus 80 Studios. All rights reserved. See the [repo-wide LICENSE](../LICENSE) for details.
+Scaffolded from [phaserjs/template-vite-ts](https://github.com/phaserjs/template-vite-ts) (MIT, see `TEMPLATE_LICENSE.txt`), which covers only those original template files.

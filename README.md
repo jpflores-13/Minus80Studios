@@ -27,3 +27,9 @@ Open `Minus80Studios.code-workspace` in VS Code for the multi-folder workspace. 
 **Play the latest builds:** https://jpflores-13.github.io/Minus80Studios/
 
 _Inspired by real discoveries. Gameplay simplifies the science for play; see each game's `docs/SCIENCE.md`._
+
+## License
+
+© 2026 Minus 80 Studios. All rights reserved. This repository is public so the games can be
+played and the work can be shared, but the code, art, writing, and branding are not licensed for
+reuse. See [LICENSE](LICENSE) for details.
