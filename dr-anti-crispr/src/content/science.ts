@@ -21,6 +21,13 @@ export const OPENING_LINES = [
   'Time to fight back.',
 ];
 
+/** What's coming first: a quick look at the opening wave's threats, by EnemyKind. */
+export const OPENING_THREATS: { kind: 'cutter' | 'stalker' | 'swarm'; line: string }[] = [
+  { kind: 'cutter', line: 'Chases you down. Shoot it before it gets close.' },
+  { kind: 'stalker', line: 'Faster, and comes in from the sides.' },
+  { kind: 'swarm', line: 'Weak alone. Dangerous in numbers.' },
+];
+
 export const ENDING_LINE = 'This battle isn’t entirely fictional.';
 export const DID_YOU_KNOW = 'DID YOU KNOW?';
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
