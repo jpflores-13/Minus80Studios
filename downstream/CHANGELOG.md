@@ -6,6 +6,8 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Fixed
 
+- Long forecasts no longer run under the HOME button, and tool names fit on the cards with six tools.
+
 - Tapping a place always shows what it is (before, it only did when the GPS tool wasn't selected), and the
   tap area is much bigger.
 

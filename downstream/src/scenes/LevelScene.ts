@@ -45,7 +45,7 @@ const HELP: Record<EquipmentKind, string> = {
   bin: 'Prevent: place by a neighbourhood to cut its litter.',
   filter: 'Filter: place on a storm drain to catch litter as the rain washes it off the streets.',
   trap: 'Intercept: place across the water. Holds a limited amount.',
-  boom: 'Redirect: steers floating litter toward one bank. Click it to flip direction.',
+  boom: 'Redirect: pushes floating litter toward the bank the yellow arrow points at. Tap a placed boom to flip it. Pair it with a trap on that side.',
   cleanup: 'During the flow: click a full trap, a filter, or a snag to clear it.',
 };
 
@@ -163,6 +163,7 @@ export class LevelScene extends Phaser.Scene {
         if (e.type === 'done') this.finish();
       }
     }
+    this.map.boomHints = this.phase === 'deploy';
     const highlight = this.drag?.kind ?? this.selected;
     const editing = this.phase === 'deploy' || this.phase === 'flow';
     this.map.update(
@@ -229,6 +230,12 @@ export class LevelScene extends Phaser.Scene {
       return this.say(REJECT[result.reason]);
     }
     sound.play('place');
+    if (kind === 'boom') {
+      this.say(
+        'Boom placed. The yellow dots show where it pushes floating litter. Tap it to flip the direction.',
+        4500,
+      );
+    }
     if (this.sim) syncEquipment(this.sim);
     this.map.syncEquipment(this.dep, this.orient);
     if (remaining(this.level, this.dep, kind) === 0) this.selected = null;
@@ -345,7 +352,9 @@ export class LevelScene extends Phaser.Scene {
         // a click (not a drag) on a placed boom flips it
         if (rotateBoom(this.dep, this.orient, this.phase, d.from)) {
           sound.play('click');
-          this.say('Boom turned around.');
+          this.say(
+            'Boom flipped. Floating litter now gets pushed toward the other bank (follow the yellow dots).',
+          );
         }
       } else if (target && target.id !== d.from) {
         const r = move(this.level, this.dep, this.phase, d.from, target.id);
@@ -541,6 +550,14 @@ export class LevelScene extends Phaser.Scene {
       );
   }
 
+  // Fits the top bar: the first shower, and how many more are coming.
+  private shortForecast(): string {
+    const [first, ...rest] = this.level.weather;
+    if (!first) return 'Forecast: dry';
+    const more = rest.length > 0 ? ` (+${rest.length} more)` : '';
+    return `Forecast: ${INTENSITY_LABEL[first.intensity].toLowerCase()} at ${clock(first.at)}${more}`;
+  }
+
   private forecastSummary(): string {
     if (this.level.weather.length === 0) return 'Forecast: dry all day.';
     const parts = this.level.weather.map(
@@ -625,12 +642,16 @@ export class LevelScene extends Phaser.Scene {
         .setStrokeStyle(2, PALETTE.ink)
         .setInteractive({ useHandCursor: true });
       this.add
-        .image(x + 22, y - 12, kind)
-        .setScale(PIXEL * 1.2)
+        .image(x + 22, y - 22, kind)
+        .setScale(kinds.length > 4 ? PIXEL * 0.9 : PIXEL * 1.2)
         .setDepth(51)
         .setRotation(kind === 'trap' ? Math.PI / 2 : 0);
       const text = this.add
-        .text(x + 6, y + 6, '', { ...TEXT_STYLES.small, fontSize: '14px' })
+        .text(x + 6, y - 6, '', {
+          ...TEXT_STYLES.small,
+          fontSize: kinds.length > 4 ? '13px' : '14px',
+          wordWrap: { width: cardW - 10 },
+        })
         .setDepth(51);
       bg.on('pointerdown', (p: Phaser.Input.Pointer) => {
         sound.unlock();
@@ -702,7 +723,7 @@ export class LevelScene extends Phaser.Scene {
       next && next.inSeconds > 0
         ? `   ·   ${INTENSITY_LABEL[next.intensity]} in ${Math.ceil(next.inSeconds)}s`
         : '';
-    this.weatherText.setText(this.sim ? `Weather: ${now}${ahead}` : this.forecastSummary());
+    this.weatherText.setText(this.sim ? `Weather: ${now}${ahead}` : this.shortForecast());
     if (this.sim) {
       const tl = tally(this.sim.items);
       const left = Math.max(0, this.level.durationSeconds - this.sim.time);

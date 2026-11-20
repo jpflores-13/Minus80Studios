@@ -31,6 +31,8 @@ interface TrackView {
 export class MapView {
   showFlowArrows = false;
   showTrails = true;
+  // Show 'tap to flip' on booms while the player can still change them.
+  boomHints = false;
 
   private readonly water: Phaser.GameObjects.Graphics;
   private readonly overlay: Phaser.GameObjects.Graphics;
@@ -129,13 +131,14 @@ export class MapView {
       }
       if (kind === 'boom') sprite.setRotation(this.boomAngle(slot, orient));
       let label: Phaser.GameObjects.Text | undefined;
-      if (kind === 'trap' || kind === 'filter') {
+      if (kind === 'trap' || kind === 'filter' || kind === 'boom') {
         label = this.scene.add
           .text(pos.x, pos.y - 30, '', TEXT_STYLES.label)
           .setOrigin(0.5)
           .setDepth(8)
           .setBackgroundColor('#2d2a26cc')
           .setPadding(4, 2, 4, 2);
+        if (kind === 'boom') label.setText('tap to flip ↻').setBackgroundColor('#6b5a1ecc');
       }
       this.scene.tweens.add({
         targets: sprite,
@@ -163,6 +166,7 @@ export class MapView {
     if (!sim) {
       for (const [slotId, view] of this.equipment) {
         const kind = dep[slotId];
+        if (kind === 'boom') continue;
         const cap = kind === 'filter' ? TUNING.filter.capacity : TUNING.trap.capacity;
         view.label?.setText(`0/${cap}`);
       }
@@ -328,19 +332,46 @@ export class MapView {
         g.strokeRect(slot.pos.x - 16, slot.pos.y - 18, 32, 36);
       }
     }
-    // Arrow on each placed boom showing which bank it pushes litter toward.
+    // Each placed boom: yellow dots stream past it and curve toward the bank it pushes
+    // litter to, ending in a big arrowhead, so the direction is obvious at a glance.
     for (const [slotId, kind] of Object.entries(dep)) {
       if (kind !== 'boom') continue;
       const slot = this.level.slots.find((s) => s.id === slotId);
       const seg = this.segs.get(slot?.segmentId ?? '');
       if (!slot || !seg || slot.s === undefined) continue;
       const side = orient[slotId] ?? 1;
-      const from = worldPosition(seg, slot.s + 10, 0);
-      const to = worldPosition(seg, slot.s + 22, side * 0.9);
-      g.lineStyle(3, 0xf2c94c, 0.9);
-      g.lineBetween(from.x, from.y, to.x, to.y);
-      g.fillStyle(0xf2c94c, 0.9);
-      g.fillCircle(to.x, to.y, 4);
+      const path = (t: number, start: number) => {
+        // t from 0 (upstream of the boom) to 1 (just past it, near the target bank)
+        const lateral = start + (side * 0.8 - start) * Math.min(1, Math.max(0, (t - 0.35) / 0.5));
+        return worldPosition(seg, slot.s! - 40 + t * 90, lateral);
+      };
+      g.fillStyle(0xf2c94c, 0.95);
+      for (const start of [-0.5, 0, 0.5]) {
+        for (let k = 0; k < 3; k++) {
+          const t = (((time / 1400 + k / 3 + start) % 1) + 1) % 1;
+          const pt = path(t, start);
+          g.fillCircle(pt.x, pt.y, 2.5);
+        }
+      }
+      const tip = worldPosition(seg, slot.s + 52, side * 0.85);
+      const back = worldPosition(seg, slot.s + 36, side * 0.55);
+      const dx = tip.x - back.x;
+      const dy = tip.y - back.y;
+      const len = Math.hypot(dx, dy) || 1;
+      const nx = -dy / len;
+      const ny = dx / len;
+      g.lineStyle(4, 0xf2c94c, 1);
+      g.lineBetween(back.x, back.y, tip.x, tip.y);
+      g.fillTriangle(
+        tip.x + (dx / len) * 6,
+        tip.y + (dy / len) * 6,
+        tip.x + nx * 7,
+        tip.y + ny * 7,
+        tip.x - nx * 7,
+        tip.y - ny * 7,
+      );
+      const label = this.equipment.get(slotId)?.label;
+      label?.setPosition(slot.pos.x, slot.pos.y - 34).setVisible(this.boomHints);
     }
   }
 
