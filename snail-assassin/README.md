@@ -36,7 +36,7 @@ src/
   audio/           Synthesized sound engine (no audio files)
   debug/           Dev-only balancing panel (backtick key), stripped from production
   entities/        Visual pieces (Reef)
-  input/           Device → action mapping (keyboard + mouse now; touch/gamepad later)
+  input/           Device → action mapping (keyboard, mouse and touch; no gamepad yet)
   systems/         Pure, unit-tested simulation: hunt, fish, metabolic, neural, escape, venom, current, movement
   ui/              Shared text styles and UI helpers
   utils/           Small helpers (math, accessibility)

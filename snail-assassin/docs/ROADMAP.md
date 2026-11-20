@@ -9,15 +9,16 @@ Tooling, CI, scenes, movable placeholder snail.
 - [ ] Human playtest of all three characters (target 2–3 min per hunt)
 - [ ] Expert review of SCIENCE.md and the ending text; Catalyst/Nightshade evidence rows
 - [ ] Licensed species photographs for the reveal
-- [ ] Touch controls for the hunt
+- [x] Touch controls for the hunt
 
 ## v0.2: Vertical slice of the core loop (done)
 
-- [ ] One prey type with simple wandering behaviour
-- [ ] Prey awareness / detection system (pure, tested, tunable)
-- [ ] Strike action (keyboard + touch)
-- [ ] Win/lose feedback for a single encounter
-- [ ] First playtest (5 people) and notes in PLAYTESTING.md
+- [x] One prey type with simple wandering behaviour
+- [x] Prey awareness / detection system (pure, tested, tunable)
+- [x] Strike action (keyboard + touch)
+- [x] Win/lose feedback for a single encounter
+- [ ] First playtest (5 people) and notes in PLAYTESTING.md (the log table in PLAYTESTING.md is still empty;
+      no human playtest session has been recorded yet)
 
 ## v0.3: Science integration
 
