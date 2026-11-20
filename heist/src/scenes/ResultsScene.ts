@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
+import { offerUpgrades, type Upgrade } from '../content/upgrades';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { score, type Mission } from '../systems/mission';
@@ -19,6 +20,7 @@ export class ResultsScene extends Phaser.Scene {
     const { width } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.navy);
     const old = progress().best[data.jobId];
+    const firstClear = won && !old;
     if (won && (!old || sc.total > old.score))
       saveProgress({
         best: {
@@ -30,6 +32,8 @@ export class ResultsScene extends Phaser.Scene {
           },
         },
       });
+    if (won && !m.everSeen)
+      saveProgress({ perfectCrime: { ...progress().perfectCrime, [data.jobId]: true } });
     addCenteredText(
       this,
       100,
@@ -74,6 +78,18 @@ export class ResultsScene extends Phaser.Scene {
       fontFamily: 'monospace',
     });
     const again = () => this.scene.start('Job', { jobId: data.jobId });
+    this.input.keyboard?.on('keydown-R', again);
+    sound.playSong('title');
+    announce(
+      `${won ? `Clean getaway, ${sc.stars} stars, score ${sc.total}.` : lines[0]} Press R to try again.`,
+    );
+    if (firstClear) this.showUpgradeOffer(() => this.buildMenu(data.jobId, won));
+    else this.buildMenu(data.jobId, won);
+  }
+
+  private buildMenu(jobId: string, won: boolean): void {
+    const { width } = this.scale;
+    const again = () => this.scene.start('Job', { jobId });
     const items = [
       { label: () => 'TRY AGAIN (R)', action: again },
       ...(won
@@ -82,10 +98,37 @@ export class ResultsScene extends Phaser.Scene {
       { label: () => 'TITLE', action: () => this.scene.start('Title') },
     ];
     new Menu(this, items, width / 2, 560, 420, 70, () => this.scene.start('Title'));
-    this.input.keyboard?.on('keydown-R', again);
-    sound.playSong('title');
+  }
+
+  private showUpgradeOffer(onDone: () => void): void {
+    const { width, height } = this.scale;
+    const offers = offerUpgrades(progress().upgrades, Math.random);
+    if (offers.length === 0) return onDone();
+    const shade = this.add
+      .rectangle(0, 0, width, height, PALETTE.ink, 0.92)
+      .setOrigin(0)
+      .setDepth(80)
+      .setInteractive();
+    const title = this.add
+      .text(width / 2, 140, 'FIRST CLEAR: CHOOSE A PERMANENT UPGRADE', TEXT_STYLES.title)
+      .setOrigin(0.5)
+      .setDepth(81);
+    const items: { label: () => string; help?: string; action: () => void }[] = offers.map(
+      (u: Upgrade) => ({
+        label: () => u.name.toUpperCase(),
+        help: u.text,
+        action: () => {
+          saveProgress({ upgrades: [...progress().upgrades, u.id] });
+          shade.destroy();
+          title.destroy();
+          menu.destroy();
+          onDone();
+        },
+      }),
+    );
+    const menu = new Menu(this, items, width / 2, 300, 560, 80);
     announce(
-      `${won ? `Clean getaway, ${sc.stars} stars, score ${sc.total}.` : lines[0]} Press R to try again.`,
+      `First clear. Choose a permanent upgrade. ${offers.map((u) => `${u.name}: ${u.text}`).join('. ')}`,
     );
   }
 }

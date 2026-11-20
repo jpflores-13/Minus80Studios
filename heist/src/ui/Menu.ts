@@ -21,6 +21,8 @@ export class Menu {
   private index = 0;
   private padPrev = { up: false, down: false, a: false, b: false };
   private helpText: Phaser.GameObjects.Text;
+  private readonly onKeydown: (e: KeyboardEvent) => void;
+  private readonly onUpdate: () => void;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -45,15 +47,26 @@ export class Menu {
       })
       .setOrigin(0.5, 0);
     const kb = scene.input.keyboard;
-    kb?.on('keydown', (e: KeyboardEvent) => {
+    this.onKeydown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 's') this.focus(this.index + 1);
       else if (e.key === 'ArrowUp' || e.key === 'w') this.focus(this.index - 1);
       else if (e.key === 'Enter' || e.key === ' ') this.choose(this.index);
       else if (e.key === 'Escape') this.onBack?.();
-    });
-    scene.events.on(Phaser.Scenes.Events.UPDATE, () => this.pollPad());
+    };
+    this.onUpdate = () => this.pollPad();
+    kb?.on('keydown', this.onKeydown);
+    scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kb?.removeAllListeners());
     this.focus(0);
+  }
+
+  /** Tears this menu down without waiting for the scene to shut down, for a menu that's
+   * replaced by another one within the same scene (an upgrade offer, say). */
+  destroy(): void {
+    this.buttons.forEach((b) => b.destroy());
+    this.helpText.destroy();
+    this.scene.input.keyboard?.off('keydown', this.onKeydown);
+    this.scene.events.off(Phaser.Scenes.Events.UPDATE, this.onUpdate);
   }
 
   private pollPad(): void {
