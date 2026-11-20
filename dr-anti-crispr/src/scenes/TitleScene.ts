@@ -66,6 +66,7 @@ export class TitleScene extends Phaser.Scene {
         ...(this.sys.game.device.fullscreen.available
           ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
           : []),
+        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
       ],
       width / 2,
       600,

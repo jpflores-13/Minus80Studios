@@ -78,6 +78,7 @@ export class TitleScene extends Phaser.Scene {
               },
             ]
           : []),
+        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
       ],
       width / 2,
       280,

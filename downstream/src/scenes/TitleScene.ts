@@ -62,6 +62,7 @@ export class TitleScene extends Phaser.Scene {
             },
           ]
         : []),
+      { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
     ];
     this.items = menu.map((item, i) => {
       const text = addCenteredText(this, height * 0.47 + i * 40, '', {
