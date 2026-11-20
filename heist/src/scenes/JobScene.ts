@@ -72,6 +72,16 @@ export class JobScene extends Phaser.Scene {
       base.lineStyle(3, PALETTE.gold, 1).strokeRect(c.x - 12, c.y - 12, 24, 24);
       base.fillStyle(PALETTE.gold, 0.3).fillRect(c.x - 12, c.y - 12, 24, 24);
     }
+    // one-way security anchors: a chevron pointing the way traffic actually flows through
+    for (const a of m.b.oneWayAnchors) {
+      const c = centre(m.b.path[a.bin] as Spot);
+      const open = -a.facing; // the facing it does NOT hold
+      base.lineStyle(3, PALETTE.terracotta, 1).strokeRect(c.x - 12, c.y - 12, 24, 24);
+      base.fillStyle(PALETTE.terracotta, 0.25).fillRect(c.x - 12, c.y - 12, 24, 24);
+      base
+        .fillStyle(PALETTE.terracotta, 1)
+        .fillTriangle(c.x - open * 7, c.y - 8, c.x - open * 7, c.y + 8, c.x + open * 7, c.y);
+    }
     const van = centre(m.b.van);
     this.add.image(van.x, van.y, 'van').setDepth(2);
     const d = centre(m.b.diamond);

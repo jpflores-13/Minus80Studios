@@ -108,7 +108,7 @@ export function createMission(job: JobConfig, crewId: CrewId = 'ghost', seed = 1
     job,
     crew,
     b,
-    folds: createFolds(b.path.length, b.anchors, crew.folder, seed),
+    folds: createFolds(b.path.length, b.anchors, crew.folder, seed, b.oneWayAnchors),
     player: { x: start.x, y: start.y, heading: -Math.PI / 2, moving: false, onPath: -1 },
     crossCooldown: 0,
     guards: job.guards.map((g, i) => {

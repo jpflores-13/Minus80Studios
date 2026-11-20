@@ -65,6 +65,15 @@ describe('the building and its pathway', () => {
     expect(b.anchors).toHaveLength(2);
     expect(b.anchors[0]).toBeLessThan(b.anchors[1]!);
   });
+
+  it('reads one-way anchors with the right facing', () => {
+    // a single corridor line '=>=<=' so both one-way tiles sit on the same traced path
+    const oneWay = parseBuilding(['#########', '#P......#', '#.=>=<=.#', '#########']);
+    expect(oneWay.oneWayAnchors).toHaveLength(2);
+    const byFacing = (f: 1 | -1) => oneWay.oneWayAnchors.find((a) => a.facing === f);
+    expect(byFacing(1)).toBeDefined();
+    expect(byFacing(-1)).toBeDefined();
+  });
 });
 
 describe('the Folder', () => {
@@ -128,6 +137,34 @@ describe('the Folder', () => {
     expect(deploy(f, 10)).toBe(false);
     expect(deploy(f, 30)).toBe(true);
     expect(active(f)).toHaveLength(2);
+  });
+
+  it('a one-way anchor holds the locked direction but lets the other one through', () => {
+    const noBypass = { ...spec, bypass: 0 };
+    // facing: 1 (the '>' tile) holds an end moving left, same as the engine's own convention
+    const f = createFolds(b.path.length, [], noBypass, 1, [{ bin: mid - 2, facing: 1 }]);
+    deploy(f, mid);
+    for (let t = 0; t < 4; t += DT) stepFolds(f, DT);
+    const fold = active(f)[0]!;
+    expect(fold.left).toBe(mid - 2);
+    // the right end moves away from the lock, so nothing holds it
+    expect(fold.right).toBeGreaterThan(mid + 5);
+  });
+
+  it('a crew member with a higher bypass skill slips a one-way lock more often', () => {
+    const run5 = (bypass: number) => {
+      let stops = 0;
+      for (let seed = 1; seed <= 20; seed++) {
+        const f = createFolds(b.path.length, [], { ...spec, bypass }, seed, [
+          { bin: mid - 2, facing: 1 },
+        ]);
+        deploy(f, mid);
+        for (let t = 0; t < 4; t += DT) stepFolds(f, DT);
+        if (active(f)[0]!.left === mid - 2) stops++;
+      }
+      return stops;
+    };
+    expect(run5(0)).toBeGreaterThan(run5(0.9));
   });
 
   it('the same seed gives the same fold', () => {

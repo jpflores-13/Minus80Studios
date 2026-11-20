@@ -20,6 +20,8 @@ export function createFolds(
   anchors: number[],
   spec: FolderSpec,
   seed: number,
+  /** One-way security anchors (from Job 2): locked against one facing, open to the other. */
+  oneWayAnchors: { bin: number; facing: 1 | -1 }[] = [],
 ): Folds {
   const engine = createEngine(
     pathLength,
@@ -33,10 +35,15 @@ export function createFolds(
     seed,
   );
   // an anchor holds an end coming from either side
-  engine.checkpoints = anchors.flatMap((bin) => [
-    { bin, facing: 1 as const, reliability: 1 },
-    { bin, facing: -1 as const, reliability: 1 },
-  ]);
+  engine.checkpoints = [
+    ...anchors.flatMap((bin) => [
+      { bin, facing: 1 as const, reliability: 1 },
+      { bin, facing: -1 as const, reliability: 1 },
+    ]),
+    // a one-way anchor only guards its locked facing, and even that isn't perfectly reliable —
+    // how often it slips depends on the crew member's bypass skill
+    ...oneWayAnchors.map(({ bin, facing }) => ({ bin, facing, reliability: 1 - spec.bypass })),
+  ];
   return { engine, spec, charges: spec.charges, cooldown: 0, origins: new Map() };
 }
 

@@ -1,7 +1,10 @@
 // Map key, one character per 32px tile:
 //   #  wall      X  glass display case (blocks you, not sight)      .  floor
 //   =  service corridor (the foldable pathway, a single unbranched line)
-//   A  anchor on the corridor (the Folder's ends stop here)
+//   A  anchor on the corridor (the Folder's ends stop here, from either direction)
+//   >  one-way security anchor: locked against ends moving left, open to ones moving right
+//   <  one-way security anchor: locked against ends moving right, open to ones moving left
+//      (a lock isn't perfectly reliable — the crew's bypass skill sets the slip chance)
 //   P  start     V  getaway van    D  the diamond (primary loot)   *  optional loot
 //   G  guard start (route in the job data)   C  security camera (sweep in the job data)
 

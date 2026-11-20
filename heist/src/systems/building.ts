@@ -16,8 +16,10 @@ export interface Building {
   tiles: Tile[];
   /** The corridor, in order from one end to the other. */
   path: Spot[];
-  /** Index on the path of each anchor. */
+  /** Index on the path of each (omnidirectional) anchor. */
   anchors: number[];
+  /** One-way security anchors (Job 2+): locked against one facing, open to the other. */
+  oneWayAnchors: { bin: number; facing: 1 | -1 }[];
   start: Spot;
   van: Spot;
   diamond: Spot;
@@ -41,7 +43,13 @@ export function parseBuilding(map: string[]): Building {
     for (let tx = 0; tx < cols; tx++) {
       const ch = row[tx] ?? '#';
       tiles.push(
-        ch === '#' ? 'wall' : ch === 'X' ? 'case' : ch === '=' || ch === 'A' ? 'corridor' : 'floor',
+        ch === '#'
+          ? 'wall'
+          : ch === 'X'
+            ? 'case'
+            : ch === '=' || ch === 'A' || ch === '>' || ch === '<'
+              ? 'corridor'
+              : 'floor',
       );
     }
   });
@@ -51,6 +59,7 @@ export function parseBuilding(map: string[]): Building {
     tiles,
     path: [],
     anchors: [],
+    oneWayAnchors: [],
     start: find('P')[0] ?? { tx: 1, ty: 1 },
     van: find('V')[0] ?? { tx: 1, ty: 1 },
     diamond: find('D')[0] ?? { tx: 1, ty: 1 },
@@ -63,6 +72,17 @@ export function parseBuilding(map: string[]): Building {
   b.anchors = b.path
     .map((s, i) => (anchorSpots.some((a) => a.tx === s.tx && a.ty === s.ty) ? i : -1))
     .filter((i) => i >= 0);
+  // '>' locks against leftward ends, letting rightward ones through; '<' is the mirror
+  const oneWay: { ch: string; facing: 1 | -1 }[] = [
+    { ch: '>', facing: 1 },
+    { ch: '<', facing: -1 },
+  ];
+  b.oneWayAnchors = oneWay.flatMap(({ ch, facing }) =>
+    find(ch).flatMap((spot) => {
+      const i = b.path.findIndex((s) => s.tx === spot.tx && s.ty === spot.ty);
+      return i >= 0 ? [{ bin: i, facing }] : [];
+    }),
+  );
   return b;
 }
 
