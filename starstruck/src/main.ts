@@ -1,0 +1,39 @@
+import Phaser from 'phaser';
+import './style.css';
+import { createGameConfig } from './config/gameConfig';
+import { textScale } from './config/progress';
+import { BootScene } from './scenes/BootScene';
+import { HudScene } from './scenes/HudScene';
+import { IntroScene } from './scenes/IntroScene';
+import { LevelScene } from './scenes/LevelScene';
+import { PauseScene } from './scenes/PauseScene';
+import { ResultsScene } from './scenes/ResultsScene';
+import { SettingsScene } from './scenes/SettingsScene';
+import { SplashScene } from './scenes/SplashScene';
+import { TitleScene } from './scenes/TitleScene';
+import { installTextScaling } from './ui/textScaling';
+
+installTextScaling(textScale);
+
+const game = new Phaser.Game(
+  createGameConfig('game-container', [
+    BootScene,
+    SplashScene,
+    IntroScene,
+    TitleScene,
+    SettingsScene,
+    LevelScene,
+    HudScene,
+    PauseScene,
+    ResultsScene,
+  ]),
+);
+
+game.events.once(Phaser.Core.Events.READY, () => {
+  game.canvas.setAttribute('role', 'application');
+  game.canvas.setAttribute(
+    'aria-label',
+    'Starstruck. Move with the arrow keys, hold Shift to focus your touch, press Space to bite. What you touch is described aloud.',
+  );
+  game.canvas.setAttribute('tabindex', '0');
+});

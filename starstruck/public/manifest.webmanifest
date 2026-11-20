@@ -1,0 +1,19 @@
+{
+  "name": "STARSTRUCK.",
+  "short_name": "STARSTRUCK.",
+  "description": "A Minus 80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#171c22",
+  "theme_color": "#171c22",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

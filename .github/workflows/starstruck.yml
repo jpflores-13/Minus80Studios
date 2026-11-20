@@ -1,0 +1,37 @@
+name: starstruck CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['starstruck/**', '.github/workflows/starstruck.yml']
+  pull_request:
+    paths: ['starstruck/**', '.github/workflows/starstruck.yml']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: starstruck
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: starstruck/.node-version
+          cache: npm
+          cache-dependency-path: starstruck/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npx vite build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: starstruck-web-build
+          path: starstruck/dist/
+          retention-days: 14
