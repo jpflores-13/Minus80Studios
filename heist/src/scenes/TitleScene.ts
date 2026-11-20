@@ -42,6 +42,9 @@ export class TitleScene extends Phaser.Scene {
           label: () => 'WATCH THE OPENING',
           action: () => this.scene.start('Intro', { replay: true }),
         },
+        ...(progress().seenEnding
+          ? [{ label: () => 'THE ENDING', action: () => this.scene.start('Ending') }]
+          : []),
         ...(this.sys.game.device.fullscreen.available
           ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
           : []),

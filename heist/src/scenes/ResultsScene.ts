@@ -74,18 +74,14 @@ export class ResultsScene extends Phaser.Scene {
       fontFamily: 'monospace',
     });
     const again = () => this.scene.start('Job', { jobId: data.jobId });
-    new Menu(
-      this,
-      [
-        { label: () => 'TRY AGAIN (R)', action: again },
-        { label: () => 'TITLE', action: () => this.scene.start('Title') },
-      ],
-      width / 2,
-      560,
-      420,
-      70,
-      () => this.scene.start('Title'),
-    );
+    const items = [
+      { label: () => 'TRY AGAIN (R)', action: again },
+      ...(won
+        ? [{ label: () => 'WHAT WAS THAT ALL ABOUT?', action: () => this.scene.start('Ending') }]
+        : []),
+      { label: () => 'TITLE', action: () => this.scene.start('Title') },
+    ];
+    new Menu(this, items, width / 2, 560, 420, 70, () => this.scene.start('Title'));
     this.input.keyboard?.on('keydown-R', again);
     sound.playSong('title');
     announce(

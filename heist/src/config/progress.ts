@@ -10,6 +10,7 @@ export interface Progress {
   reducedEffects: boolean;
   largeText: boolean;
   seenIntro: boolean;
+  seenEnding: boolean;
 }
 
 const KEY = 'minus80.heist.progress';
@@ -25,6 +26,7 @@ export function progress(): Progress {
     reducedEffects: prefersReducedMotion(),
     largeText: false,
     seenIntro: false,
+    seenEnding: false,
   };
   try {
     const raw = window.localStorage.getItem(KEY);
