@@ -5,7 +5,7 @@ export const level1: LevelConfig = {
   id: 'level-1',
   number: 1,
   name: 'Hello, Darkness',
-  objective: { kind: 'eat', material: 'worm', count: 8 },
+  objective: { kind: 'eat', materials: ['worm'], count: 8 },
   timeLimit: 120,
   prompts: [
     {

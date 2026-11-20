@@ -22,6 +22,7 @@ export const PALETTE = {
   textDim: '#c9ab86',
   textAmber: '#ebc478',
   textRose: '#f0a9a9',
+  textMint: '#8fd9b6',
 } as const;
 
 export function createGameConfig(

@@ -19,7 +19,7 @@ import {
 import { announce } from '../ui/announce';
 
 /** Touch input shared with the HUD's on-screen controls. */
-export const touchInput = { dx: 0, dy: 0, focus: false, bite: false };
+export const touchInput = { dx: 0, dy: 0, focus: false, bite: false, sniff: false, special: false };
 
 const STEP = 1 / 120;
 
@@ -35,7 +35,9 @@ export class LevelScene extends Phaser.Scene {
   private vignette!: Phaser.GameObjects.Image;
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private bitePressed = false;
-  private padPrev = { a: false, start: false };
+  private sniffPressed = false;
+  private specialPressed = false;
+  private padPrev = { a: false, start: false, b: false, y: false };
   private ended = false;
   focusing = false;
 
@@ -97,6 +99,8 @@ export class LevelScene extends Phaser.Scene {
         this.keys[n] = kb.addKey(c, true);
       kb.on('keydown-SPACE', () => (this.bitePressed = true));
       kb.on('keydown-E', () => (this.bitePressed = true));
+      kb.on('keydown-Q', () => (this.sniffPressed = true));
+      kb.on('keydown-X', () => (this.specialPressed = true));
       kb.on('keydown-ESC', () => this.pause());
       kb.on('keydown-P', () => this.pause());
       kb.on('keydown-R', () => this.scene.restart({ levelId: this.levelId }));
@@ -131,20 +135,28 @@ export class LevelScene extends Phaser.Scene {
       if (pad.down) dy = 1;
       focus ||= pad.L1 > 0.3 || pad.R1 > 0.3 || pad.X;
       if (pad.A && !this.padPrev.a) this.bitePressed = true;
+      if (pad.B && !this.padPrev.b) this.sniffPressed = true;
+      if (pad.Y && !this.padPrev.y) this.specialPressed = true;
       const start = !!pad.buttons[9]?.pressed;
       if (start && !this.padPrev.start) this.pause();
-      this.padPrev = { a: pad.A, start };
+      this.padPrev = { a: pad.A, start, b: pad.B, y: pad.Y };
     }
     let bite = this.bitePressed || touchInput.bite;
     touchInput.bite = false;
     this.bitePressed = false;
+    const sniff = this.sniffPressed || touchInput.sniff;
+    touchInput.sniff = false;
+    this.sniffPressed = false;
+    const special = this.specialPressed || touchInput.special;
+    touchInput.special = false;
+    this.specialPressed = false;
     // accessibility: bite recognised prey automatically
     if (progress().autoBite) {
       const t = underNose(this.state);
       if (t && OBJECTS[t.material].edible && isIdentified(this.state, t)) bite = true;
     }
     this.focusing = focus;
-    return { dx, dy, focus, bite };
+    return { dx, dy, focus, bite, sniff, special };
   }
 
   override update(time: number, delta: number): void {
@@ -156,7 +168,7 @@ export class LevelScene extends Phaser.Scene {
       while (this.acc >= STEP && s.status === 'playing') {
         this.acc -= STEP;
         this.handle(stepGame(s, input, STEP));
-        input = { ...input, bite: false };
+        input = { ...input, bite: false, sniff: false, special: false };
       }
     } else if (!this.ended) {
       this.ended = true;
@@ -248,6 +260,34 @@ export class LevelScene extends Phaser.Scene {
               PALETTE.sand,
             );
           break;
+        case 'splash':
+          sound.play(e.in ? 'splash' : 'splashOut');
+          break;
+        case 'bubbleOut':
+          sound.play('bubbleOut');
+          announce('Bubble sent out.');
+          break;
+        case 'bubbleBack':
+          sound.play(e.found ? 'identify' : 'whiff');
+          announce(e.found ? 'The bubble found something!' : 'The bubble found nothing.');
+          break;
+        case 'gasp':
+          sound.play('gasp');
+          if (progress().haptics) navigator.vibrate?.([20, 30, 20]);
+          announce('Out of air! Surface to breathe.');
+          if (!reduced) this.cameras.main.shake(100, 0.003);
+          break;
+        case 'predatorHit':
+          sound.play('hit');
+          if (progress().haptics) navigator.vibrate?.([40, 50, 40]);
+          if (!reduced) this.cameras.main.shake(180, 0.006);
+          announce('A predator got you!');
+          break;
+        case 'special':
+          sound.play('special');
+          this.events.emit('special', this.state.character.special);
+          announce(`${this.state.character.special}!`);
+          break;
         case 'prompt':
           this.events.emit('prompt', e.text);
           announce(e.text);
@@ -256,7 +296,13 @@ export class LevelScene extends Phaser.Scene {
           announce('Level complete!');
           break;
         case 'lost':
-          announce(e.reason === 'energy' ? 'Out of energy.' : 'Out of time.');
+          announce(
+            e.reason === 'energy'
+              ? 'Out of energy.'
+              : e.reason === 'predator'
+                ? 'Caught by a predator.'
+                : 'Out of time.',
+          );
           break;
       }
     }

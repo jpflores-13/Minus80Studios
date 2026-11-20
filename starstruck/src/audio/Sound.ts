@@ -16,7 +16,13 @@ export type SfxName =
   | 'dig'
   | 'click'
   | 'win'
-  | 'lose';
+  | 'lose'
+  | 'splash'
+  | 'splashOut'
+  | 'bubbleOut'
+  | 'gasp'
+  | 'hit'
+  | 'special';
 
 // Two short loops, as note numbers (semitones from A3, null = rest).
 const SONGS: Record<string, { tempo: number; lead: (number | null)[]; bass: (number | null)[] }> = {
@@ -171,6 +177,26 @@ class SoundEngine {
         break;
       case 'lose':
         [392, 330, 262].forEach((f, i) => s(f, f, 0.3, 0.09, 'triangle', i * 0.22));
+        break;
+      case 'splash':
+        s(500, 200, 0.18, 0.08, 'sine');
+        this.burstNoise(t, 0.12, 1200, 0.06);
+        break;
+      case 'splashOut':
+        s(200, 500, 0.18, 0.06, 'sine');
+        break;
+      case 'bubbleOut':
+        s(300, 700, 0.12, 0.06, 'sine');
+        break;
+      case 'gasp':
+        s(220, 440, 0.15, 0.1, 'sawtooth');
+        break;
+      case 'hit':
+        s(300, 80, 0.22, 0.14, 'sawtooth');
+        this.burstNoise(t, 0.15, 400, 0.1);
+        break;
+      case 'special':
+        [523, 784, 1047, 1568].forEach((f, i) => s(f, f, 0.1, 0.08, 'square', i * 0.06));
         break;
     }
   }

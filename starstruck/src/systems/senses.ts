@@ -141,20 +141,37 @@ export class SensoryMemory {
   ) {}
 
   add(c: Contact, time: number, acuity: number): void {
-    this.marks.push({
-      x: c.x,
-      y: c.y,
-      id: c.id,
-      material: c.material,
-      time,
-      resolution: c.ray.resolution,
-    });
+    this.addRaw(c.id, c.material, c.x, c.y, c.ray.resolution, time, acuity);
+  }
+
+  /** A BUBBLE SNIFF reveal: evidence from odour rather than a ray's touch. */
+  addScent(
+    id: number,
+    material: string,
+    x: number,
+    y: number,
+    resolution: number,
+    time: number,
+  ): void {
+    this.addRaw(id, material, x, y, resolution, time, 1);
+  }
+
+  private addRaw(
+    id: number,
+    material: string,
+    x: number,
+    y: number,
+    resolution: number,
+    time: number,
+    acuity: number,
+  ): void {
+    this.marks.push({ x, y, id, material, time, resolution });
     if (this.marks.length > this.limit) this.marks.splice(0, this.marks.length - this.limit);
-    if (c.id < 0) return;
-    const e = this.evidence.get(c.id) ?? { amount: 0, last: time };
-    e.amount += c.ray.resolution * acuity;
+    if (id < 0) return;
+    const e = this.evidence.get(id) ?? { amount: 0, last: time };
+    e.amount += resolution * acuity;
     e.last = time;
-    this.evidence.set(c.id, e);
+    this.evidence.set(id, e);
   }
 
   /** How sure you are about an object (0 = no idea). Drains after the memory window. */

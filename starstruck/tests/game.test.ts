@@ -23,7 +23,7 @@ const tiny = (rows: string[], extra: Partial<LevelConfig> = {}): LevelConfig => 
   id: 'test',
   number: 0,
   name: 'test',
-  objective: { kind: 'eat', material: 'worm', count: 1 },
+  objective: { kind: 'eat', materials: ['worm'], count: 1 },
   timeLimit: 60,
   prompts: [],
   stars: [100, 200, 300],
@@ -149,12 +149,14 @@ describe('energy, time, and the level', () => {
 
   it('Level 1 has enough worms, a start, and a fair energy budget', () => {
     const l = LEVELS[0]!;
+    const objective = l.objective;
+    if (objective.kind !== 'eat') throw new Error('Level 1 is expected to have an eat objective');
     const s = createGame(l);
     const worms = s.things.filter((t) => t.material === 'worm').length;
-    expect(worms).toBeGreaterThanOrEqual(l.objective.count + 3);
+    expect(worms).toBeGreaterThanOrEqual(objective.count + 3);
     expect(new Set(l.map.map((r) => r.length)).size).toBe(1);
     // eating the goal's worth of worms pays for more than the time it takes
-    expect(l.objective.count * 14).toBeGreaterThan(TUNING.energyDrain * 60);
+    expect(objective.count * 14).toBeGreaterThan(TUNING.energyDrain * 60);
   });
 
   it('the same seed gives the same creatures', () => {
