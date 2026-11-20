@@ -85,6 +85,13 @@ export function makeArt(scene: Phaser.Scene): void {
     g.fillStyle(0x2a211c, 1).fillRect(0, 0, 32, 32);
     g.fillStyle(0x4a382c, 0.8).fillCircle(8, 8, 3).fillCircle(24, 20, 4).fillCircle(14, 26, 2);
   });
+  tex(scene, 'tile-water', 32, 32, (g) => {
+    g.fillStyle(PALETTE.teal, 1).fillRect(0, 0, 32, 32);
+    g.lineStyle(1.5, 0x3a7a8f, 0.6)
+      .lineBetween(2, 8, 10, 8)
+      .lineBetween(18, 20, 28, 20)
+      .lineBetween(4, 27, 14, 27);
+  });
 
   // the dark: transparent around Diggy, deepening outward
   if (!scene.textures.exists('vignette')) {

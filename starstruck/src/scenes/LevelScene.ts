@@ -69,7 +69,13 @@ export class LevelScene extends Phaser.Scene {
             .image(
               tx * TILE,
               ty * TILE,
-              soil === 'tunnel' ? 'tile-tunnel' : soil === 'rock' ? 'tile-rock' : 'tile-soil',
+              soil === 'water'
+                ? 'tile-water'
+                : soil === 'tunnel'
+                  ? 'tile-tunnel'
+                  : soil === 'rock'
+                    ? 'tile-rock'
+                    : 'tile-soil',
             )
             .setOrigin(0)
             .setDepth(0),
@@ -184,6 +190,8 @@ export class LevelScene extends Phaser.Scene {
       const img = this.tiles[i];
       if (img && s.soil[i] === 'tunnel' && img.texture.key === 'tile-soil')
         img.setTexture('tile-dug');
+      if (img && s.soil[i] === 'water' && img.texture.key !== 'tile-water')
+        img.setTexture('tile-water');
       if (img && s.dig.has(i)) img.setAlpha(1 - (s.dig.get(i) ?? 0) * 0.5);
       else if (img && img.alpha !== 1) img.setAlpha(1);
     }

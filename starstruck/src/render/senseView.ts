@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
-import { OBJECTS, type Material } from '../content/objects';
+import { isDangerous, OBJECTS, type Material } from '../content/objects';
 import { isIdentified, type GameState } from '../systems/game';
 import { nosePoint, RAYS, rayLength } from '../systems/senses';
 
@@ -15,6 +15,9 @@ const MARK_COLOR: Record<string, number> = {
   root: PALETTE.green,
   soil: 0x8a6a52,
   stone: 0x9aa0aa,
+  aquaWorm: 0x7fc4d9,
+  aquaLarva: 0xbfe0ea,
+  predator: 0xd97070,
 };
 
 /** One mark, shaped by material so nothing depends on colour alone. */
@@ -98,7 +101,7 @@ export function drawSenses(
       const p = t.shape.points[0];
       if (p) top = { x: p.x, y: p.y - 10 };
     }
-    // prey: a little star; not food: a cross
+    // prey: a little star; a threat: a pulsing warning triangle; anything else: a cross
     if (def.edible) {
       const pulse = reduced ? 1 : 1 + Math.sin(time / 120) * 0.15;
       g.fillStyle(PALETTE.amber, 1);
@@ -109,6 +112,19 @@ export function drawSenses(
         pts.push(new Phaser.Math.Vector2(top.x + Math.cos(ang) * rr, top.y + Math.sin(ang) * rr));
       }
       g.fillPoints(pts, true);
+    } else if (isDangerous(t.material)) {
+      const pulse = reduced ? 1 : 1 + Math.sin(time / 90) * 0.25;
+      const rr = 6 * pulse;
+      g.fillStyle(0xd97070, 0.9).fillTriangle(
+        top.x,
+        top.y - rr,
+        top.x - rr,
+        top.y + rr * 0.8,
+        top.x + rr,
+        top.y + rr * 0.8,
+      );
+      g.fillStyle(PALETTE.charcoal, 1).fillRect(top.x - 0.75, top.y - rr * 0.35, 1.5, rr * 0.75);
+      g.fillRect(top.x - 0.75, top.y + rr * 0.45, 1.5, 1.5);
     } else {
       g.lineStyle(2, PALETTE.white, 0.8)
         .lineBetween(top.x - 3, top.y - 3, top.x + 3, top.y + 3)
@@ -137,5 +153,20 @@ export function drawSenses(
     ).lineBetween(n.x, n.y, ex, ey);
     g.fillStyle(contact ? 0xffe0e4 : PALETTE.rose, 1).fillCircle(ex, ey, fovea ? 2 : 1.4);
   });
+  // a special ability in use: a glowing ring around the nose, in the character's own colour
+  if (s.special.timer > 0) {
+    const pulse = reduced ? 1 : 1 + Math.sin(time / 70) * 0.2;
+    g.lineStyle(2.5, s.character.accent, 0.8).strokeCircle(n.x, n.y, 10 * pulse);
+    g.lineStyle(1.5, s.character.accent, 0.4).strokeCircle(n.x, n.y, 15 * pulse);
+  }
+
+  // BUBBLE SNIFF: a small travelling bubble, out and back
+  if (s.bubble) {
+    const b = s.bubble;
+    g.fillStyle(0xbfe8ef, 0.85).fillCircle(b.x, b.y, 4);
+    g.lineStyle(1.5, 0xeaf8fb, 0.6).strokeCircle(b.x, b.y, 4);
+    g.lineStyle(1, 0xbfe8ef, 0.3).lineBetween(n.x, n.y, b.x, b.y);
+  }
+
   g.fillStyle(PALETTE.coral, 1).fillCircle(n.x, n.y, 3);
 }
