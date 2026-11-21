@@ -16,6 +16,8 @@ export class HudScene extends Phaser.Scene {
   private bossTexts: Phaser.GameObjects.Text[] = [];
   private badges: Phaser.GameObjects.Text[] = [];
   private touch: TouchControls | null = null;
+  private banner!: Phaser.GameObjects.Text;
+  private bannerSub!: Phaser.GameObjects.Text;
 
   constructor() {
     super('Hud');
@@ -58,8 +60,35 @@ export class HudScene extends Phaser.Scene {
         },
       )
       .setOrigin(0.5, 0);
+    const { width, height } = this.scale;
+    this.banner = this.add
+      .text(width / 2, height * 0.3, '', { ...TEXT_STYLES.title, align: 'center' })
+      .setOrigin(0.5)
+      .setDepth(60)
+      .setAlpha(0);
+    this.bannerSub = this.add
+      .text(width / 2, height * 0.3 + 56, '', {
+        ...TEXT_STYLES.body,
+        align: 'center',
+        wordWrap: { width: width * 0.8 },
+      })
+      .setOrigin(0.5)
+      .setDepth(60)
+      .setAlpha(0);
     this.touch = new TouchControls(this, () => this.stage.pause());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.touch?.destroy());
+  }
+
+  /** A stage-start banner, shown here (not in Stage) so it renders at screen size, not zoomed. */
+  flashBanner(text: string, sub = ''): void {
+    this.banner.setText(text).setAlpha(1);
+    this.bannerSub.setText(sub).setAlpha(sub ? 1 : 0);
+    this.tweens.add({
+      targets: sub ? [this.banner, this.bannerSub] : [this.banner],
+      alpha: 0,
+      delay: 4200,
+      duration: 700,
+    });
   }
 
   override update(): void {
