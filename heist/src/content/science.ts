@@ -18,6 +18,18 @@ export const ENDING_LINE = 'Clean getaway. But the Folder isn’t just a gadget.
 export const DID_YOU_KNOW = 'DID YOU KNOW?';
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
 
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in ENDING_PAGES above, not a new claim.
+export const QUICK_FACTS = [
+  'A real loop anchor is built from a protein called CTCF that only stops cohesin arriving from one direction, not both.',
+  'In 2019, researchers watched a single cohesin complex reel in a real DNA loop in a test tube, in real time, over a thousand DNA letters a second.',
+  'Every cell packs about two meters of DNA into a nucleus a few microns across, and loop-folding machines like cohesin are a big part of how that fits.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'A Folder, Hiding in Every Cell',
@@ -39,7 +51,7 @@ export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'Anchors Only Work One Way',
     body: [
-      'The Anchors in this game stop the Folder’s ends from either direction. Real loop anchors don’t work that way: they’re built from a protein called CTCF that binds DNA in a specific orientation, and only stops a loop-extruding cohesin complex arriving from one side.',
+      'Job 1’s Anchors stop the Folder’s ends from either direction, for simplicity. From Job 2 on, some Anchors are one-way locks instead, closer to how real loop anchors work: they’re built from a protein called CTCF that binds DNA in a specific orientation, and only stops a loop-extruding cohesin complex arriving from one side.',
       'Researchers proved this directly: flip a CTCF site around with gene editing, and the loops it used to anchor disappear or move, even though the DNA sequence itself barely changed. Direction, not just position, decides where the genome folds.',
     ],
     research: [
@@ -66,7 +78,7 @@ export const ENDING_PAGES: EndingPage[] = [
     title: 'What We Simplified',
     body: [
       'The corridor is one straight line; real chromatin is a tangled three-dimensional fiber, and a loop brings two distant points into physical contact in a crowded nucleus, not just on a map.',
-      'The Anchors in this game stop a Folder end from either direction — real CTCF sites are directional, a deliberate simplification this phase of the game doesn’t yet model.',
+      'Even the one-way Anchors from Job 2 on are a simplification: a real CTCF site’s orientation is fixed by its DNA sequence, not something a thief’s crew member can occasionally slip past on luck (the bypass chance here is a gameplay stand-in for a lock that, in reality, just works or doesn’t).',
       'Deploying, reeling in, and releasing the Folder are actions you choose on purpose; cohesin loading, extrusion and release happen continuously and are not goal-directed.',
       'Every timer, cooldown, charge count and score in this game is a gameplay-balancing number, not a measured molecular rate.',
     ],

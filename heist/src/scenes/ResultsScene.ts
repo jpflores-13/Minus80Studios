@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { offerUpgrades, type Upgrade } from '../content/upgrades';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { score, type Mission } from '../systems/mission';
 import { announce } from '../ui/announce';
 import { Menu } from '../ui/Menu';
@@ -76,6 +77,13 @@ export class ResultsScene extends Phaser.Scene {
       fontSize: '22px',
       lineSpacing: 8,
       fontFamily: 'monospace',
+    });
+    const fact = randomQuickFact(Math.floor(m.time * 1000) + sc.total);
+    addCenteredText(this, 480, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 160 },
+      align: 'center',
     });
     const again = () => this.scene.start('Job', { jobId: data.jobId });
     this.input.keyboard?.on('keydown-R', again);
