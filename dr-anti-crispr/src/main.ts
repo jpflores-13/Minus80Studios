@@ -7,6 +7,7 @@ import { BestiaryScene } from './scenes/BestiaryScene';
 import { BootScene } from './scenes/BootScene';
 import { EndingScene } from './scenes/EndingScene';
 import { IntroScene } from './scenes/IntroScene';
+import { MoreScene } from './scenes/MoreScene';
 import { PauseScene } from './scenes/PauseScene';
 import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
@@ -24,6 +25,7 @@ const game = new Phaser.Game(
     TitleScene,
     SettingsScene,
     BestiaryScene,
+    MoreScene,
     BattleScene,
     PauseScene,
     ResultsScene,

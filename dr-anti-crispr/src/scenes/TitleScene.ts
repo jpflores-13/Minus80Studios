@@ -1,11 +1,9 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
-import { BESTIARY_ORDER } from '../content/bestiary';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { dailySeed } from '../content/waves';
 import { DIFFICULTY, type Difficulty } from '../systems/world';
-import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -61,15 +59,7 @@ export class TitleScene extends Phaser.Scene {
             }),
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
-        {
-          label: () => `ENEMY INTEL (${progress().encountered.length}/${BESTIARY_ORDER.length})`,
-          action: () => this.scene.start('Bestiary'),
-        },
-        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
-        ...(this.sys.game.device.fullscreen.available
-          ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
-          : []),
-        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
+        { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2,
       600,
