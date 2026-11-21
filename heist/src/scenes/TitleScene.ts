@@ -41,12 +41,13 @@ export class TitleScene extends Phaser.Scene {
         { label: () => 'JOBS', action: () => this.scene.start('JobSelect') },
         { label: () => 'CREW', action: () => this.scene.start('CrewSelect') },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
+        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2,
-      340,
+      330,
       560,
-      65,
+      62,
     );
     addCenteredText(
       this,

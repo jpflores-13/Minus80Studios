@@ -64,12 +64,13 @@ export class TitleScene extends Phaser.Scene {
           action: () => this.scene.start('Achievements'),
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
+        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2 + 120,
-      310,
+      295,
       520,
-      62,
+      56,
     );
     addCenteredText(this, height - 30, 'A Minus 80 Studios game', TEXT_STYLES.hint);
     sound.playSong('title');

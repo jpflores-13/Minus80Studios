@@ -8,7 +8,8 @@ import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 // The secondary stuff off the title screen, so the primary menu stays short enough to fit on
-// screen: the enemy glossary, the science reveal, display options, and the hub.
+// screen: the enemy glossary, display options, and the hub. The science reveal (DID YOU KNOW?)
+// stays on the title screen itself, it's not secondary.
 export class MoreScene extends Phaser.Scene {
   constructor() {
     super('More');
@@ -25,7 +26,6 @@ export class MoreScene extends Phaser.Scene {
           label: () => `ENEMY INTEL (${progress().encountered.length}/${BESTIARY_ORDER.length})`,
           action: () => this.scene.start('Bestiary'),
         },
-        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         ...(this.sys.game.device.fullscreen.available
           ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
           : []),

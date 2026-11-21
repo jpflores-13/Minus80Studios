@@ -66,6 +66,7 @@ export class TitleScene extends Phaser.Scene {
           },
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
+        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2,

@@ -6,7 +6,8 @@ import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 // The secondary stuff off the title screen, so the primary menu stays short enough to fit
-// on screen: watching the opening again, the science reveal, display options, and the hub.
+// on screen: watching the opening again, display options, and the hub. The science reveal
+// (DID YOU KNOW?) stays on the title screen itself, it's not secondary.
 export class MoreScene extends Phaser.Scene {
   constructor() {
     super('More');
@@ -23,7 +24,6 @@ export class MoreScene extends Phaser.Scene {
           label: () => 'WATCH THE OPENING',
           action: () => this.scene.start('Intro', { replay: true }),
         },
-        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
         ...(this.sys.game.device.fullscreen.available
           ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
           : []),
