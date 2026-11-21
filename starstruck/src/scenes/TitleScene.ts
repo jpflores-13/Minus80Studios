@@ -4,7 +4,6 @@ import { ACHIEVEMENT_ORDER } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
-import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 import { clearedCount } from './LevelSelectScene';
@@ -65,20 +64,12 @@ export class TitleScene extends Phaser.Scene {
           action: () => this.scene.start('Achievements'),
         },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
-        {
-          label: () => 'WATCH THE OPENING',
-          action: () => this.scene.start('Intro', { replay: true }),
-        },
-        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
-        ...(this.sys.game.device.fullscreen.available
-          ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
-          : []),
-        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
+        { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2 + 120,
-      330,
+      310,
       520,
-      70,
+      62,
     );
     addCenteredText(this, height - 30, 'A Minus 80 Studios game', TEXT_STYLES.hint);
     sound.playSong('title');
