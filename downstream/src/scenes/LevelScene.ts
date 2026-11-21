@@ -865,7 +865,7 @@ export class LevelScene extends Phaser.Scene {
     this.inspect = this.add
       .text(0, 0, '', TEXT_STYLES.small)
       .setDepth(46)
-      .setBackgroundColor('#f4ead2f0')
+      .setBackgroundColor('#f4ead2e0')
       .setPadding(10, 8, 10, 8)
       .setVisible(false);
     this.pausedText = this.add
@@ -1065,14 +1065,22 @@ export class LevelScene extends Phaser.Scene {
         : 'No equipment spots right here',
     ];
     announce(lines.join('. '));
-    this.inspect
-      .setText(lines.join('\n'))
-      .setWordWrapWidth(360)
-      .setPosition(
-        Math.min(src.pos.x + 40, this.scale.width - 400),
-        Math.max(src.pos.y - 30, this.contentTop()),
-      )
-      .setVisible(true);
+    const panelW = 380;
+    const panelH = 40 + lines.length * 24;
+    const y = Math.max(src.pos.y - 30, this.contentTop());
+    const rightX = Math.min(src.pos.x + 40, this.scale.width - panelW - 20);
+    // don't let the panel land on top of another un-scouted place: flip to the left if it would
+    const covers = (x: number) =>
+      this.level.sources.some(
+        (other) =>
+          other.id !== src.id &&
+          other.pos.x > x - 36 &&
+          other.pos.x < x + panelW + 36 &&
+          other.pos.y > y - 36 &&
+          other.pos.y < y + panelH + 36,
+      );
+    const x = covers(rightX) ? Math.max(20, src.pos.x - 40 - panelW) : rightX;
+    this.inspect.setText(lines.join('\n')).setWordWrapWidth(360).setPosition(x, y).setVisible(true);
   }
 }
 
