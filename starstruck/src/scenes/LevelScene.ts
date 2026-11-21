@@ -96,7 +96,9 @@ export class LevelScene extends Phaser.Scene {
         );
       }
     this.glimpse = this.add.graphics().setDepth(2);
-    this.mole = this.add.image(s.mole.x, s.mole.y, 'mole-0').setDepth(4).setOrigin(0.62, 0.5);
+    // 0.507, not 0.62: the mole texture widened from 36px to 44px to fit the nose (see art.ts),
+    // and this keeps the same body-centre pixel as the pivot so gameplay positioning is unchanged
+    this.mole = this.add.image(s.mole.x, s.mole.y, 'mole-0').setDepth(4).setOrigin(0.507, 0.5);
     this.vignette = this.add.image(0, 0, 'vignette').setDepth(6);
     this.senses = this.add.graphics().setDepth(8);
     cam.startFollow(this.mole, true, 0.12, 0.12);

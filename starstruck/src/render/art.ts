@@ -72,8 +72,10 @@ function drawMole(g: Phaser.GameObjects.Graphics, step: number, accent: number):
 }
 
 export function makeArt(scene: Phaser.Scene): void {
+  // 44 wide, not 36: the star's rays point straight out from x=35 and need the extra margin,
+  // or they get clipped off by the texture bounds and the nose disappears entirely
   for (let step = 0; step < 2; step++)
-    tex(scene, `mole-${step}`, 36, 32, (g) => drawMole(g, step, PALETTE.amber));
+    tex(scene, `mole-${step}`, 44, 32, (g) => drawMole(g, step, PALETTE.amber));
 
   // tiles (32×32)
   tex(scene, 'tile-tunnel', 32, 32, (g) => {
