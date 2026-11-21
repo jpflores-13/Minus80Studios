@@ -1,0 +1,19 @@
+{
+  "name": "QUEENLESS",
+  "short_name": "QUEENLESS",
+  "description": "A Minus 80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#3a2a1a",
+  "theme_color": "#3a2a1a",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
