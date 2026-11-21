@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { JOBS } from '../levels';
-import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 import { clearedCount } from './JobSelectScene';
@@ -42,25 +41,17 @@ export class TitleScene extends Phaser.Scene {
         { label: () => 'JOBS', action: () => this.scene.start('JobSelect') },
         { label: () => 'CREW', action: () => this.scene.start('CrewSelect') },
         { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
-        {
-          label: () => 'WATCH THE OPENING',
-          action: () => this.scene.start('Intro', { replay: true }),
-        },
-        { label: () => 'DID YOU KNOW?', action: () => this.scene.start('Ending') },
-        ...(this.sys.game.device.fullscreen.available
-          ? [{ label: () => 'FULL SCREEN', action: () => toggleFullscreen(this) }]
-          : []),
-        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
+        { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2,
-      360,
+      340,
       560,
-      70,
+      65,
     );
     addCenteredText(
       this,
       height - 34,
-      'Prototype: Jobs 01–05 · A Minus 80 Studios game',
+      'Prototype: Jobs 01–06 · A Minus 80 Studios game',
       TEXT_STYLES.hint,
     );
     sound.playSong('title');

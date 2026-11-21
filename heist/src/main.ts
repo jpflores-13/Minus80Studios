@@ -9,6 +9,7 @@ import { HudScene } from './scenes/HudScene';
 import { IntroScene } from './scenes/IntroScene';
 import { JobScene } from './scenes/JobScene';
 import { JobSelectScene } from './scenes/JobSelectScene';
+import { MoreScene } from './scenes/MoreScene';
 import { PauseScene } from './scenes/PauseScene';
 import { ResultsScene } from './scenes/ResultsScene';
 import { SettingsScene } from './scenes/SettingsScene';
@@ -25,6 +26,7 @@ const game = new Phaser.Game(
     IntroScene,
     TitleScene,
     SettingsScene,
+    MoreScene,
     JobSelectScene,
     CrewSelectScene,
     JobScene,
