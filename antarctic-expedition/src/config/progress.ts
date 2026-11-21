@@ -63,3 +63,15 @@ export function saveProgress(patch: Partial<Progress>): Progress {
 export function textScale(): number {
   return progress().largeText ? 1.25 : 1;
 }
+
+export function bestFor(roundId: string): { score: number; stars: number } | null {
+  return progress().best[roundId] ?? null;
+}
+
+/** Records a round result if it beats the saved best for that round. */
+export function recordBest(roundId: string, score: number, stars: number): void {
+  const current = progress().best;
+  const prior = current[roundId];
+  if (prior && prior.score >= score) return;
+  saveProgress({ best: { ...current, [roundId]: { score, stars } } });
+}
