@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { ACHIEVEMENTS, checkAchievements } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { getLevel, LEVELS } from '../levels';
 import { stars, type GameState } from '../systems/game';
 import { announce } from '../ui/announce';
@@ -77,6 +78,13 @@ export class ResultsScene extends Phaser.Scene {
         wordWrap: { width: width - 80 },
       });
     }
+    const fact = randomQuickFact(Math.floor(s.time * 1000) + s.score);
+    addCenteredText(this, 480, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 160 },
+      align: 'center',
+    });
     const again = () => this.scene.start('Level', { levelId: data.levelId });
     const next = LEVELS.find((l) => l.number === getLevel(data.levelId).number + 1);
     const items = [

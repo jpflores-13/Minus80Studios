@@ -17,6 +17,18 @@ export const ENDING_LINE = 'Belly full. But that star on its nose isn’t fictio
 export const DID_YOU_KNOW = 'DID YOU KNOW?';
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
 
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in ENDING_PAGES above, not a new claim.
+export const QUICK_FACTS = [
+  'The star has 22 rays covered in touch sensors called Eimer’s organs. One short ray does almost all the identifying, the same job your retina’s sharpest patch does for your eyes.',
+  'A real star-nosed mole can decide something is food in as little as 8 milliseconds, about five times faster than a human’s fastest reflex.',
+  'Star-nosed moles smell underwater by breathing out a bubble onto a scent, then sniffing it back in, several times a second.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'A Fovea You Can Touch',

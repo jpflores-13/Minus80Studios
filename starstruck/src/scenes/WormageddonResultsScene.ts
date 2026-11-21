@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { ACHIEVEMENTS, checkAchievements } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { LEVELS } from '../levels';
 import { type GameState } from '../systems/game';
 import { announce } from '../ui/announce';
@@ -62,6 +63,13 @@ export class WormageddonResultsScene extends Phaser.Scene {
         wordWrap: { width: width - 80 },
       });
     }
+    const fact = randomQuickFact(Math.floor(s.time * 1000) + s.score);
+    addCenteredText(this, 445, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 160 },
+      align: 'center',
+    });
     const again = () => this.scene.start('Level', { wormageddon: true });
     const menu = new Menu(
       this,
