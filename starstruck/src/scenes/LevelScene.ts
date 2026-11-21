@@ -24,8 +24,6 @@ import {
   stepWormageddon,
 } from '../systems/wormageddon';
 import { announce } from '../ui/announce';
-import { Button } from '../ui/Button';
-import { TEXT_STYLES } from '../ui/text';
 
 /** Touch input shared with the HUD's on-screen controls. */
 export const touchInput = { dx: 0, dy: 0, focus: false, bite: false, sniff: false, special: false };
@@ -49,8 +47,6 @@ export class LevelScene extends Phaser.Scene {
   private padPrev = { a: false, start: false, b: false, y: false };
   private ended = false;
   private wormageddonMode = false;
-  private upgradeUi: (Phaser.GameObjects.GameObject | Button)[] = [];
-  private upgradeButtons: Button[] = [];
   focusing = false;
 
   constructor() {
@@ -70,7 +66,6 @@ export class LevelScene extends Phaser.Scene {
     this.acc = 0;
     this.ended = false;
     this.tiles = [];
-    this.upgradeUi = [];
     this.bitePressed = false;
     const s = this.state;
     const cam = this.cameras.main;
@@ -331,7 +326,8 @@ export class LevelScene extends Phaser.Scene {
           break;
         case 'upgradeOffer':
           sound.play('identify');
-          this.showWormageddonUpgrades();
+          // Hud renders the offer screen (it runs unzoomed; this scene's camera is zoomed)
+          this.events.emit('upgradeOffer', this.state.wormageddon?.offers ?? []);
           break;
         case 'prompt':
           this.events.emit('prompt', e.text);
@@ -353,99 +349,11 @@ export class LevelScene extends Phaser.Scene {
     }
   }
 
-  /** A soft, layered glow: a cheap stand-in for a radial gradient using Graphics alone. */
-  private halo(
-    g: Phaser.GameObjects.Graphics,
-    x: number,
-    y: number,
-    r: number,
-    color: number,
-  ): void {
-    for (let i = 5; i > 0; i--) g.fillStyle(color, 0.05 * (6 - i)).fillCircle(x, y, (r * i) / 5);
-  }
-
-  private showWormageddonUpgrades(): void {
-    const w = this.state.wormageddon;
-    if (!w) return;
-    const { width, height } = this.scale;
-    const reduced = progress().reducedEffects;
-    const glowColors = [PALETTE.coral, PALETTE.amber, PALETTE.rose];
-    const shade = this.add
-      .rectangle(0, 0, width, height, PALETTE.charcoal, 0.88)
-      .setOrigin(0)
-      .setScrollFactor(0)
-      .setDepth(70)
-      .setInteractive();
-    const glow = this.add.graphics().setScrollFactor(0).setDepth(70);
-    this.halo(glow, width / 2, height * 0.22, 200, PALETTE.amber);
-    const title = this.add
-      .text(width / 2, height * 0.22, 'CHOOSE AN UPGRADE', TEXT_STYLES.title)
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(71);
-    const note = this.add
-      .text(width / 2, height * 0.22 + 44, 'Arcade upgrades: a game mechanic, not real biology.', {
-        ...TEXT_STYLES.hint,
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(71);
-    this.upgradeUi = [shade, glow, title, note];
-    this.upgradeButtons = [];
-    w.offers.forEach((u, i) => {
-      const y = height * 0.4 + i * 150;
-      const color = glowColors[i % glowColors.length] ?? PALETTE.coral;
-      this.halo(glow, width / 2, y, 130, color);
-      const b = new Button(
-        this,
-        width / 2,
-        y,
-        Math.min(620, width - 80),
-        120,
-        `${i + 1}. ${u.name.toUpperCase()}\n\n${u.text}`,
-        () => this.pickUpgrade(i),
-        PALETTE.coral,
-      );
-      b.label.setFontSize(18).setWordWrapWidth(560);
-      b.bg.setStrokeStyle(3, color);
-      this.upgradeButtons.push(b);
-      this.upgradeUi.push(b);
-      if (!reduced) {
-        b.bg.setAlpha(0);
-        b.label.setAlpha(0);
-        this.tweens.add({
-          targets: [b.bg, b.label],
-          alpha: 1,
-          duration: 300,
-          delay: i * 110,
-          ease: 'Sine.easeOut',
-        });
-        this.tweens.add({
-          targets: b.bg,
-          scaleX: 1.03,
-          scaleY: 1.03,
-          duration: 1100,
-          yoyo: true,
-          repeat: -1,
-          delay: i * 110 + 350,
-          ease: 'Sine.easeInOut',
-        });
-      }
-    });
-    announce(
-      `Choose an upgrade: ${w.offers.map((u, i) => `${i + 1}, ${u.name}: ${u.text}`).join('. ')}`,
-    );
-  }
-
-  private pickUpgrade(index: number): void {
+  /** Called by Hud once the player picks one of the offered upgrades. */
+  applyWormageddonUpgrade(index: number): void {
     if (this.state.wormageddon?.phase !== 'upgrade') return;
     sound.play('special');
-    const chosen = this.upgradeButtons[index];
-    if (chosen) this.burst(chosen.bg.x, chosen.bg.y, PALETTE.amber);
     chooseWormageddonUpgrade(this.state, index);
-    for (const o of this.upgradeUi) o.destroy();
-    this.upgradeUi = [];
-    this.upgradeButtons = [];
   }
 
   private burst(x: number, y: number, color: number = PALETTE.coral): void {

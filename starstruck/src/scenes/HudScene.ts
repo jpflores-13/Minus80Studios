@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
+import type { WormageddonUpgrade } from '../content/wormageddon';
 import { PALETTE } from '../config/gameConfig';
+import { progress } from '../config/progress';
 import {
   describeObjective,
   effectiveComboWindow,
@@ -7,12 +9,15 @@ import {
   hasWater,
   multiplier,
 } from '../systems/game';
+import { announce } from '../ui/announce';
 import { Button } from '../ui/Button';
 import { TEXT_STYLES } from '../ui/text';
 import { touchInput, type LevelScene } from './LevelScene';
 
 // The heads-up display: energy, oxygen (water levels only), special charge, combo, score,
-// objective, time, prompts and touch controls.
+// objective, time, prompts, touch controls, and (WORMAGEDDON) the upgrade-offer screen. It runs
+// at screen resolution on its own unzoomed camera, which is why upgrade UI lives here rather than
+// in Level, whose camera is zoomed to follow the mole.
 export class HudScene extends Phaser.Scene {
   private level!: LevelScene;
   private g!: Phaser.GameObjects.Graphics;
@@ -21,6 +26,8 @@ export class HudScene extends Phaser.Scene {
   private promptText!: Phaser.GameObjects.Text;
   private stick: { id: number; x: number; y: number } | null = null;
   private showOxygen = false;
+  private upgradeUi: (Phaser.GameObjects.GameObject | Button)[] = [];
+  private upgradeButtons: Button[] = [];
 
   constructor() {
     super('Hud');
@@ -77,11 +84,15 @@ export class HudScene extends Phaser.Scene {
     this.level.events.on('wrong', () => this.popCombo('YUCK!', PALETTE.textRose));
     this.level.events.on('special', (name: string) => this.popCombo(name, PALETTE.textMint));
     this.level.events.on('prompt', (t: string) => this.showPrompt(t));
+    this.level.events.on('upgradeOffer', (offers: WormageddonUpgrade[]) =>
+      this.showWormageddonUpgrades(offers),
+    );
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.level.events.off('eat');
       this.level.events.off('wrong');
       this.level.events.off('special');
       this.level.events.off('prompt');
+      this.level.events.off('upgradeOffer');
       Object.assign(touchInput, {
         dx: 0,
         dy: 0,
@@ -174,6 +185,108 @@ export class HudScene extends Phaser.Scene {
     this.tweens.killTweensOf(this.comboText);
     this.tweens.add({ targets: this.comboText, scale: 1, duration: 200 });
     this.tweens.add({ targets: this.comboText, alpha: 0, delay: 900, duration: 400 });
+  }
+
+  /** A soft, layered glow: a cheap stand-in for a radial gradient using Graphics alone. */
+  private halo(
+    g: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    r: number,
+    color: number,
+  ): void {
+    for (let i = 5; i > 0; i--) g.fillStyle(color, 0.05 * (6 - i)).fillCircle(x, y, (r * i) / 5);
+  }
+
+  private showWormageddonUpgrades(offers: WormageddonUpgrade[]): void {
+    const { width, height } = this.scale;
+    const reduced = progress().reducedEffects;
+    const glowColors = [PALETTE.coral, PALETTE.amber, PALETTE.rose];
+    const shade = this.add
+      .rectangle(0, 0, width, height, PALETTE.charcoal, 0.88)
+      .setOrigin(0)
+      .setDepth(70)
+      .setInteractive();
+    const glow = this.add.graphics().setDepth(70);
+    this.halo(glow, width / 2, height * 0.22, 200, PALETTE.amber);
+    const title = this.add
+      .text(width / 2, height * 0.22, 'CHOOSE AN UPGRADE', TEXT_STYLES.title)
+      .setOrigin(0.5)
+      .setDepth(71);
+    const note = this.add
+      .text(width / 2, height * 0.22 + 44, 'Arcade upgrades: a game mechanic, not real biology.', {
+        ...TEXT_STYLES.hint,
+      })
+      .setOrigin(0.5)
+      .setDepth(71);
+    this.upgradeUi = [shade, glow, title, note];
+    this.upgradeButtons = [];
+    offers.forEach((u, i) => {
+      const y = height * 0.4 + i * 150;
+      const color = glowColors[i % glowColors.length] ?? PALETTE.coral;
+      this.halo(glow, width / 2, y, 130, color);
+      const b = new Button(
+        this,
+        width / 2,
+        y,
+        Math.min(620, width - 80),
+        120,
+        `${i + 1}. ${u.name.toUpperCase()}\n\n${u.text}`,
+        () => this.pickWormageddonUpgrade(i),
+        PALETTE.coral,
+      );
+      b.label.setFontSize(18).setWordWrapWidth(560);
+      b.bg.setStrokeStyle(3, color);
+      this.upgradeButtons.push(b);
+      this.upgradeUi.push(b);
+      if (!reduced) {
+        b.bg.setAlpha(0);
+        b.label.setAlpha(0);
+        this.tweens.add({
+          targets: [b.bg, b.label],
+          alpha: 1,
+          duration: 300,
+          delay: i * 110,
+          ease: 'Sine.easeOut',
+        });
+        this.tweens.add({
+          targets: b.bg,
+          scaleX: 1.03,
+          scaleY: 1.03,
+          duration: 1100,
+          yoyo: true,
+          repeat: -1,
+          delay: i * 110 + 350,
+          ease: 'Sine.easeInOut',
+        });
+      }
+    });
+    announce(
+      `Choose an upgrade: ${offers.map((u, i) => `${i + 1}, ${u.name}: ${u.text}`).join('. ')}`,
+    );
+  }
+
+  private pickWormageddonUpgrade(index: number): void {
+    const chosen = this.upgradeButtons[index];
+    if (chosen && !progress().reducedEffects) this.flashAt(chosen.bg.x, chosen.bg.y);
+    this.level.applyWormageddonUpgrade(index);
+    for (const o of this.upgradeUi) o.destroy();
+    this.upgradeUi = [];
+    this.upgradeButtons = [];
+  }
+
+  /** A bright burst at the moment an upgrade is picked. */
+  private flashAt(x: number, y: number): void {
+    this.cameras.main.flash(180, 240, 220, 150);
+    const burst = this.add.circle(x, y, 10, PALETTE.amber, 0.9).setDepth(90);
+    this.tweens.add({
+      targets: burst,
+      radius: 200,
+      alpha: 0,
+      duration: 450,
+      ease: 'Cubic.easeOut',
+      onComplete: () => burst.destroy(),
+    });
   }
 
   private showPrompt(text: string): void {
