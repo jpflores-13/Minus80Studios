@@ -10,7 +10,6 @@ import { stageOf, timeLeft } from '../systems/boss';
 import { createGame, stepGame, type GameEvent, type GameState } from '../systems/game';
 import { TILE, type Tile } from '../systems/tilemap';
 import { announce } from '../ui/announce';
-import type { HudScene } from './HudScene';
 
 export interface StageData {
   stageId: string;
@@ -154,17 +153,19 @@ export class StageScene extends Phaser.Scene {
     this.fx = this.add.graphics().setDepth(12);
     this.cameras.main.startFollow(this.player, true, 0.15, 0.15, 0, 0);
 
-    this.scene.launch('Hud', { stage: this });
+    // the banner lives in Hud, which runs at screen resolution; this scene's own camera is
+    // zoomed. Passed as launch data (not called afterward) since launch() queues Hud's create()
+    // rather than running it inline; calling into Hud right after launch() would race it.
+    this.scene.launch('Hud', {
+      stage: this,
+      bannerTitle: `STAGE ${stage.number}\n${stage.name.toUpperCase()}`,
+      bannerSub: stage.intro.join(' '),
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scene.stop('Hud');
       sound.setUrgency(1);
     });
     sound.playSong('stage');
-    // the banner lives in Hud, which runs at screen resolution; this scene's own camera is zoomed
-    (this.scene.get('Hud') as HudScene).flashBanner(
-      `STAGE ${stage.number}\n${stage.name.toUpperCase()}`,
-      stage.intro.join(' '),
-    );
     const offTarget = this.game$.bosses.filter((b) => b.config.role === 'off-target');
     announce(
       `Stage ${stage.number}: ${stage.name}. ${stage.intro.join(' ')} Playing as ${this.game$.hero.name}. ${offTarget.length === 1 ? 'One machine is' : `${offTarget.length} machines are`} at the wrong target. Move right, press jump to jump, and use your power when you are next to it.`,

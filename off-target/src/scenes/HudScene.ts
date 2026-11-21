@@ -23,7 +23,7 @@ export class HudScene extends Phaser.Scene {
     super('Hud');
   }
 
-  create(data: { stage: StageScene }): void {
+  create(data: { stage: StageScene; bannerTitle?: string; bannerSub?: string }): void {
     this.stage = data.stage;
     this.g = this.add.graphics();
     this.heroText = this.add.text(20, 52, '', { ...TEXT_STYLES.hud, fontSize: '18px' });
@@ -77,6 +77,10 @@ export class HudScene extends Phaser.Scene {
       .setAlpha(0);
     this.touch = new TouchControls(this, () => this.stage.pause());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.touch?.destroy());
+    // called from here, not by Stage right after launch(): launch() queues Hud's own create()
+    // rather than running it inline, so calling flashBanner() immediately after launch() would
+    // hit these fields before this method ever set them.
+    if (data.bannerTitle) this.flashBanner(data.bannerTitle, data.bannerSub ?? '');
   }
 
   /** A stage-start banner, shown here (not in Stage) so it renders at screen size, not zoomed. */
