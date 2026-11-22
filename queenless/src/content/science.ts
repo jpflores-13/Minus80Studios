@@ -37,6 +37,9 @@ export function randomQuickFact(seed: number): string {
   return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
 }
 
+export const SCIENTIST_PLACEHOLDER =
+  '[Name, biography and interview pending written approval, per studio policy.]';
+
 export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'A Real Colony, Reorganizing',
@@ -83,7 +86,19 @@ export const ENDING_PAGES: EndingPage[] = [
       'Real bumble bee genetics, physiology, and colony development are far more complex than anything simulated here.',
     ],
   },
+  {
+    title: 'Meet the Scientist',
+    body: [
+      'QUEENLESS draws on research from Sarah Kocher’s lab at Princeton, which studies how bumble bee colonies organize themselves and what changes when the queen is gone.',
+      SCIENTIST_PLACEHOLDER,
+    ],
+  },
+  {
+    title: 'Explore the Research',
+    body: [
+      'Nature Communications (2018). doi:10.1038/s41467-018-03561-w',
+      'Communications Biology (2026). doi:10.1038/s42003-026-10795-8',
+      '[Further reading and a scientific reviewer: placeholders, pending review.]',
+    ],
+  },
 ];
-
-export const SCIENTIST_PLACEHOLDER =
-  '[Name, biography and interview pending written approval, per studio policy.]';
