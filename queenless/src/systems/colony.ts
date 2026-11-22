@@ -218,6 +218,7 @@ export function stepColony(
   });
 
   movePlayer(s, playerInput, dt);
+  stepPlayerAction(s, dt, ev);
   for (const w of s.workers) if (!w.isPlayer && !w.removed) stepWorker(s, w, dt, ev);
 
   decaySites(s, dt);
@@ -257,6 +258,63 @@ function movePlayer(s: ColonyState, input: { dx: number; dy: number }, dt: numbe
   if (len < 0.05) return;
   player.pos.x += (input.dx / len) * TUNING.moveSpeed * dt;
   player.pos.y += (input.dy / len) * TUNING.moveSpeed * dt;
+}
+
+/** Radius at which the player is "on" a site, same scale as the workers' own arrival check. */
+const PLAYER_SITE_RADIUS = 30;
+
+/**
+ * The player does its own job by hand, the same jobs a worker's own utility function would
+ * pick for it: stand on a flower to gather nectar, carry it home, stand on a brood cell or a
+ * debris pile to tend it directly. Workers run this through evaluateTasks()/stepWorker(); the
+ * player has no AI decision to make, just proximity, so it's handled directly here instead.
+ */
+function stepPlayerAction(s: ColonyState, dt: number, ev: ColonyEvent[]): void {
+  const player = s.workers.find((w) => w.isPlayer);
+  if (!player) return;
+
+  if (player.carrying) {
+    const storage = s.sites.find((x) => x.kind === 'storage');
+    if (storage && dist(player.pos, storage.pos) <= PLAYER_SITE_RADIUS) {
+      s.foodReserves = clamp(s.foodReserves + 4, 0, 200);
+      player.carrying = false;
+      player.lastTask = 'forage';
+      s.interactions.delete(`forage:${player.id}`);
+      ev.push({ type: 'delivered', workerId: player.id });
+    }
+    return;
+  }
+
+  for (const site of s.sites) {
+    if (dist(player.pos, site.pos) > PLAYER_SITE_RADIUS) continue;
+    if (site.kind === 'flower' && site.level > 0.05) {
+      site.level = clamp(site.level - TUNING.forageYield * dt, 0, 1);
+      player.carrying = true;
+      if (!s.interactions.has(`forage:${player.id}`)) {
+        ev.push({ type: 'forageStart', workerId: player.id });
+        s.interactions.set(`forage:${player.id}`, 1);
+      }
+      return;
+    }
+    if (site.kind === 'broodCell' && site.level > 0.05) {
+      site.level = clamp(site.level - TUNING.broodCareRate * dt * 0.1, 0, 1);
+      s.broodHealth = clamp(s.broodHealth + TUNING.broodCareRate * dt, 0, 100);
+      if (site.level <= 0.05) {
+        player.lastTask = 'broodCare';
+        ev.push({ type: 'broodCared', workerId: player.id });
+      }
+      return;
+    }
+    if (site.kind === 'debris' && site.level > 0.05) {
+      site.level = clamp(site.level - TUNING.maintenanceRate * dt, 0, 1);
+      s.nestCleanliness = clamp(s.nestCleanliness + TUNING.maintenanceRate * dt * 10, 0, 100);
+      if (site.level <= 0.05) {
+        player.lastTask = 'nestMaintenance';
+        ev.push({ type: 'debrisCleared', workerId: player.id });
+      }
+      return;
+    }
+  }
 }
 
 /** The utility of each candidate task for a worker right now: tendency × local need ×

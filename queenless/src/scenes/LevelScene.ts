@@ -244,8 +244,17 @@ export class LevelScene extends Phaser.Scene {
       sprite.setScale(scale).setAlpha(site.kind === 'flower' ? 0.5 + site.level * 0.5 : 1);
     }
     this.fx.clear();
+    const player = this.colony.workers.find((w) => w.isPlayer);
+    if (player?.carrying) {
+      // A small nectar droplet over the player's own sprite — the only visible confirmation
+      // that walking onto a flower actually picked something up, and a reminder to head home.
+      const bob = Math.sin(time / 200) * 2;
+      this.fx.fillStyle(PALETTE.honey, 0.95).fillCircle(player.pos.x, player.pos.y - 16 + bob, 4);
+      this.fx
+        .lineStyle(1, PALETTE.earth, 0.6)
+        .strokeCircle(player.pos.x, player.pos.y - 16 + bob, 4);
+    }
     if (this.pulseCooldown > 0) {
-      const player = this.colony.workers.find((w) => w.isPlayer);
       if (player) {
         const t = 1 - this.pulseCooldown / TUNING.pulseCooldown;
         this.fx

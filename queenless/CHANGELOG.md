@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- The player's own job never actually worked: walking onto a flower, brood cell, or debris pile
+  did nothing, and nothing ever reached the honeypot, because `stepColony()` only ran the
+  autonomous task logic for non-player workers and the player had no interaction code of its
+  own at all — a critical gap, since the tutorial explicitly tells you to do exactly that.
+  Standing on a site now gathers nectar, tends brood, or clears debris directly, and carrying
+  nectar home now shows a small droplet over the player's own sprite so there's visible
+  confirmation the action worked.
+
 ## 0.1.0 (first complete build)
 
 - A pure, unit-tested agent-based colony simulation: workers choose their own task each decision tick from a

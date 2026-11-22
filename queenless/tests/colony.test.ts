@@ -250,6 +250,60 @@ describe('determinism', () => {
   });
 });
 
+describe('the player does its own job by hand', () => {
+  const playerConfig: ColonyConfig = {
+    workers: [{ name: 'Buzzby', traits: CHARACTERS.buzzby.traits, isPlayer: true }],
+    sites: baseSites,
+    disturbances: [],
+    durationSeconds: 30,
+    startsQueenless: false,
+  };
+
+  it('standing on a flower gathers nectar and marks the player carrying', () => {
+    const s = createColony(playerConfig, 1);
+    const flower = s.sites.find((x) => x.id === 'flower-a')!;
+    s.workers[0]!.pos = { ...flower.pos };
+    const before = flower.level;
+    stepColony(s, { dx: 0, dy: 0 }, DT);
+    expect(flower.level).toBeLessThan(before);
+    expect(s.workers[0]!.carrying).toBe(true);
+  });
+
+  it('carrying it to storage delivers it and empties the player’s hands', () => {
+    const s = createColony(playerConfig, 1);
+    s.workers[0]!.carrying = true;
+    const storage = s.sites.find((x) => x.id === 'storage')!;
+    s.workers[0]!.pos = { ...storage.pos };
+    const before = s.foodReserves;
+    stepColony(s, { dx: 0, dy: 0 }, DT);
+    expect(s.foodReserves).toBeGreaterThan(before);
+    expect(s.workers[0]!.carrying).toBe(false);
+  });
+
+  it('standing on a brood cell or debris pile tends it directly, without carrying anything', () => {
+    const s = createColony(playerConfig, 1);
+    const brood = s.sites.find((x) => x.id === 'brood-a')!;
+    s.workers[0]!.pos = { ...brood.pos };
+    const before = s.broodHealth;
+    stepColony(s, { dx: 0, dy: 0 }, DT);
+    expect(s.broodHealth).toBeGreaterThan(before);
+    expect(s.workers[0]!.carrying).toBe(false);
+  });
+
+  it('walking the whole flower-to-storage loop actually raises food reserves', () => {
+    const s = createColony(playerConfig, 1);
+    const flower = s.sites.find((x) => x.id === 'flower-a')!;
+    const storage = s.sites.find((x) => x.id === 'storage')!;
+    s.workers[0]!.pos = { ...flower.pos };
+    for (let t = 0; t < 3 && !s.workers[0]!.carrying; t += DT) stepColony(s, { dx: 0, dy: 0 }, DT);
+    expect(s.workers[0]!.carrying).toBe(true);
+    s.workers[0]!.pos = { ...storage.pos };
+    const before = s.foodReserves;
+    stepColony(s, { dx: 0, dy: 0 }, DT);
+    expect(s.foodReserves).toBeGreaterThan(before);
+  });
+});
+
 describe('a finished run', () => {
   it('ends after its configured duration', () => {
     const s = run(
