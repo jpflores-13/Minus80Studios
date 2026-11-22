@@ -31,9 +31,15 @@ export class SelectScene extends Phaser.Scene {
   private mode: 'hunt' | 'science' = 'hunt';
   private cards: Phaser.GameObjects.Container[] = [];
   private frames: Phaser.GameObjects.Rectangle[] = [];
+  // Each card's own fit-to-screen scale (1 unless its content was too tall to fit at full
+  // size), applied underneath the focus-based 1 / 0.97 scale in highlight() — the two multiply
+  // together rather than one overwriting the other.
+  private fitScale: number[] = [];
   // Cards slide so the selected one is always centered, a "windowed" carousel that scales to
-  // any roster size (today: three cone snails plus the octopus escalation level).
-  private readonly cardW = 400;
+  // any roster size (today: three cone snails plus the octopus and blue shark escalation
+  // levels). Each card is sized to its own content (see buildCard) rather than a fixed guess,
+  // since Cipher's and Glaucus's longer tagline/weakness text doesn't fit the snails' box.
+  private readonly cardW = 460;
   private readonly cardSpacing = this.cardW + 16;
 
   constructor() {
@@ -46,6 +52,7 @@ export class SelectScene extends Phaser.Scene {
     this.index = preselect >= 0 ? preselect : 1;
     this.cards = [];
     this.frames = [];
+    this.fitScale = [];
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(0x040f1a);
     this.cameras.main.fadeIn(400);
@@ -66,7 +73,7 @@ export class SelectScene extends Phaser.Scene {
     new Button(this, 70, height - 26, 110, 36, 'HOME', () => this.scene.start('Title'));
     CHARACTERS.forEach((c, i) => {
       const x = width / 2 + (i - this.index) * this.cardSpacing;
-      const card = this.buildCard(c, x, 80, this.cardW, height - 118);
+      const card = this.buildCard(c, x, 74, this.cardW);
       this.cards.push(card);
     });
     this.highlight();
@@ -92,20 +99,8 @@ export class SelectScene extends Phaser.Scene {
     cx: number,
     top: number,
     w: number,
-    h: number,
   ): Phaser.GameObjects.Container {
     const container = this.add.container(cx, top);
-    const frame = this.add
-      .rectangle(0, 0, w, h, 0x06192b, 0.95)
-      .setOrigin(0.5, 0)
-      .setStrokeStyle(2, c.palette.accent, 0.4);
-    frame.setInteractive({ useHandCursor: true });
-    frame.on('pointerover', () => this.pick(CHARACTERS.indexOf(c), false));
-    frame.on('pointerup', () => {
-      this.pick(CHARACTERS.indexOf(c), false);
-      this.confirm();
-    });
-    this.frames.push(frame);
     const left = -w / 2 + 18;
     const wrap = { wordWrap: { width: w - 36 } };
     const txt = (y: number, s: string, style: Phaser.Types.GameObjects.Text.TextStyle) =>
@@ -122,8 +117,10 @@ export class SelectScene extends Phaser.Scene {
         ease: 'Sine.easeInOut',
       });
     }
-    // Every block below is stacked off the real height of the one before it, so a longer
-    // tagline or weakness (Cipher's, especially) pushes the rest down instead of overlapping it.
+    // Every block below is stacked off the real, measured height of the one before it — not a
+    // guessed fixed gap — so a longer tagline or weakness (Cipher's and Glaucus's, especially)
+    // pushes the rest down instead of overlapping it. The card frame itself is sized to the
+    // final total afterward, so content can never run past the card's own bottom edge either.
     let y = 118;
     const name = this.add
       .text(0, y, c.name, { ...TEXT_STYLES.title, fontSize: '38px', color: c.palette.ui })
@@ -141,8 +138,9 @@ export class SelectScene extends Phaser.Scene {
         ...wrap,
       })
       .setOrigin(0.5, 0);
-    y += tagline.height + 14;
+    y += tagline.height + 12;
 
+    const rest: Phaser.GameObjects.Text[] = [];
     if (settings().largeText) {
       // Compact card for large text: names only. Full ability text is read aloud and on the hunt's help card.
       const compact = txt(
@@ -157,45 +155,71 @@ export class SelectScene extends Phaser.Scene {
         ].join('\n'),
         { ...TEXT_STYLES.small, fontSize: '15px', lineSpacing: 4 },
       );
-      container.add([frame, portrait, name, sub, tagline, compact]);
-      return container;
+      y += compact.height;
+      rest.push(compact);
+    } else {
+      const personality = txt(y, c.personality, { ...TEXT_STYLES.small, color: '#9fc0c8' });
+      y += personality.height + 12;
+
+      const abilityLines = (Object.keys(KEYS) as (keyof typeof KEYS)[])
+        .map((slot) => `[${KEYS[slot]}] ${c.abilities[slot].label}: ${c.abilities[slot].blurb}`)
+        .join('\n');
+      const abilities = txt(y, abilityLines, {
+        ...TEXT_STYLES.small,
+        fontSize: '15px',
+        lineSpacing: 4,
+      });
+      y += abilities.height + 12;
+
+      const attrs = (Object.keys(ATTRIBUTE_LABELS) as (keyof Attributes)[])
+        .map(
+          (k) =>
+            `${ATTRIBUTE_LABELS[k].padEnd(8)} ${'●'.repeat(c.attributes[k])}${'○'.repeat(5 - c.attributes[k])}`,
+        )
+        .join('\n');
+      const attributes = this.add.text(left, y, attrs, {
+        ...TEXT_STYLES.small,
+        fontSize: '15px',
+        fontFamily: 'monospace',
+      });
+      y += attributes.height + 12;
+
+      // Full card width, not a half-width side column — a one-sentence weakness (Cipher's,
+      // Glaucus's) needs the room, and stacking rather than overlapping a shorter block keeps
+      // both readable.
+      const sw = txt(y, `+ ${c.strengths.join('\n+ ')}\n− ${c.weaknesses.join('\n− ')}`, {
+        ...TEXT_STYLES.small,
+        fontSize: '14px',
+        lineSpacing: 3,
+      });
+      y += sw.height;
+      rest.push(personality, abilities, attributes, sw);
     }
 
-    const personality = txt(y, c.personality, { ...TEXT_STYLES.small, color: '#9fc0c8' });
-    y += personality.height + 14;
-
-    const abilityLines = (Object.keys(KEYS) as (keyof typeof KEYS)[])
-      .map((slot) => `[${KEYS[slot]}] ${c.abilities[slot].label}: ${c.abilities[slot].blurb}`)
-      .join('\n');
-    const abilities = txt(y, abilityLines, {
-      ...TEXT_STYLES.small,
-      fontSize: '15px',
-      lineSpacing: 4,
+    const frame = this.add
+      .rectangle(0, 0, w, y + 20, 0x06192b, 0.95)
+      .setOrigin(0.5, 0)
+      .setStrokeStyle(2, c.palette.accent, 0.4);
+    frame.setInteractive({ useHandCursor: true });
+    frame.on('pointerover', () => this.pick(CHARACTERS.indexOf(c), false));
+    frame.on('pointerup', () => {
+      this.pick(CHARACTERS.indexOf(c), false);
+      this.confirm();
     });
-    y += abilities.height + 14;
+    this.frames.push(frame);
 
-    const attrs = (Object.keys(ATTRIBUTE_LABELS) as (keyof Attributes)[])
-      .map(
-        (k) =>
-          `${ATTRIBUTE_LABELS[k].padEnd(8)} ${'●'.repeat(c.attributes[k])}${'○'.repeat(5 - c.attributes[k])}`,
-      )
-      .join('\n');
-    const attributes = this.add.text(left, y, attrs, {
-      ...TEXT_STYLES.small,
-      fontSize: '15px',
-      fontFamily: 'monospace',
-    });
-    y += attributes.height + 14;
+    container.add([frame, portrait, name, sub, tagline, ...rest]);
 
-    // Full card width, not a half-width side column — a one-sentence weakness (Cipher's) needs
-    // the room, and stacking rather than overlapping a shorter block keeps both readable.
-    const sw = txt(y, `+ ${c.strengths.join('\n+ ')}\n− ${c.weaknesses.join('\n− ')}`, {
-      ...TEXT_STYLES.small,
-      fontSize: '14px',
-      lineSpacing: 3,
-    });
+    // Last resort, not the main fix: if a character's text is simply too long to fit between
+    // the title and the footer hint even at full size, shrink the whole card uniformly rather
+    // than let it run off the bottom of the screen. Scaling (not clipping) keeps everything
+    // inside it legible, just smaller.
+    const available = this.scale.height - top - 40;
+    const cardH = y + 20;
+    const scale = cardH > available ? available / cardH : 1;
+    this.fitScale.push(scale);
+    container.setScale(scale);
 
-    container.add([frame, portrait, name, sub, tagline, personality, abilities, attributes, sw]);
     return container;
   }
 
@@ -225,7 +249,7 @@ export class SelectScene extends Phaser.Scene {
     this.cards.forEach((card, i) => {
       const active = i === this.index;
       card.setAlpha(active ? 1 : 0.55);
-      card.setScale(active ? 1 : 0.97);
+      card.setScale((this.fitScale[i] ?? 1) * (active ? 1 : 0.97));
       this.tweens.add({
         targets: card,
         x: width / 2 + (i - this.index) * this.cardSpacing,
