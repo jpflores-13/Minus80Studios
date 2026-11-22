@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { CAMPAIGN } from '../content/campaign';
+import { Button } from '../ui/Button';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -21,6 +22,8 @@ export class TitleScene extends Phaser.Scene {
       g.fillStyle(PALETTE.ice, 0.08 + (i % 5) * 0.015);
       g.fillCircle((i * 97) % width, (i * 53) % height, 1 + (i % 3));
     }
+    // Always visible, not buried in MORE: a one-click way back to the rest of the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, 150, 'ANTARCTIC EXPEDITION', {
       ...TEXT_STYLES.display,
       fontSize: '58px',

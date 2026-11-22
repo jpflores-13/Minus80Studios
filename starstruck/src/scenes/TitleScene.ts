@@ -4,6 +4,7 @@ import { ACHIEVEMENT_ORDER } from '../content/achievements';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { Button } from '../ui/Button';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 import { clearedCount } from './LevelSelectScene';
@@ -33,6 +34,8 @@ export class TitleScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
+    // Always visible, not buried in MORE: a one-click way back to the rest of the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, 140, 'STARSTRUCK.', { ...TEXT_STYLES.display, fontSize: '96px' });
     addCenteredText(this, 220, 'It’s not what you see. It’s what you feel.', {
       ...TEXT_STYLES.hud,

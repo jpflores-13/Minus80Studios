@@ -5,6 +5,7 @@ import { PALETTE, PIXEL } from '../config/gameConfig';
 import { isUnlocked, progress } from '../config/progress';
 import { LEVELS } from '../levels';
 import { announce } from '../ui/announce';
+import { Button } from '../ui/Button';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface Item {
@@ -33,6 +34,8 @@ export class TitleScene extends Phaser.Scene {
     if (!progress().reducedEffects)
       this.tweens.add({ targets: bottle, x: width + 40, duration: 14000, repeat: -1 });
 
+    // Always visible, not just a menu item further down: a one-click way back to the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, height * 0.26, 'DOWNSTREAM!', TEXT_STYLES.display);
     addCenteredText(this, height * 0.4, 'Everything flows somewhere.', TEXT_STYLES.bodyLight);
 

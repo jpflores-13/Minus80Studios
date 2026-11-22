@@ -6,6 +6,7 @@ import { PIXEL } from '../config/gameConfig';
 import { CHARACTERS } from '../characters';
 import { Reef } from '../entities/Reef';
 import { announce } from '../ui/announce';
+import { Button } from '../ui/Button';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface MenuItem {
@@ -28,6 +29,9 @@ export class TitleScene extends Phaser.Scene {
     this.reef = new Reef(this, 2026);
     this.add.rectangle(0, 0, width, height, 0x06192b, 0.74).setOrigin(0);
     this.cameras.main.fadeIn(900);
+
+    // Always visible, not just a menu item near the bottom: a one-click way back to the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
 
     const title = addCenteredText(
       this,

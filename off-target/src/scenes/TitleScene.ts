@@ -4,6 +4,7 @@ import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { DIFFICULTIES, type Difficulty } from '../config/tuning';
 import { STAGES } from '../levels';
+import { Button } from '../ui/Button';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -41,6 +42,8 @@ export class TitleScene extends Phaser.Scene {
     this.add.image(width * 0.82, height * 0.6, 'chop-0').setScale(5);
     this.add.image(width * 0.82, height * 0.81, 'gene').setScale(4);
 
+    // Always visible, not buried in MORE: a one-click way back to the rest of the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, 120, 'OFF TARGET.', TEXT_STYLES.display);
     addCenteredText(this, 196, 'Every second counts.', {
       ...TEXT_STYLES.hud,

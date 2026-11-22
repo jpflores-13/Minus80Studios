@@ -4,6 +4,7 @@ import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { dailySeed } from '../content/waves';
 import { DIFFICULTY, type Difficulty } from '../systems/world';
+import { Button } from '../ui/Button';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -28,6 +29,8 @@ export class TitleScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
+    // Always visible, not buried in MORE: a one-click way back to the rest of the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, 110, 'DR. ANTI-CRISPR', { ...TEXT_STYLES.display, fontSize: '64px' });
     addCenteredText(this, 175, 'One phage. An entire army.', {
       ...TEXT_STYLES.hud,

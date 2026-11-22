@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { Button } from '../ui/Button';
 import { toggleFullscreen } from '../ui/fullscreen';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
@@ -33,6 +34,8 @@ export class TitleScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.easeInOut',
       });
+    // Always visible, not just a menu item further down: a one-click way back to the studio.
+    new Button(this, 104, 34, 150, 34, '-80 STUDIOS', () => (window.location.href = '../'));
     addCenteredText(this, 120, 'QUEENLESS', { ...TEXT_STYLES.display, fontSize: '80px' });
     addCenteredText(this, 196, 'One colony. No queen. Every bee matters.', {
       ...TEXT_STYLES.hud,
