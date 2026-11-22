@@ -30,3 +30,13 @@ All dates are build order, not calendar order (this game was built in one contin
   species) get a shape grounded in a real distinguishing feature; artifacts and "unknown" particles stay
   deliberately abstract. The existing kind-color coding (target/non-target/artifact/unknown) and DIVE's
   mood border are both kept as an added cue on top, not replaced.
+- Fixed overlapping/overflowing text in the Discovery Journal (long entries could run far past the
+  bottom of the screen with no fix at all), the campaign ending screen (the "RESEARCHER CREDIT" header
+  overlapped the text below it, and its menu sat partly off the bottom of the canvas), and several
+  mystery/results/expedition-intro screens that could overlap under the largeText accessibility setting.
+  Text blocks now stack off each other's measured height instead of a guessed fixed offset, with a
+  scale-down fallback where content length is genuinely unbounded.
+- Fleshed out Antarctic Expedition's card illustration on the studio hub page (`../site/index.html`) to
+  match the level of detail on HEIST's and RIDGERUNNER's cards: a submerged ice floe, light shafts, a
+  pair of krill, a seal with flippers and a tail fluke, and a bubble trail down to the magnified drop,
+  whose three particles are now a tiny copepod, diatom, and unknown rather than plain dots.
