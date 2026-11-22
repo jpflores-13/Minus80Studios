@@ -2,8 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 
 // Code-drawn placeholder art. Load an image under the same key to replace any of it.
-// See docs/ART_DIRECTION.md and docs/ARTIST_BRIEF.md for what a professional pass should
-// replace these with.
+// See docs/ART_DIRECTION.md for what a professional pass should replace these with.
 
 function tex(
   scene: Phaser.Scene,
