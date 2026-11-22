@@ -1,10 +1,12 @@
 import type { CharacterConfig } from './types';
 
 // CIPHER: fictional character, real species (Octopus bimaculoides). Plays the escalation level
-// that follows the three-snail campaign: now the player is the predator, hunting reef fish while
-// a shark (TUNING.shark in src/systems/predator.ts) hunts them in turn. Abilities reuse the same
-// strike/lock/reel kinds Catalyst uses (see src/systems/hunt.ts); see docs/SCIENCE.md for the
-// evidence behind each one.
+// that follows the three-snail campaign: now the player is the predator, hunting cone snails
+// scattered across the reef while a blue shark (TUNING.shark in src/systems/predator.ts) hunts
+// Cipher in turn. Abilities reuse the same strike/lock/reel kinds Catalyst uses (see
+// src/systems/hunt.ts); see docs/SCIENCE.md for the evidence behind each one. Cone snails are
+// confirmed solitary foragers (no social hunting groups), so Cipher's prey is placed as scattered
+// individuals (`prey: 'snail'` below), not a school.
 export const OCTOPUS: CharacterConfig = {
   id: 'octopus',
   name: 'CIPHER',
@@ -16,6 +18,7 @@ export const OCTOPUS: CharacterConfig = {
   personality: 'Patient, exacting, built for a single decisive moment.',
   specialization: 'Ambush pounce, paralytic bite, coordinated arm restraint',
   threat: 'shark',
+  prey: 'snail',
   speed: 55,
   palette: {
     shell: 0x6a4a63,
@@ -30,7 +33,7 @@ export const OCTOPUS: CharacterConfig = {
       kind: 'strike',
       label: 'Pounce',
       blurb:
-        'Jet toward one fish and spread your arms over it in one ambush strike. Misses waste venom.',
+        'Jet toward one cone snail and spread your arms over it in one ambush strike. Misses waste venom.',
       cost: 30,
       cooldown: 2,
       range: 160,
@@ -49,7 +52,7 @@ export const OCTOPUS: CharacterConfig = {
     capture: {
       kind: 'reel',
       label: 'Draw to Mouth',
-      blurb: 'Pull the restrained fish in with your arms and suckers.',
+      blurb: 'Pull the restrained snail in with your arms and suckers.',
       cost: 0,
       cooldown: 0.5,
       reelSpeed: 65,
@@ -62,7 +65,7 @@ export const OCTOPUS: CharacterConfig = {
   weaknesses: [
     'Single target',
     'Misses waste venom',
-    'The shark is faster and harder to hide from',
+    'The blue shark is faster and harder to hide from',
   ],
   attributes: { speed: 4, range: 3, burst: 5, area: 1, stealth: 2 },
 };

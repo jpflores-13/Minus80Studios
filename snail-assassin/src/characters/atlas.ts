@@ -12,6 +12,7 @@ export const ATLAS: CharacterConfig = {
   personality: 'Intelligent, patient, methodical.',
   specialization: 'Hormonal mimicry and glucose regulation',
   threat: 'octopus',
+  prey: 'fish',
   speed: 45,
   palette: {
     shell: 0xe9dcc0,

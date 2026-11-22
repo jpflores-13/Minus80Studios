@@ -13,6 +13,7 @@ export const NIGHTSHADE: CharacterConfig = {
   personality: 'Elusive, quiet, patient.',
   specialization: 'Dampened escape responses and metabolic impairment',
   threat: 'octopus',
+  prey: 'fish',
   speed: 48,
   palette: {
     shell: 0xe8d9f0,

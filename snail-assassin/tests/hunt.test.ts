@@ -35,13 +35,23 @@ describe('hunt core', () => {
     expect(s.time).toBeGreaterThanOrEqual(TUNING.hunt.timeLimitSeconds);
   });
 
-  it('character switching: every character starts a fresh, valid hunt on the same reef', () => {
-    const reefs = CHARACTERS.map((c) => createHunt(c, 5));
+  it('character switching: the three fish-hunting characters start on the same reef', () => {
+    const reefs = CHARACTERS.filter((c) => c.prey === 'fish').map((c) => createHunt(c, 5));
     for (const s of reefs) {
       expect(s.captured).toBe(0);
       expect(s.venom.reserve).toBe(TUNING.venom.max);
       expect(s.fish.map((f) => f.pos)).toEqual(reefs[0]!.fish.map((f) => f.pos));
     }
+  });
+
+  it('Cipher starts a fresh hunt with its own scattered cone-snail layout, not a fish school', () => {
+    const s = createHunt(OCTOPUS, 5);
+    expect(s.captured).toBe(0);
+    expect(s.venom.reserve).toBe(TUNING.venom.max);
+    expect(s.fish).toHaveLength(TUNING.hunt.scatteredPreyCount);
+    // Cone snails are solitary foragers (see docs/SCIENCE.md): each one is its own "school" of
+    // one, unlike the three fish characters' grouped schools.
+    expect(new Set(s.fish.map((f) => f.school)).size).toBe(s.fish.length);
   });
 });
 
@@ -163,6 +173,16 @@ describe('Cipher (pounce + paralytic bite + draw to mouth)', () => {
     for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
     expect(s.captured).toBe(0);
     expect(s.stats.tethersBroken).toBe(1);
+  });
+
+  it('hunts cone snails, not reef fish: scattered individuals, no schooling, slower than reef fish', () => {
+    expect(OCTOPUS.prey).toBe('snail');
+    expect(TUNING.snailPrey.baseSpeedMax).toBeLessThan(TUNING.fish.baseSpeedMin);
+    // Cone snails are solitary foragers (see docs/SCIENCE.md): the cohesion/separation terms that
+    // give TUNING.fish its schooling behaviour are zeroed out for snail prey, on top of (not
+    // instead of) each one already being placed as its own unique "school" of one.
+    expect(TUNING.snailPrey.cohesionWeight).toBe(0);
+    expect(TUNING.snailPrey.separationWeight).toBe(0);
   });
 });
 

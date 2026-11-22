@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { getCharacter } from '../characters';
+import { getCharacter, preyNoun, preySpritePrefix } from '../characters';
 import { PALETTE, PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
 import { TUNING } from '../config/tuning';
@@ -42,14 +42,15 @@ export class ResultsScene extends Phaser.Scene {
       TEXT_STYLES.warm,
     );
 
+    const spritePrefix = preySpritePrefix(c);
     this.add.image(width / 2, height * 0.4, `player-${c.id}`).setScale(PIXEL * 1.6);
     (data.capturedSchools ?? []).forEach((school, i, all) => {
       const x = width / 2 + (i - (all.length - 1) / 2) * 60;
-      const fish = this.add
-        .image(x, height * 0.51, `fish-${school % 3}`)
+      const prey = this.add
+        .image(x, height * 0.51, `${spritePrefix}-${school % 3}`)
         .setScale(PIXEL)
         .setAlpha(0);
-      this.tweens.add({ targets: fish, alpha: 1, duration: 300, delay: 400 + i * 200 });
+      this.tweens.add({ targets: prey, alpha: 1, duration: 300, delay: 400 + i * 200 });
     });
 
     const mins = Math.floor(data.seconds / 60);
@@ -59,7 +60,7 @@ export class ResultsScene extends Phaser.Scene {
       height * 0.62,
       [
         `${c.name}  ·  ${c.species}`,
-        `Fish captured  ${data.captured}/${TUNING.hunt.objectiveCaptures}     Time  ${mins}:${secs}     Venom spent  ${Math.round(data.venomSpent)}`,
+        `${preyNoun(c, data.captured, true)} captured  ${data.captured}/${TUNING.hunt.objectiveCaptures}     Time  ${mins}:${secs}     Venom spent  ${Math.round(data.venomSpent)}`,
       ].join('\n'),
       { ...TEXT_STYLES.body, align: 'center', lineSpacing: 10 },
     );
@@ -97,7 +98,7 @@ export class ResultsScene extends Phaser.Scene {
     const seen = settings().seenDiscovery.includes(c.id);
     announce(
       `${data.won ? 'Hunt complete. Nature does it better.' : 'The reef wins this time.'} ` +
-        `${c.name}. ${data.captured} of ${TUNING.hunt.objectiveCaptures} fish captured in ${mins} minutes ${secs} seconds. ` +
+        `${c.name}. ${data.captured} of ${TUNING.hunt.objectiveCaptures} ${preyNoun(c, data.captured)} captured in ${mins} minutes ${secs} seconds. ` +
         (data.won
           ? 'Press Enter for the science, R to hunt again, C to choose another assassin, T for the title.'
           : 'Press Enter to try again, C to choose another assassin, T for the title.'),

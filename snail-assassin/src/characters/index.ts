@@ -15,3 +15,15 @@ export const CHARACTERS: readonly CharacterConfig[] = [CATALYST, ATLAS, NIGHTSHA
 export function getCharacter(id: string): CharacterConfig {
   return CHARACTERS.find((c) => c.id === id) ?? ATLAS;
 }
+
+/** The on-screen noun for this character's prey (see CharacterConfig.prey): 'fish' for the
+ *  schooling-fish hunts, 'cone snail(s)' for Cipher's scattered cone-snail hunt. */
+export function preyNoun(character: CharacterConfig, count: number, capitalized = false): string {
+  const word = character.prey === 'snail' ? (count === 1 ? 'cone snail' : 'cone snails') : 'fish';
+  return capitalized ? word[0]!.toUpperCase() + word.slice(1) : word;
+}
+
+/** The texture-key prefix for this character's prey sprites (see BootScene). */
+export function preySpritePrefix(character: CharacterConfig): string {
+  return character.prey === 'snail' ? 'snailprey' : 'fish';
+}

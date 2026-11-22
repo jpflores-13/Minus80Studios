@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { preyNoun } from '../characters';
 import type { CharacterConfig } from '../characters/types';
 import { TUNING } from '../config/tuning';
 import type { HuntState } from '../systems/hunt';
@@ -85,7 +86,7 @@ export class Hud {
       '●'.repeat(Math.min(state.captured, target)) +
       '○'.repeat(Math.max(0, target - state.captured));
     this.objective.setText(
-      `${this.character.name}   OBJECTIVE  Capture ${target} fish   ${pips}  ${state.captured}/${target}`,
+      `${this.character.name}   OBJECTIVE  Capture ${target} ${preyNoun(this.character, target)}   ${pips}  ${state.captured}/${target}`,
     );
     if (state.options.relaxed) {
       this.timer.setText('no time limit');

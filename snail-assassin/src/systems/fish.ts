@@ -29,8 +29,18 @@ export interface Arena {
   height: number;
 }
 
-export function createFish(id: number, school: number, pos: Vec2, rng: Rng): Fish {
-  const f = TUNING.fish;
+/** Locomotion/schooling tuning for a prey type: TUNING.fish (schooling reef fish) or
+ *  TUNING.snailPrey (Cipher's scattered cone snails). See CharacterConfig.prey. */
+export type PreyTuning = typeof TUNING.fish;
+
+export function createFish(
+  id: number,
+  school: number,
+  pos: Vec2,
+  rng: Rng,
+  tuning: PreyTuning = TUNING.fish,
+): Fish {
+  const f = tuning;
   return {
     id,
     school,
@@ -71,9 +81,10 @@ export function stepFish(
   arena: Arena,
   rng: Rng,
   dt: number,
+  tuning: PreyTuning = TUNING.fish,
 ): void {
   if (fish.mode === 'captured') return;
-  const p = TUNING.fish;
+  const p = tuning;
   const esc = TUNING.escape;
 
   stepMetabolic(fish, dt);
@@ -119,7 +130,7 @@ export function stepFish(
   } else {
     fish.heading += rng.range(-1, 1) * p.wanderRate * dt;
     let dir = { x: Math.cos(fish.heading), y: Math.sin(fish.heading) };
-    dir = add(dir, schoolingSteer(fish, school));
+    dir = add(dir, schoolingSteer(fish, school, p));
     // Alert fish slow down and watch; impaired fish drift slowly.
     const speedFactor = fish.mode === 'alert' ? 0.5 : 1;
     desired = scale(normalize(dir), fish.baseSpeed * performance * speedFactor);
@@ -132,8 +143,7 @@ export function stepFish(
   if (length(fish.vel) > 1) fish.heading = Math.atan2(fish.vel.y, fish.vel.x);
 }
 
-function schoolingSteer(fish: Fish, school: readonly Fish[]): Vec2 {
-  const p = TUNING.fish;
+function schoolingSteer(fish: Fish, school: readonly Fish[], p: PreyTuning): Vec2 {
   let cx = 0;
   let cy = 0;
   let n = 0;

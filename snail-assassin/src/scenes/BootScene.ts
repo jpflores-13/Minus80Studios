@@ -22,9 +22,14 @@ export class BootScene extends Phaser.Scene {
     fishColors.forEach((color, i) =>
       this.makeTexture(`fish-${i}`, 8, 5, (g) => drawFish(g, color)),
     );
+    // Cipher's prey: scattered individual cone snails (see src/systems/hunt.ts: prey: 'snail').
+    const preySnailColors = [PALETTE.preySnailA, PALETTE.preySnailB, PALETTE.preySnailC];
+    preySnailColors.forEach((color, i) =>
+      this.makeTexture(`snailprey-${i}`, 7, 6, (g) => drawConeSnailPrey(g, color)),
+    );
     // Threat sprites: 'octopus' threatens the three snail characters, 'shark' threatens Cipher.
     this.makeTexture('octopus', 16, 16, drawOctopusThreat);
-    this.makeTexture('shark', 18, 10, drawSharkThreat);
+    this.makeTexture('shark', 20, 11, drawSharkThreat);
     this.makeTexture('px', 1, 1, (g) => {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
@@ -34,6 +39,9 @@ export class BootScene extends Phaser.Scene {
       'fish-0',
       'fish-1',
       'fish-2',
+      'snailprey-0',
+      'snailprey-1',
+      'snailprey-2',
       'octopus',
       'shark',
     ]) {
@@ -132,6 +140,17 @@ function drawFish(g: Phaser.GameObjects.Graphics, color: number): void {
   g.fillRect(6, 2, 1, 1);
 }
 
+// Top-down cone snail prey facing right: compact foot, tapering shell wedge, small siphon tip.
+// Generic (not one of the three playable species), used only as Cipher's scattered reef prey.
+function drawConeSnailPrey(g: Phaser.GameObjects.Graphics, shell: number): void {
+  g.fillStyle(0x5f5240, 1); // foot
+  g.fillEllipse(2, 3, 3.5, 3.5);
+  g.fillStyle(shell, 1); // tapering shell
+  g.fillTriangle(2, 0, 6, 3, 2, 6);
+  g.fillStyle(0x10202a, 1); // siphon tip
+  g.fillRect(6, 2, 1, 2);
+}
+
 // Top-down octopus threat: round mantle, two eyes, eight arms. Faces up; HuntScene rotates it by
 // heading + 90deg to match.
 function drawOctopusThreat(g: Phaser.GameObjects.Graphics): void {
@@ -148,16 +167,28 @@ function drawOctopusThreat(g: Phaser.GameObjects.Graphics): void {
   g.fillRect(9, 9, 2, 1);
 }
 
-// Top-down shark threat facing right: torpedo body, dorsal fin, tail fin.
+// Top-down shark threat facing right: tapered torpedo body with a pointed snout, a swept dorsal
+// fin, paired pectoral fins, a heterocercal tail (longer upper lobe), and gill slits behind the
+// head, so it reads as a shark rather than a generic fish silhouette. Blue shark palette
+// (dark slate-blue back, pale belly) — see docs/SCIENCE.md for the species citation.
 function drawSharkThreat(g: Phaser.GameObjects.Graphics): void {
-  g.fillStyle(0x6b7b85, 1); // body
-  g.fillEllipse(8, 5, 13, 5);
-  g.fillStyle(0x4d5a62, 1); // dorsal fin
-  g.fillTriangle(7, 5, 10, 0, 11, 5);
-  g.fillStyle(0x4d5a62, 1); // tail fin
-  g.fillTriangle(0, 5, 3, 1, 3, 9);
-  g.fillStyle(0xeef6f3, 1); // belly highlight
-  g.fillRect(9, 6, 5, 1);
+  const back = 0x4a6a82;
+  const shade = 0x33495e;
+  g.fillStyle(back, 1); // main torpedo body, tapering toward the tail
+  g.fillEllipse(9, 5, 12, 5.5);
+  g.fillTriangle(14, 2.5, 19, 5, 14, 7.5); // pointed snout
+  g.fillStyle(shade, 1); // tail fin: longer upper lobe (heterocercal), like a real shark's
+  g.fillTriangle(1, 5, 6, 0, 6, 5);
+  g.fillTriangle(1, 5, 5, 8, 6, 5);
+  g.fillStyle(shade, 1); // dorsal fin, swept back
+  g.fillTriangle(8, 4, 11, 0, 12, 4.5);
+  g.fillStyle(back, 1); // pectoral fins, flanking the body
+  g.fillTriangle(10, 2.5, 13, 0.5, 11, 3.5);
+  g.fillTriangle(10, 7.5, 13, 9.5, 11, 6.5);
+  g.fillStyle(0xeef6f3, 1); // pale belly stripe
+  g.fillRect(8, 5, 6, 1);
+  g.fillStyle(0x10202a, 1); // gill slits, behind the head and ahead of the dorsal fin
+  for (let i = 0; i < 3; i++) g.fillRect(11 + i * 1.3, 3, 0.5, 4);
   g.fillStyle(0x10202a, 1); // eye
-  g.fillRect(14, 4, 1, 1);
+  g.fillRect(16, 4, 1, 1);
 }

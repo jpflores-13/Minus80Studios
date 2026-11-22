@@ -82,6 +82,12 @@ export interface CharacterConfig {
   specialization: string;
   /** Which threat AI hunts this character, parameterised from TUNING (predator = the octopus, shark = TUNING.shark). */
   threat: 'octopus' | 'shark';
+  /**
+   * What this character hunts: 'fish' places a few schools of reef fish (the three cone snails);
+   * 'snail' scatters individual cone snails with no schooling (Cipher). See docs/SCIENCE.md: cone
+   * snails are solitary foragers, so Cipher's prey is placed as scattered individuals, not a school.
+   */
+  prey: 'fish' | 'snail';
   /** Top swim speed of the player-controlled animal (px/s). */
   speed: number;
   palette: {

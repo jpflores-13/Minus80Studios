@@ -12,7 +12,15 @@ import { TUNING } from '../config/tuning';
 import { clamp, length, type Vec2 } from '../utils/math';
 import { createRng, type Rng } from '../utils/rng';
 import { currentAt } from './current';
-import { createFish, dampen, stepFish, vulnerability, type Arena, type Fish } from './fish';
+import {
+  createFish,
+  dampen,
+  stepFish,
+  vulnerability,
+  type Arena,
+  type Fish,
+  type PreyTuning,
+} from './fish';
 import { expose } from './metabolic';
 import { stepVelocity } from './movement';
 import { createPredator, stepPredator, wrap, type Predator, type PredatorTuning } from './predator';
@@ -108,17 +116,27 @@ export function createHunt(
 ): HuntState {
   const rng = createRng(seed);
   const fish: Fish[] = [];
-  const { fishCount, schools } = TUNING.hunt;
-  const perSchool = Math.ceil(fishCount / schools);
-  for (let s = 0; s < schools; s++) {
-    // School centres spread across the reef, away from the snail's start on the left.
-    const centre = {
-      x: rng.range(arena.width * 0.35, arena.width * 0.85),
-      y: rng.range(arena.height * 0.2, arena.height * 0.8),
-    };
-    for (let i = 0; i < perSchool && fish.length < fishCount; i++) {
-      const pos = { x: centre.x + rng.range(-50, 50), y: centre.y + rng.range(-40, 40) };
-      fish.push(createFish(fish.length, s, pos, rng));
+  const pt = preyTuning(character);
+  if (character.prey === 'snail') {
+    // Cone snails are confirmed solitary foragers (see docs/SCIENCE.md), so each one is its own
+    // "school" of one. schoolingSteer() then naturally has no one to cohere/separate with.
+    const { scatteredPreyCount } = TUNING.hunt;
+    for (let i = 0; i < scatteredPreyCount; i++) {
+      fish.push(createFish(i, i, scatteredPoint(arena, rng), rng, pt));
+    }
+  } else {
+    const { fishCount, schools } = TUNING.hunt;
+    const perSchool = Math.ceil(fishCount / schools);
+    for (let s = 0; s < schools; s++) {
+      // School centres spread across the reef, away from the snail's start on the left.
+      const centre = {
+        x: rng.range(arena.width * 0.35, arena.width * 0.85),
+        y: rng.range(arena.height * 0.2, arena.height * 0.8),
+      };
+      for (let i = 0; i < perSchool && fish.length < fishCount; i++) {
+        const pos = { x: centre.x + rng.range(-50, 50), y: centre.y + rng.range(-40, 40) };
+        fish.push(createFish(fish.length, s, pos, rng, pt));
+      }
     }
   }
   return {
@@ -188,6 +206,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
 
   // Fish: exposure from clouds, then behaviour.
   const snailMotion = length(state.snail.vel) / state.character.speed;
+  const pt = preyTuning(state.character);
   const bySchool = new Map<number, Fish[]>();
   for (const f of state.fish) bySchool.set(f.school, [...(bySchool.get(f.school) ?? []), f]);
   for (const f of state.fish) {
@@ -208,6 +227,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
       state.arena,
       state.rng,
       dt,
+      pt,
     );
   }
 
@@ -409,6 +429,19 @@ function startle(state: HuntState, at: Vec2, amount: number): void {
 /** Which threat tuning applies to this character (see CharacterConfig.threat). */
 export function threatTuning(character: CharacterConfig): PredatorTuning {
   return character.threat === 'shark' ? TUNING.shark : TUNING.predator;
+}
+
+/** Which prey locomotion/schooling tuning applies to this character (see CharacterConfig.prey). */
+export function preyTuning(character: CharacterConfig): PreyTuning {
+  return character.prey === 'snail' ? TUNING.snailPrey : TUNING.fish;
+}
+
+/** A scattered individual's spot on the reef: spread widely, away from the snail's start edge. */
+function scatteredPoint(arena: Arena, rng: Rng): Vec2 {
+  return {
+    x: rng.range(arena.width * 0.22, arena.width * 0.96),
+    y: rng.range(arena.height * 0.08, arena.height * 0.92),
+  };
 }
 
 function clampToRange(from: Vec2, aim: Vec2, range: number): Vec2 {

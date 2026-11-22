@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { CHARACTER_PITCH, sound, type SfxName } from '../audio/Sound';
-import { getCharacter } from '../characters';
+import { getCharacter, preyNoun, preySpritePrefix } from '../characters';
 import type { CharacterConfig } from '../characters/types';
 import { PIXEL } from '../config/gameConfig';
 import { markOnce, settings } from '../config/settings';
@@ -81,11 +81,12 @@ export class HuntScene extends Phaser.Scene {
 
     this.reef = new Reef(this, 2026);
     this.fx = this.add.graphics().setDepth(5);
+    const spritePrefix = preySpritePrefix(this.character);
     for (const f of this.state.fish) {
       this.fishSprites.set(
         f.id,
         this.add
-          .image(f.pos.x, f.pos.y, `fish-${f.school % 3}`)
+          .image(f.pos.x, f.pos.y, `${spritePrefix}-${f.school % 3}`)
           .setScale(PIXEL)
           .setDepth(10),
       );
@@ -149,7 +150,8 @@ export class HuntScene extends Phaser.Scene {
       .setPadding(16, 12, 16, 12);
     this.time.delayedCall(14000, () => this.helpCard.setVisible(false));
     announce(
-      `Hunt started as ${this.character.name}. Capture ${TUNING.hunt.objectiveCaptures} fish. ${this.helpText()}`,
+      `Hunt started as ${this.character.name}. Capture ${TUNING.hunt.objectiveCaptures} ` +
+        `${preyNoun(this.character, TUNING.hunt.objectiveCaptures)}. ${this.helpText()}`,
     );
 
     const kb = this.input.keyboard;
@@ -190,7 +192,10 @@ export class HuntScene extends Phaser.Scene {
     const before = this.state.captured;
     const events = stepHunt(this.state, input, dt);
     if (this.state.captured > before) {
-      announce(`${this.state.captured} of ${TUNING.hunt.objectiveCaptures} fish captured.`);
+      announce(
+        `${this.state.captured} of ${TUNING.hunt.objectiveCaptures} ` +
+          `${preyNoun(this.character, TUNING.hunt.objectiveCaptures)} captured.`,
+      );
     }
     for (const e of events) this.react(e);
     this.reef.update(time, dt);
@@ -264,7 +269,10 @@ export class HuntScene extends Phaser.Scene {
         break;
       case 'tether-broken':
         this.sfx('snap');
-        this.hud.say('The fish recovered and broke free. Try Motor Lock first.');
+        this.hud.say(
+          `The ${preyNoun(this.character, 1)} recovered and broke free. ` +
+            `Try ${this.character.abilities.secondary.label} first.`,
+        );
         break;
       case 'capture':
         if (!settings().reducedEffects) this.cameras.main.shake(120, 0.002);
@@ -282,11 +290,18 @@ export class HuntScene extends Phaser.Scene {
         }
         this.sfx('capture');
         this.tick('capture');
-        this.hud.say(e.fishIds.length > 1 ? `Captured ${e.fishIds.length} fish!` : 'Captured!');
+        this.hud.say(
+          e.fishIds.length > 1
+            ? `Captured ${e.fishIds.length} ${preyNoun(this.character, e.fishIds.length)}!`
+            : 'Captured!',
+        );
         break;
       case 'capture-miss':
         this.sfx('denied');
-        this.hud.say(`Nothing catchable in reach. Weaken fish first (${this.character.combo}).`);
+        this.hud.say(
+          `Nothing catchable in reach. Weaken ${preyNoun(this.character, 2)} first ` +
+            `(${this.character.combo}).`,
+        );
         break;
       case 'denied':
         this.sfx('denied');
@@ -295,7 +310,7 @@ export class HuntScene extends Phaser.Scene {
             ? 'Still recovering…'
             : e.reason === 'no-venom'
               ? 'Not enough venom'
-              : 'Strike a fish first (Q)',
+              : `${this.character.abilities.primary.label} a ${preyNoun(this.character, 1)} first`,
         );
         break;
       case 'predator-chase':

@@ -6,6 +6,8 @@ export const TUNING = {
     timeLimitSeconds: 180,
     fishCount: 15,
     schools: 3,
+    /** Cipher's hunt (prey: 'snail'): individually scattered cone snails, no schools. */
+    scatteredPreyCount: 15,
   },
   snail: {
     acceleration: 140,
@@ -25,6 +27,25 @@ export const TUNING = {
     cohesionWeight: 0.6,
     separationRadius: 22,
     separationWeight: 1.4,
+    edgeMargin: 60,
+  },
+  /**
+   * Cipher's prey (prey: 'snail' in CharacterConfig): cone snails are confirmed solitary foragers,
+   * not schooling animals, so this has no cohesion/separation weight (each one is also placed as
+   * its own unique "school" in createHunt, which already zeroes schoolingSteer on its own — the
+   * weights below are set to 0 explicitly so that's not left to a side effect). Base speed is
+   * much slower than TUNING.fish: cone snails are slow benthic crawlers, not swimming fish.
+   */
+  snailPrey: {
+    baseSpeedMin: 16,
+    baseSpeedMax: 26,
+    fleeSpeedMultiplier: 1.6,
+    agility: 90,
+    wanderRate: 0.5,
+    schoolRadius: 0,
+    cohesionWeight: 0,
+    separationRadius: 0,
+    separationWeight: 0,
     edgeMargin: 60,
   },
   metabolic: {

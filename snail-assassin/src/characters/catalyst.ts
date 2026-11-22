@@ -12,6 +12,7 @@ export const CATALYST: CharacterConfig = {
   personality: 'Calculated, efficient, decisive.',
   specialization: 'Rapid neural disruption',
   threat: 'octopus',
+  prey: 'fish',
   speed: 50,
   palette: {
     shell: 0xd9a441,

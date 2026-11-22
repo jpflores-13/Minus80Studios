@@ -26,6 +26,12 @@ export const PALETTE = {
   fishA: 0xf2c94c,
   fishB: 0x8ec5e8,
   fishC: 0xf28c6a,
+  // Cipher's prey: generic wild cone snails (not any of the three playable species), scattered
+  // individually across the reef. Muted/earthy so they read as camouflaged, unlike the bright
+  // schooling reef fish above.
+  preySnailA: 0xbfa06a,
+  preySnailB: 0x9c8a66,
+  preySnailC: 0x7e8a6a,
   text: '#eef6f3',
   textDim: '#9fc0c8',
   textWarm: '#f3d9a4',
