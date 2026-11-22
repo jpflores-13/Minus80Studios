@@ -29,7 +29,10 @@ export class ScaleSelectScene extends Phaser.Scene {
           label: () =>
             `${info.name.toUpperCase()} — ${info.instrument}${best ? ` (best ${best.score})` : ''}`,
           help: `Specimens around ${info.approxSize}.`,
-          action: () => this.scene.start('OneDrop', { scaleId: id }),
+          action: () =>
+            id === 'molecular'
+              ? this.scene.start('Reconstruct')
+              : this.scene.start('OneDrop', { scaleId: id }),
         };
       }),
       width / 2,

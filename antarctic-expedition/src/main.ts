@@ -8,6 +8,8 @@ import { DiveScene } from './scenes/DiveScene';
 import { OneDropResultsScene } from './scenes/OneDropResultsScene';
 import { OneDropScene } from './scenes/OneDropScene';
 import { PauseScene } from './scenes/PauseScene';
+import { ReconstructRevealScene } from './scenes/ReconstructRevealScene';
+import { ReconstructScene } from './scenes/ReconstructScene';
 import { ScaleSelectScene } from './scenes/ScaleSelectScene';
 import { TitleScene } from './scenes/TitleScene';
 import { installTextScaling } from './ui/textScaling';
@@ -23,6 +25,8 @@ const game = new Phaser.Game(
     OneDropResultsScene,
     DiveScene,
     DiveResultsScene,
+    ReconstructScene,
+    ReconstructRevealScene,
     PauseScene,
   ]),
 );

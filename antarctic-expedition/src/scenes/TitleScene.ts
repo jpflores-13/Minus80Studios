@@ -36,13 +36,14 @@ export class TitleScene extends Phaser.Scene {
           action: () => this.scene.start('Dive', { nextScale: 'drop' }),
         },
         { label: () => 'ONE DROP (ARCADE)', action: () => this.scene.start('ScaleSelect') },
+        { label: () => 'RECONSTRUCT (ARCADE)', action: () => this.scene.start('Reconstruct') },
         { label: () => 'SOUND ON / OFF', action: () => void sound.toggleMute() },
         { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
       ],
       width / 2,
-      330,
+      310,
       560,
-      70,
+      62,
     );
     addCenteredText(
       this,
