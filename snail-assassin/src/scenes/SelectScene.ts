@@ -66,7 +66,7 @@ export class SelectScene extends Phaser.Scene {
     new Button(this, 70, height - 26, 110, 36, 'HOME', () => this.scene.start('Title'));
     CHARACTERS.forEach((c, i) => {
       const x = width / 2 + (i - this.index) * this.cardSpacing;
-      const card = this.buildCard(c, x, 92, this.cardW, height - 150);
+      const card = this.buildCard(c, x, 80, this.cardW, height - 118);
       this.cards.push(card);
     });
     this.highlight();
@@ -121,24 +121,31 @@ export class SelectScene extends Phaser.Scene {
         ease: 'Sine.easeInOut',
       });
     }
+    // Every block below is stacked off the real height of the one before it, so a longer
+    // tagline or weakness (Cipher's, especially) pushes the rest down instead of overlapping it.
+    let y = 118;
     const name = this.add
-      .text(0, 120, c.name, { ...TEXT_STYLES.title, fontSize: '38px', color: c.palette.ui })
+      .text(0, y, c.name, { ...TEXT_STYLES.title, fontSize: '38px', color: c.palette.ui })
       .setOrigin(0.5, 0);
+    y += name.height + 2;
     const sub = this.add
-      .text(0, 164, `${c.title}  ·  ${c.species}`, { ...TEXT_STYLES.small, fontStyle: 'italic' })
+      .text(0, y, `${c.title}  ·  ${c.species}`, { ...TEXT_STYLES.small, fontStyle: 'italic' })
       .setOrigin(0.5, 0);
+    y += sub.height + 8;
     const tagline = this.add
-      .text(0, 192, `“${c.tagline}”`, {
+      .text(0, y, `“${c.tagline}”`, {
         ...TEXT_STYLES.small,
         color: '#f3d9a4',
         align: 'center',
         ...wrap,
       })
       .setOrigin(0.5, 0);
+    y += tagline.height + 14;
+
     if (settings().largeText) {
       // Compact card for large text: names only. Full ability text is read aloud and on the hunt's help card.
       const compact = txt(
-        250,
+        y,
         [
           ...(Object.keys(KEYS) as (keyof typeof KEYS)[]).map(
             (slot) => `[${KEYS[slot]}] ${c.abilities[slot].label}`,
@@ -153,16 +160,18 @@ export class SelectScene extends Phaser.Scene {
       return container;
     }
 
-    const personality = txt(240, c.personality, { ...TEXT_STYLES.small, color: '#9fc0c8' });
+    const personality = txt(y, c.personality, { ...TEXT_STYLES.small, color: '#9fc0c8' });
+    y += personality.height + 14;
 
     const abilityLines = (Object.keys(KEYS) as (keyof typeof KEYS)[])
       .map((slot) => `[${KEYS[slot]}] ${c.abilities[slot].label}: ${c.abilities[slot].blurb}`)
       .join('\n');
-    const abilities = txt(272, abilityLines, {
+    const abilities = txt(y, abilityLines, {
       ...TEXT_STYLES.small,
       fontSize: '15px',
       lineSpacing: 4,
     });
+    y += abilities.height + 14;
 
     const attrs = (Object.keys(ATTRIBUTE_LABELS) as (keyof Attributes)[])
       .map(
@@ -170,15 +179,20 @@ export class SelectScene extends Phaser.Scene {
           `${ATTRIBUTE_LABELS[k].padEnd(8)} ${'●'.repeat(c.attributes[k])}${'○'.repeat(5 - c.attributes[k])}`,
       )
       .join('\n');
-    const attributes = this.add.text(left, 468, attrs, {
+    const attributes = this.add.text(left, y, attrs, {
       ...TEXT_STYLES.small,
       fontSize: '15px',
       fontFamily: 'monospace',
     });
-    const sw = txt(468, '', { ...TEXT_STYLES.small, fontSize: '14px' })
-      .setX(left + 170)
-      .setWordWrapWidth(w - 200)
-      .setText(`+ ${c.strengths.join('\n+ ')}\n− ${c.weaknesses.join('\n− ')}`);
+    y += attributes.height + 14;
+
+    // Full card width, not a half-width side column — a one-sentence weakness (Cipher's) needs
+    // the room, and stacking rather than overlapping a shorter block keeps both readable.
+    const sw = txt(y, `+ ${c.strengths.join('\n+ ')}\n− ${c.weaknesses.join('\n− ')}`, {
+      ...TEXT_STYLES.small,
+      fontSize: '14px',
+      lineSpacing: 3,
+    });
 
     container.add([frame, portrait, name, sub, tagline, personality, abilities, attributes, sw]);
     return container;
