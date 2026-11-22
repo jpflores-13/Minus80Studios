@@ -12,17 +12,19 @@ describe('character configs', () => {
     ]);
   });
 
-  it('the three launch characters are cone snails threatened by the octopus', () => {
+  it('the three launch characters are cone snails threatened by the octopus, hunting fish', () => {
     for (const c of CHARACTERS.filter((c) => c.id !== 'octopus')) {
       expect(c.species).toMatch(/^Conus [a-z]+$/);
       expect(c.threat).toBe('octopus');
+      expect(c.prey).toBe('fish');
     }
   });
 
-  it('the octopus is threatened by the shark', () => {
+  it('the octopus is threatened by the shark, and hunts cone snails instead of fish', () => {
     const octopus = CHARACTERS.find((c) => c.id === 'octopus')!;
     expect(octopus.species).toBe('Octopus bimaculoides');
     expect(octopus.threat).toBe('shark');
+    expect(octopus.prey).toBe('snail');
   });
 
   it.each(CHARACTERS.map((c) => [c.id, c] as const))('%s is valid', (_id, c) => {
