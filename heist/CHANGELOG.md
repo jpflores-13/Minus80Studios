@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Job 07, The Last Job, is now playable: the campaign's hardest job, solved by using the service
+  corridor to bypass the showroom's guards entirely rather than sneaking past them directly.
 - A "DID YOU KNOW?" science reveal with checked citations on cohesin loop extrusion, CTCF loop-anchor
   orientation, and direct biochemical observation of cohesin extruding DNA, reachable from the title screen.
 
