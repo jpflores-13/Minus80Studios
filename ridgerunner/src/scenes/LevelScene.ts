@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE, ZOOM } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { getLevel } from '../levels';
-import { tileVariant } from '../render/art';
+import { MOSS_ORIGIN_X, tileVariant } from '../render/art';
 import { halo } from '../render/backdrop';
 import { generateLevel } from '../systems/procedural';
 import { createGame, stepGame, type GameEvent, type GameState, type Input } from '../systems/game';
@@ -72,7 +72,10 @@ export class LevelScene extends Phaser.Scene {
       }
     this.destMarker = this.add.graphics().setDepth(1);
     this.haloFx = this.add.graphics().setDepth(3);
-    this.moss = this.add.image(s.moss.x, s.moss.y, 'moss-0').setDepth(4).setOrigin(0.56, 0.5);
+    this.moss = this.add
+      .image(s.moss.x, s.moss.y, 'moss-0')
+      .setDepth(4)
+      .setOrigin(MOSS_ORIGIN_X, 0.5);
     this.moteFx = this.add.graphics().setDepth(5);
     this.vignette = this.add.image(0, 0, 'vignette').setDepth(6).setScale(2.2);
     this.rainFx = this.add.graphics().setDepth(7).setScrollFactor(0);

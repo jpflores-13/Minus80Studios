@@ -29,33 +29,87 @@ export function tileVariant(kind: string, tx: number, ty: number, count: number)
   return i === 0 ? kind : `${kind}-${i}`;
 }
 
-/** Moss from above: a small elongated body, short legs, a speckled back, an animated tail. */
+/** Moss from above: a long, sinuous salamander body (not three stacked blobs), a distinctly
+ * wider head, four small splayed legs, and a tapering tail — cuter and warmer-toned than the
+ * old placeholder, still a code-drawn silhouette in the style of a Pacific Northwest woodland
+ * salamander (an Ensatina or Pacific giant salamander build, not a newt or a lizard; see
+ * docs/SCIENCE.md for what Moss's real-world counterpart, the Cascade torrent salamander,
+ * actually looks like — this is a gameplay-readable abstraction of that general body type, not
+ * a claim about its exact proportions). Faces +x (heading 0); origin sits near MOSS_ORIGIN_X.
+ */
 function drawMoss(g: Phaser.GameObjects.Graphics, step: number): void {
-  // a faint warm halo under the body gives it some presence against the forest floor
-  g.fillStyle(0xd9b27c, 0.18).fillEllipse(19, 16, 26, 16);
-  g.fillStyle(0x6b5a44, 1).fillEllipse(10, 16, 8, 5);
-  g.fillStyle(0x7a6850, 1).fillEllipse(20, 16, 18, 8);
-  g.fillStyle(0x8a7760, 1).fillEllipse(30, 16, 10, 7);
-  // a lighter dorsal stripe, the way a real salamander's back often catches more light
-  g.fillStyle(0x968268, 1).fillEllipse(20, 15, 15, 3);
-  g.fillStyle(0x4a3f30, 1);
+  const wig = step ? 1 : -1; // a gentle one-pixel undulation along the spine as it walks
+
+  // a soft warm halo under the body gives it presence against the forest floor
+  g.fillStyle(0xd9b27c, 0.16).fillEllipse(23, 14, 40, 20);
+
+  // the tail-to-head spine, drawn as a chain of overlapping circles that taper at the tail and
+  // widen gently into the body, so the silhouette reads as one long sinuous animal
+  const spine: [number, number, number][] = [
+    [3, 14, 1.6],
+    [6.5, 14 + wig * 0.6, 2.4],
+    [10, 14 - wig * 0.4, 3.2],
+    [14, 14 + wig * 0.5, 4],
+    [18.5, 14 - wig * 0.3, 4.6],
+    [23, 14 + wig * 0.3, 4.8],
+    [27.5, 14, 4.7],
+    [32, 14, 4.3],
+    [36, 14, 3.8],
+  ];
+  const BODY = 0x8a5a36;
+  const BODY_LIGHT = 0x9c6b42;
+  const BODY_DARK = 0x6e4529;
+  g.fillStyle(BODY, 1);
+  for (const [x, y, r] of spine) g.fillCircle(x, y, r);
+
+  // the head: a distinctly wider, rounder shape than the body, the clearest "salamander, not a
+  // blob" cue at this scale
+  g.fillStyle(BODY_LIGHT, 1).fillEllipse(40, 14, 11, 10);
+  g.fillStyle(BODY, 1).fillEllipse(38.5, 14, 7.6, 8.4);
+
+  // a lighter dorsal stripe catching the light along the spine, and a warm belly-side shadow
+  g.fillStyle(0xb98a52, 0.85).fillEllipse(22, 12.4, 28, 2.6);
+  g.fillStyle(BODY_DARK, 0.35).fillEllipse(22, 17, 30, 3.2);
+
+  // scattered darker speckles along the back, the way a real salamander's dorsal pattern breaks
+  // up its silhouette
+  g.fillStyle(BODY_DARK, 1);
   for (const [x, y] of [
-    [14, 13],
-    [18, 19],
-    [22, 13],
-    [26, 18],
-    [16, 16],
+    [10, 12.5],
+    [14.5, 16],
+    [19, 11.5],
+    [23.5, 16.5],
+    [28, 12],
+    [32.5, 16],
   ] as const)
-    g.fillCircle(x, y, 1.2);
-  const leg = step ? 2 : -2;
-  g.fillStyle(0x5a4a38, 1)
-    .fillRect(16 + leg, 20, 2, 4)
-    .fillRect(16 - leg, 10, 2, -4)
-    .fillRect(24 + leg, 20, 2, 4)
-    .fillRect(24 - leg, 10, 2, -4);
-  g.fillStyle(0x0c0f0c, 1).fillRect(33, 14, 1, 1).fillRect(33, 18, 1, 1);
-  g.fillStyle(0xd9b27c, 0.6).fillRect(33, 13, 1, 1).fillRect(33, 17, 1, 1);
+    g.fillCircle(x, y, 1.1);
+
+  // four small splayed legs: front pair tucked just behind the head, back pair mid-body, each
+  // drawn as a short outward-angled limb with a tiny rounded foot, animated in diagonal pairs
+  g.lineStyle(2, 0x5a4226, 1);
+  const legs: [number, number, number, number][] = [
+    // [attachX, attachY, footX, footY]
+    [34.5, 10.5, 37.5 + wig, 5.5], // front-left
+    [34.5, 17.5, 37.5 + wig, 22.5], // front-right
+    [19, 10.2, 15 - wig, 5], // back-left
+    [19, 17.8, 15 - wig, 23], // back-right
+  ];
+  for (const [ax, ay, fx, fy] of legs) {
+    g.lineBetween(ax, ay, fx, fy);
+    g.fillStyle(0x5a4226, 1).fillCircle(fx, fy, 1.4);
+  }
+
+  // big, expressive, cuter eyes near the top of the head, each with a tiny bright highlight
+  for (const ey of [11.2, 16.8]) {
+    g.fillStyle(0x1c1410, 1).fillCircle(42.5, ey, 2.1);
+    g.fillStyle(0xf5e9d6, 0.9).fillCircle(41.8, ey - 0.6, 0.7);
+  }
 }
+
+/** Fraction along the moss texture's width where its logical position (and rotation pivot)
+ * sits — near mid-body, slightly head-ward, matching how the collision circle in systems/game.ts
+ * tracks Moss's centre of mass rather than its visual nose. */
+export const MOSS_ORIGIN_X = 0.46;
 
 /** Forest floor: dithered ground, a sprinkle of grass blades and pebbles. Two variants. */
 function drawFloor(g: Phaser.GameObjects.Graphics, seed: number): void {
@@ -185,7 +239,7 @@ function drawBarrier(g: Phaser.GameObjects.Graphics, seed: number): void {
 }
 
 export function makeArt(scene: Phaser.Scene): void {
-  for (let step = 0; step < 2; step++) tex(scene, `moss-${step}`, 36, 32, (g) => drawMoss(g, step));
+  for (let step = 0; step < 2; step++) tex(scene, `moss-${step}`, 46, 28, (g) => drawMoss(g, step));
 
   tex(scene, 'tile-floor', 32, 32, (g) => drawFloor(g, 0));
   tex(scene, 'tile-floor-1', 32, 32, (g) => drawFloor(g, 1));
