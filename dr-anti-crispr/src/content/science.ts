@@ -32,6 +32,18 @@ export const ENDING_LINE = 'This battle isn’t entirely fictional.';
 export const DID_YOU_KNOW = 'DID YOU KNOW?';
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
 
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in ENDING_PAGES below, not a new claim.
+export const QUICK_FACTS = [
+  'Bacteria defend themselves from phages with CRISPR systems, a molecular immune system that uses proteins like Cas9 to cut invading DNA on sight.',
+  'Anti-CRISPR proteins jam a bacterium’s CRISPR defenses so a phage can survive. One, AcrIIA4, blocks Cas9 by mimicking the shape of DNA closely enough to occupy its binding site.',
+  'There’s no single anti-CRISPR “off switch”: each one only works against specific CRISPR machinery, which is the real reason no single weapon in this game works on every enemy.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 const PLACEHOLDER = '[To be written with the contributing scientist and reviewed before release.]';
 
 export const ENDING_PAGES: EndingPage[] = [

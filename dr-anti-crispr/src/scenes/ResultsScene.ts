@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { WEAPONS, WEAPON_ORDER } from '../content/arsenal';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { finalScore, type Mode, type World } from '../systems/world';
 import { announce } from '../ui/announce';
 import { Menu } from '../ui/Menu';
@@ -62,6 +63,13 @@ export class ResultsScene extends Phaser.Scene {
       ...TEXT_STYLES.hud,
       fontSize: '22px',
       lineSpacing: 8,
+    });
+    const fact = randomQuickFact(Math.floor(w.time * 1000) + sc.total);
+    addCenteredText(this, 580, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 160 },
+      align: 'center',
     });
     const again = () => this.scene.start('Battle', { mode: data.mode });
     new Menu(
