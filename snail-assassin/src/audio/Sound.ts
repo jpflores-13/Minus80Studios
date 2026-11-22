@@ -219,4 +219,5 @@ export const CHARACTER_PITCH: Record<string, number> = {
   catalyst: 1.25,
   atlas: 1,
   nightshade: 0.8,
+  blueshark: 0.9,
 };

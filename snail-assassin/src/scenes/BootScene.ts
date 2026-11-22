@@ -16,6 +16,9 @@ export class BootScene extends Phaser.Scene {
     for (const c of CHARACTERS) {
       if (c.id === 'octopus')
         this.makeTexture(`player-${c.id}`, 16, 16, (g) => drawOctopusPlayer(g, c));
+      // Glaucus is the same blue shark species that threatens Cipher, now playable: reuse that
+      // exact drawing rather than a second, slightly different shark (see docs/SCIENCE.md).
+      else if (c.id === 'blueshark') this.makeTexture(`player-${c.id}`, 20, 11, drawSharkThreat);
       else this.makeTexture(`player-${c.id}`, 16, 9, (g) => drawConeSnail(g, c as SnailCharacter));
     }
     const fishColors = [PALETTE.fishA, PALETTE.fishB, PALETTE.fishC];
@@ -27,9 +30,16 @@ export class BootScene extends Phaser.Scene {
     preySnailColors.forEach((color, i) =>
       this.makeTexture(`snailprey-${i}`, 7, 6, (g) => drawConeSnailPrey(g, color)),
     );
-    // Threat sprites: 'octopus' threatens the three snail characters, 'shark' threatens Cipher.
+    // Glaucus's prey: scattered individual squid (see src/systems/hunt.ts: prey: 'squid').
+    const preySquidColors = [PALETTE.preySquidA, PALETTE.preySquidB, PALETTE.preySquidC];
+    preySquidColors.forEach((color, i) =>
+      this.makeTexture(`squidprey-${i}`, 8, 6, (g) => drawSquidPrey(g, color)),
+    );
+    // Threat sprites: 'octopus' threatens the three snail characters, 'shark' threatens Cipher,
+    // 'orca' threatens Glaucus (drawn once, instantiated up to TUNING.orcaPod.size times).
     this.makeTexture('octopus', 16, 16, drawOctopusThreat);
     this.makeTexture('shark', 20, 11, drawSharkThreat);
+    this.makeTexture('orca', 30, 16, drawOrcaThreat);
     this.makeTexture('px', 1, 1, (g) => {
       g.fillStyle(0xffffff, 1);
       g.fillRect(0, 0, 1, 1);
@@ -42,8 +52,12 @@ export class BootScene extends Phaser.Scene {
       'snailprey-0',
       'snailprey-1',
       'snailprey-2',
+      'squidprey-0',
+      'squidprey-1',
+      'squidprey-2',
       'octopus',
       'shark',
+      'orca',
     ]) {
       outlineTexture(this, key);
     }
@@ -151,6 +165,20 @@ function drawConeSnailPrey(g: Phaser.GameObjects.Graphics, shell: number): void 
   g.fillRect(6, 2, 1, 2);
 }
 
+// Top-down squid prey facing right: tail fin trailing behind (left), torpedo mantle, trailing
+// tentacles ahead (right), matching the "front faces right" convention of the other prey
+// sprites. Generic (not identified to species), used only as Glaucus's scattered squid prey.
+function drawSquidPrey(g: Phaser.GameObjects.Graphics, color: number): void {
+  g.fillStyle(color, 1); // tail fin, pointed rearward (left)
+  g.fillTriangle(0, 3, 3, 0, 3, 6);
+  g.fillStyle(color, 1); // torpedo mantle
+  g.fillEllipse(4, 3, 4, 3.5);
+  g.fillStyle(0x10202a, 1); // eye
+  g.fillRect(5, 2, 1, 1);
+  g.fillStyle(color, 1); // trailing tentacles, ahead (to the right)
+  for (let i = 0; i < 3; i++) g.fillRect(6 + i, 2 + (i % 2), 1, 1);
+}
+
 // Top-down octopus threat: round mantle, two eyes, eight arms. Faces up; HuntScene rotates it by
 // heading + 90deg to match.
 function drawOctopusThreat(g: Phaser.GameObjects.Graphics): void {
@@ -191,4 +219,33 @@ function drawSharkThreat(g: Phaser.GameObjects.Graphics): void {
   for (let i = 0; i < 3; i++) g.fillRect(11 + i * 1.3, 3, 0.5, 4);
   g.fillStyle(0x10202a, 1); // eye
   g.fillRect(16, 4, 1, 1);
+}
+
+// Top-down orca threat facing right, drawn much larger than the shark it threatens (30x16 vs.
+// the shark's 20x11 — see HuntScene, where the player's scale is the same for every character,
+// so the size difference reads on screen). Iconic black-and-white coloring (saddle patch, eye
+// patch, pale belly), a rounded head with no pointed snout, a tall straight dorsal fin, and
+// horizontal tail flukes (cetacean, not the shark's vertical tail), so it reads as an orca
+// rather than a bigger shark. See docs/SCIENCE.md for the real pack-hunting behaviour this models.
+function drawOrcaThreat(g: Phaser.GameObjects.Graphics): void {
+  const black = 0x15181c;
+  const white = 0xeef6f3;
+  const grey = 0x6b7278;
+  g.fillStyle(black, 1); // main body, rounded head (no pointed snout, unlike the shark threat)
+  g.fillEllipse(15, 8, 24, 9);
+  g.fillStyle(white, 1); // pale belly
+  g.fillEllipse(14, 10.5, 16, 3);
+  g.fillStyle(white, 1); // saddle patch, just behind where the dorsal fin meets the body
+  g.fillEllipse(9, 6, 4, 2.2);
+  g.fillStyle(white, 1); // eye patch, above and behind the eye
+  g.fillEllipse(22, 6, 3, 1.6);
+  g.fillStyle(black, 1); // eye
+  g.fillRect(23, 6, 1, 1);
+  g.fillStyle(grey, 1); // tail flukes: horizontal, like a cetacean's, not vertical like a shark's
+  g.fillTriangle(0, 8, 5, 4, 5, 8);
+  g.fillTriangle(0, 8, 5, 12, 5, 8);
+  g.fillStyle(black, 1); // tall, straight dorsal fin — the single most recognisable orca feature
+  g.fillTriangle(11, 4, 13, 0, 16, 4);
+  g.fillStyle(black, 1); // pectoral fin, paddle-shaped (not pointed, unlike the shark's)
+  g.fillEllipse(17, 12, 5, 2);
 }

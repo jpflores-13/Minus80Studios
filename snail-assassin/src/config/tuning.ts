@@ -48,6 +48,27 @@ export const TUNING = {
     separationWeight: 0,
     edgeMargin: 60,
   },
+  /**
+   * The blue shark's prey (prey: 'squid' in CharacterConfig). Markaida & Sosa-Nishizaki 2010
+   * found the blue shark's cephalopod prey off Baja California was dominated by "non-active,
+   * gelatinous" meso- to bathypelagic squid, not fast schooling surface squid, so base speed is
+   * slow (slower than reef fish, a little faster than the benthic cone snails) and, like
+   * snailPrey, no cohesion/separation (placed as scattered individuals in createHunt — see
+   * docs/SCIENCE.md's open question on squid schooling before treating "no schooling" as settled
+   * for every squid species).
+   */
+  squidPrey: {
+    baseSpeedMin: 20,
+    baseSpeedMax: 34,
+    fleeSpeedMultiplier: 1.8,
+    agility: 100,
+    wanderRate: 0.7,
+    schoolRadius: 0,
+    cohesionWeight: 0,
+    separationRadius: 0,
+    separationWeight: 0,
+    edgeMargin: 60,
+  },
   metabolic: {
     /** Glucose state g ∈ [0,1]: dg/dt = −drop·I·g + recovery·(1−g)·(1−O). */
     dropRate: 0.4,
@@ -128,6 +149,38 @@ export const TUNING = {
     /** What a bite costs the octopus. */
     stunSeconds: 2,
     venomLost: 25,
+  },
+  orca: {
+    // Threatens the blue shark character. Same patrol/chase/grab/retreat shape as `predator` and
+    // `shark`, tuned for a bigger, more powerful animal: faster, and a much larger grab radius
+    // (see TUNING.orcaPod for the pack-coordination numbers, src/systems/predator.ts for the
+    // state machine, and docs/SCIENCE.md for the real orca pack-hunting behaviour this models).
+    patrolSpeed: 46,
+    chaseSpeed: 86,
+    agility: 130,
+    sightRadius: 220,
+    stillVisibility: 0.1,
+    gain: 1.4,
+    decay: 0.5,
+    chaseAbove: 0.55,
+    loseInterestBelow: 0.2,
+    grabRadius: 46,
+    retreatSeconds: 7,
+    /** What a hit costs the shark. */
+    stunSeconds: 2.5,
+    venomLost: 25,
+  },
+  /**
+   * The orca pod itself (see HuntState.pack, src/systems/predator.ts stepped once per member in
+   * src/systems/hunt.ts). `size` is the total pod including the one in HuntState.predator.
+   * `alertGain` is a pure gameplay abstraction for how fast a patrolling pod member is "called"
+   * toward the player once any packmate is chasing — it doesn't model a specific real signalling
+   * mechanism, only the documented fact that real orca pods hunt cooperatively and together
+   * (see docs/SCIENCE.md).
+   */
+  orcaPod: {
+    size: 3,
+    alertGain: 2.2,
   },
   capture: {
     /** Fish are catchable when vulnerability ≥ this. */

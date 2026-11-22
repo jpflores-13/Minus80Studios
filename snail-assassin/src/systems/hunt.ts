@@ -58,6 +58,12 @@ export interface HuntState {
   time: number;
   snail: { pos: Vec2; vel: Vec2; heading: number; stunned: number };
   predator: Predator;
+  /**
+   * Extra pod members when `character.threat === 'orca'` (empty otherwise). `predator` above is
+   * always the pod's first member, so `[predator, ...pack]` is the whole pod — see `TUNING.orcaPod`
+   * and the pack-coordination step in `stepHunt`.
+   */
+  pack: Predator[];
   fish: Fish[];
   clouds: Cloud[];
   tether: Tether | null;
@@ -117,8 +123,9 @@ export function createHunt(
   const rng = createRng(seed);
   const fish: Fish[] = [];
   const pt = preyTuning(character);
-  if (character.prey === 'snail') {
-    // Cone snails are confirmed solitary foragers (see docs/SCIENCE.md), so each one is its own
+  if (character.prey === 'snail' || character.prey === 'squid') {
+    // Cone snails are confirmed solitary foragers, and the blue shark's documented squid prey
+    // are mostly non-schooling deep-water species (see docs/SCIENCE.md), so each one is its own
     // "school" of one. schoolingSteer() then naturally has no one to cohere/separate with.
     const { scatteredPreyCount } = TUNING.hunt;
     for (let i = 0; i < scatteredPreyCount; i++) {
@@ -152,6 +159,10 @@ export function createHunt(
       stunned: 0,
     },
     predator: createPredator(arena, rng),
+    pack:
+      character.threat === 'orca'
+        ? Array.from({ length: TUNING.orcaPod.size - 1 }, () => createPredator(arena, rng))
+        : [],
     fish,
     clouds: [],
     tether: null,
@@ -233,12 +244,26 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
 
   events.push(...stepTether(state, dt));
 
-  // The threat (the octopus, or the shark when playing as the octopus).
+  // The threat: the octopus, the shark (when playing as the octopus), or the orca pod (when
+  // playing as the blue shark). `pack` is empty outside the orca tier, so this loop behaves
+  // exactly as a single threat for every other character.
   const threat = threatTuning(state.character);
-  const o = state.predator;
-  const wasChasing = o.mode === 'chase';
+  const pod = [state.predator, ...state.pack];
+  const wasChasing = pod.some((m) => m.mode === 'chase');
   const snailMotionNow = length(snail.vel) / state.character.speed;
-  const grabbed = stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt, threat);
+  let grabbed = false;
+  for (const m of pod) {
+    // Pack coordination: once any pod member is chasing, the others are alerted toward the
+    // player too, echoing the cooperative, coordinated hunting documented in real orca pods
+    // (see docs/SCIENCE.md) without claiming a specific signalling mechanism. A no-op for a
+    // lone threat, since there's nothing else in `pod` to alert.
+    if (wasChasing && m.mode === 'patrol') {
+      m.awareness = clamp(m.awareness + TUNING.orcaPod.alertGain * dt, 0, 1);
+    }
+    if (stepPredator(m, snail.pos, snailMotionNow, state.arena, state.rng, dt, threat))
+      grabbed = true;
+  }
+  const isChasingNow = pod.some((m) => m.mode === 'chase');
   if (grabbed && !state.options.relaxed) {
     snail.stunned = threat.stunSeconds;
     snail.vel = { x: 0, y: 0 };
@@ -246,7 +271,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
     if (state.tether) releaseTether(state, true);
     state.stats.timesGrabbed++;
     events.push({ type: 'grabbed' });
-  } else if (!wasChasing && o.mode === 'chase') {
+  } else if (!wasChasing && isChasingNow) {
     events.push({ type: 'predator-chase' });
   }
 
@@ -428,12 +453,16 @@ function startle(state: HuntState, at: Vec2, amount: number): void {
 
 /** Which threat tuning applies to this character (see CharacterConfig.threat). */
 export function threatTuning(character: CharacterConfig): PredatorTuning {
-  return character.threat === 'shark' ? TUNING.shark : TUNING.predator;
+  if (character.threat === 'shark') return TUNING.shark;
+  if (character.threat === 'orca') return TUNING.orca;
+  return TUNING.predator;
 }
 
 /** Which prey locomotion/schooling tuning applies to this character (see CharacterConfig.prey). */
 export function preyTuning(character: CharacterConfig): PreyTuning {
-  return character.prey === 'snail' ? TUNING.snailPrey : TUNING.fish;
+  if (character.prey === 'snail') return TUNING.snailPrey;
+  if (character.prey === 'squid') return TUNING.squidPrey;
+  return TUNING.fish;
 }
 
 /** A scattered individual's spot on the reef: spread widely, away from the snail's start edge. */

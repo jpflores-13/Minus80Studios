@@ -32,6 +32,12 @@ export const PALETTE = {
   preySnailA: 0xbfa06a,
   preySnailB: 0x9c8a66,
   preySnailC: 0x7e8a6a,
+  // The blue shark's prey: deep-water squid, scattered individually (see docs/SCIENCE.md).
+  // Reddish/maroon tones, like many meso- and bathypelagic cephalopods (less camouflage pressure
+  // in the deep, where red light barely penetrates).
+  preySquidA: 0x8a4a52,
+  preySquidB: 0x6e3a4a,
+  preySquidC: 0xa05a5a,
   text: '#eef6f3',
   textDim: '#9fc0c8',
   textWarm: '#f3d9a4',
