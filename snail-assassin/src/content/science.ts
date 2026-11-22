@@ -98,6 +98,31 @@ export const MEDICINE = {
   },
 };
 
+export const DID_YOU_KNOW = 'DID YOU KNOW?';
+
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in DISCOVERIES/MEDICINE above, not a new claim. Per character, so
+// the fact matches whichever assassin the player just hunted as.
+export const QUICK_FACTS: Record<CharacterConfig['id'], string[]> = {
+  catalyst: [
+    'The real cat cone fires its venomous harpoon in one of the fastest strikes recorded in the animal kingdom, then reels in the fish it tethers.',
+    'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
+  ],
+  atlas: [
+    'The real geography cone’s venom includes a specialised insulin that crashes a fish’s blood sugar, plus a hormone mimic that blocks its rescue response.',
+    'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
+  ],
+  nightshade: [
+    'The real tulip cone’s venom includes a molecule that, in lab tests with zebrafish larvae, dramatically slowed the fish’s ability to escape.',
+    'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
+  ],
+};
+
+export function randomQuickFact(characterId: CharacterConfig['id'], seed: number): string {
+  const facts = QUICK_FACTS[characterId];
+  return facts[Math.abs(seed) % facts.length] ?? facts[0]!;
+}
+
 export const DISCLAIMER =
   'Inspired by real biology. Gameplay abilities, kinetics, and physiological effects have been simplified for entertainment.';
 

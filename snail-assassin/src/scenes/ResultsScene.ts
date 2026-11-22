@@ -3,6 +3,7 @@ import { getCharacter } from '../characters';
 import { PALETTE, PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
 import { TUNING } from '../config/tuning';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { Button } from '../ui/Button';
 import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
@@ -62,6 +63,13 @@ export class ResultsScene extends Phaser.Scene {
       ].join('\n'),
       { ...TEXT_STYLES.body, align: 'center', lineSpacing: 10 },
     );
+
+    const fact = randomQuickFact(c.id, Math.floor(data.seconds * 1000) + data.captured);
+    addCenteredText(this, height * 0.72, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.hint,
+      wordWrap: { width: width - 200 },
+      align: 'center',
+    });
 
     new Button(
       this,
