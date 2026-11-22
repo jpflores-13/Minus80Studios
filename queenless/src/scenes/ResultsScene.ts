@@ -23,24 +23,32 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   create(data: { levelId?: string; queenlessMode?: boolean; colony: ColonyState }): void {
-    const { width } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.night);
     sound.stopSong();
     sound.playSong('title');
 
-    if (data.queenlessMode) this.showQueenless(data.colony);
-    else this.showCampaign(data.levelId ?? 'level-1', data.colony);
-
     const fact = randomQuickFact(Math.floor(data.colony.time * 1000));
-    addCenteredText(this, 500, `${DID_YOU_KNOW} ${fact}`, {
-      ...TEXT_STYLES.small,
-      color: PALETTE.textDim,
-      wordWrap: { width: width - 160 },
-      align: 'center',
-    });
+    if (data.queenlessMode) this.showQueenless(data.colony, fact);
+    else this.showCampaign(data.levelId ?? 'level-1', data.colony, fact);
   }
 
-  private showQueenless(colony: ColonyState): void {
+  // The "DID YOU KNOW?" line used to sit at a hardcoded y=500 no matter how many menu rows
+  // ended up below the stats block — which put it right on top of a button every time (the
+  // menu always has at least 3 rows, and row 3 always lands across y≈470-520). It's placed
+  // here instead, stacked off the stats block's own measured height, with the menu placed
+  // below IT in turn, so neither can land on the other regardless of how long either gets.
+  private factText(statsBottom: number, width: number, fact: string): Phaser.GameObjects.Text {
+    return this.add
+      .text(width / 2, statsBottom + 26, `${DID_YOU_KNOW} ${fact}`, {
+        ...TEXT_STYLES.small,
+        color: PALETTE.textDim,
+        wordWrap: { width: width - 160 },
+        align: 'center',
+      })
+      .setOrigin(0.5, 0);
+  }
+
+  private showQueenless(colony: ColonyState, fact: string): void {
     const { width } = this.scale;
     const avg = Math.round(averageHealth(colony));
     const seconds = Math.floor(colony.time);
@@ -62,12 +70,13 @@ export class ResultsScene extends Phaser.Scene {
       `Score               ${scoreVal}`,
       `Best so far         ${Math.max(scoreVal, old.score)}`,
     ];
-    this.add.text(width / 2 - 230, 220, lines.join('\n'), {
+    const linesText = this.add.text(width / 2 - 230, 220, lines.join('\n'), {
       ...TEXT_STYLES.small,
       fontSize: '22px',
       lineSpacing: 8,
       fontFamily: 'monospace',
     });
+    const fact1 = this.factText(linesText.getBounds().bottom, width, fact);
     announce(
       `The colony collapsed after ${seconds} seconds. Score ${scoreVal}. Press R to try again.`,
     );
@@ -83,14 +92,14 @@ export class ResultsScene extends Phaser.Scene {
         { label: () => 'TITLE', action: () => this.scene.start('Title') },
       ],
       width / 2,
-      360,
+      fact1.getBounds().bottom + 36,
       440,
       70,
       () => this.scene.start('Title'),
     );
   }
 
-  private showCampaign(levelId: string, colony: ColonyState): void {
+  private showCampaign(levelId: string, colony: ColonyState, fact: string): void {
     const { width } = this.scale;
     const level = getLevel(levelId);
     const avg = Math.round(averageHealth(colony));
@@ -116,12 +125,13 @@ export class ResultsScene extends Phaser.Scene {
       color: PALETTE.textGold,
     });
     const lines = [`Average health      ${avg}`, `Score               ${avg}`];
-    this.add.text(width / 2 - 200, 230, lines.join('\n'), {
+    const linesText = this.add.text(width / 2 - 200, 230, lines.join('\n'), {
       ...TEXT_STYLES.small,
       fontSize: '22px',
       lineSpacing: 8,
       fontFamily: 'monospace',
     });
+    const fact1 = this.factText(linesText.getBounds().bottom, width, fact);
     announce(
       `${stars > 0 ? `Level cleared, ${stars} stars.` : 'The colony struggled.'} Press R to try again.`,
     );
@@ -150,7 +160,7 @@ export class ResultsScene extends Phaser.Scene {
         { label: () => 'TITLE', action: () => this.scene.start('Title') },
       ],
       width / 2,
-      360,
+      fact1.getBounds().bottom + 30,
       460,
       66,
       () => this.scene.start('Title'),

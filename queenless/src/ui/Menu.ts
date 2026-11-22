@@ -23,6 +23,8 @@ export class Menu {
   private helpText: Phaser.GameObjects.Text;
   private readonly onKeydown: (e: KeyboardEvent) => void;
   private readonly onUpdate: () => void;
+  private readonly baseY: number;
+  private readonly rowGap: number;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -32,9 +34,14 @@ export class Menu {
     w: number,
     gap = 62,
     private readonly onBack?: () => void,
+    /** Button height. Only needed when a longer list has to fit a fixed-height canvas with a
+     *  gap still wide enough to keep adjacent buttons from touching. */
+    btnHeight = 50,
   ) {
+    this.baseY = y;
+    this.rowGap = gap;
     this.buttons = items.map((item, i) => {
-      const b = new Button(scene, x, y + i * gap, w, 50, item.label(), () => this.choose(i));
+      const b = new Button(scene, x, y + i * gap, w, btnHeight, item.label(), () => this.choose(i));
       if (item.enabled && !item.enabled()) b.setEnabled(false);
       b.bg.on('pointerover', () => this.focus(i, false));
       return b;
@@ -58,6 +65,13 @@ export class Menu {
     scene.events.on(Phaser.Scenes.Events.UPDATE, this.onUpdate);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => kb?.removeAllListeners());
     this.focus(0);
+  }
+
+  /** The lowest Y this menu can draw to, including the focused item's help line below the
+   *  last button — for a scene that stacks more content beneath the menu and needs to know
+   *  where it's safe to start, rather than guessing a constant that only fits today's items. */
+  get bottom(): number {
+    return this.baseY + this.items.length * this.rowGap + 28 + 24;
   }
 
   /** Tears this menu down without waiting for the scene to shut down, for a menu that's

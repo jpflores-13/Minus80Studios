@@ -80,26 +80,29 @@ export class EndingScene extends Phaser.Scene {
 
     const p = ENDING_PAGES[this.page - 2];
     if (p) {
-      add(
-        addCenteredText(this, 76, p.title.toUpperCase(), {
-          ...TEXT_STYLES.title,
-          fontSize: '34px',
-        }),
-      );
-      const bodyY = p.research ? height * 0.42 : height / 2;
-      add(
-        addCenteredText(this, bodyY, p.body.join('\n\n'), {
-          ...TEXT_STYLES.body,
-          align: 'center',
-          wordWrap: { width: 980 },
-          lineSpacing: 6,
-        }),
-      );
+      // Title, body and (sometimes) a research citation, each sized by its own real content —
+      // one page's body runs to four long paragraphs, another's to two short ones. Fixed
+      // fractions of the screen height (title at a constant Y, body at a constant 42%/50%,
+      // citation at a constant 74%) assumed a roughly constant body length; top-anchoring each
+      // block at the measured bottom of the one before it means a long page can't push its
+      // body up into the title above it or its citation down off the bottom of the screen.
+      const top = (y: number, text: string, style: Phaser.Types.GameObjects.Text.TextStyle) =>
+        this.add.text(width / 2, y, text, style).setOrigin(0.5, 0);
+
+      const titleText = top(76, p.title.toUpperCase(), { ...TEXT_STYLES.title, fontSize: '34px' });
+      add(titleText);
+      const bodyText = top(titleText.getBounds().bottom + 28, p.body.join('\n\n'), {
+        ...TEXT_STYLES.body,
+        align: 'center',
+        wordWrap: { width: 980 },
+        lineSpacing: 6,
+      });
+      add(bodyText);
       let spoken = `${p.title}. ${p.body.join(' ')}`;
       if (p.research?.length) {
         const refLines = p.research.map((r) => r.label).join('\n');
         add(
-          addCenteredText(this, height * 0.74, refLines, {
+          top(bodyText.getBounds().bottom + 24, refLines, {
             ...TEXT_STYLES.small,
             fontSize: '16px',
             color: PALETTE.textMoss,
