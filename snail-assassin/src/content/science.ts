@@ -114,20 +114,20 @@ export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
     },
   },
   shark: {
-    reveal: 'MEET THE REAL SHARK',
+    reveal: 'MEET THE REAL BLUE SHARK',
     text:
-      'In a lab test, the small-spotted catshark located and attacked a flatfish buried out of sight in sand, ' +
-      'guided only by the weak electric field the fish’s own body gives off; electrodes alone, buried with no fish ' +
-      'present, drew the same attack. Many shark species are documented predators of cephalopods, including the ' +
-      'open-ocean paper nautilus, a relative of the octopus, though not every hunt depends on electroreception.',
+      'Cipher’s threat is the blue shark (Prionace glauca), one of several shark species confirmed by ' +
+      'stomach-content studies to prey on cephalopods, including the open-ocean paper nautilus, a relative ' +
+      'of the octopus. Sharks carry electroreceptors, the ampullae of Lorenzini; in a related species, the ' +
+      'small-spotted catshark, that sense alone let it locate buried prey it could not see, hear, or smell.',
     research: [
-      {
-        label: 'Kalmijn 1971, Journal of Experimental Biology: electroreception in sharks',
-        url: 'https://pubmed.ncbi.nlm.nih.gov/5114029/',
-      },
       {
         label: 'Galván-Magaña et al. 2013, Deep-Sea Research Part II: sharks that eat cephalopods',
         url: 'https://doi.org/10.1016/j.dsr2.2013.04.002',
+      },
+      {
+        label: 'Kalmijn 1971, Journal of Experimental Biology: electroreception in sharks',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/5114029/',
       },
     ],
     explore: {
@@ -173,8 +173,8 @@ export const QUICK_FACTS: Record<DiscoveryId, string[]> = {
     'Once an octopus has its prey restrained, a venomous bite through its beak helps paralyse the catch so it stops struggling.',
   ],
   shark: [
-    'The real small-spotted catshark can locate prey it cannot see, hear, or smell, using electroreceptors that sense the prey’s own weak electric field.',
-    'Many shark species are documented predators of cephalopods, including the paper nautilus, a relative of the octopus.',
+    'Cipher’s threat is modeled on the blue shark, one of several shark species documented preying on cephalopods, including the paper nautilus, a relative of the octopus.',
+    'Sharks carry electroreceptors called the ampullae of Lorenzini; in a related species, the small-spotted catshark, that sense alone let it locate prey it could not see, hear, or smell.',
   ],
 };
 
