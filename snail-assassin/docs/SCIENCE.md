@@ -24,6 +24,10 @@ Labels: **Verified** = stated in a cited abstract · **Hypothesis** = proposed b
 | Bjørn-Yoshimoto 2025 | _Cone snail venom-inspired somatostatin receptor 4 (SSTR4) agonists as new drug leads for peripheral pain._ Sci Rep 15:42638            | https://doi.org/10.1038/s41598-025-26820-5          |
 | Himaya 2015          | _Comparative venomics reveals the complex prey capture strategy of the piscivorous cone snail Conus catus._ J Proteome Res 14:4372–4381 | https://doi.org/10.1021/acs.jproteome.5b00630       |
 | Schulz 2019          | _The high speed radular prey strike of a fish-hunting cone snail._ Curr Biol 29:R788–R789                                               | https://doi.org/10.1016/j.cub.2019.07.034           |
+| Bidel 2022           | _Octopus bimaculoides' arm recruitment and use during visually evoked prey capture._ Curr Biol 32:4727–4733.e3                          | https://pubmed.ncbi.nlm.nih.gov/36130600/           |
+| Gonçalves 2021       | _Cephalotoxins: a hotspot for marine bioprospecting?_ Front Mar Sci 8:647344                                                            | https://doi.org/10.3389/fmars.2021.647344           |
+| Galván-Magaña 2013   | _Shark predation on cephalopods in the Mexican and Ecuadorian Pacific Ocean._ Deep-Sea Res Part II 95:52–62                             | https://doi.org/10.1016/j.dsr2.2013.04.002          |
+| Kalmijn 1971         | _The electric sense of sharks and rays._ J Exp Biol 55:371–383                                                                          | https://pubmed.ncbi.nlm.nih.gov/5114029/            |
 
 ## Evidence table: implemented character (Atlas, _Conus geographus_)
 
@@ -37,6 +41,31 @@ Labels: **Verified** = stated in a cited abstract · **Hypothesis** = proposed b
 
 Catalyst (_C. catus_) and Nightshade (_C. tulipa_) rows are added in Milestones 3–4, after full-text review. Open
 questions are listed below.
+
+## Evidence table: the escalation level (playable octopus, chased by a shark)
+
+After the three-snail campaign, a short escalation level flips the roles: the player controls an octopus hunting
+reef fish, while a shark threatens the octopus the way the octopus threatens the snail in the main campaign. The
+character is _Octopus bimaculoides_ (California two-spot octopus); the threat's detection ability is based on a
+study of one specific, named shark species (below), not sharks in general.
+
+| Ability                          | Plain-language inspiration                                                                                                                              | Status                | Sources         | Intentional simplifications                                                                             |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| Pounce (primary)                 | Octopuses combine ambush stalking with a jet-propelled "pounce": the web spreads like a parachute and the arms engulf the prey on landing, with arm use that differs by prey type | Verified (behaviour)   | Bidel 2022       | One pounce, on a cooldown, reuses the game's existing aimed-strike mechanic; real arm recruitment is far more varied |
+| Paralytic Bite (secondary)       | A bite through the beak delivers posterior-salivary-gland toxins (cephalotoxins) that block muscles' electrical and mechanical responses, paralysing prey | Verified               | Gonçalves 2021   | Modeled on the game's existing "hold the catch still" mechanic; the real toxin needs a few seconds to act, the game effect is immediate; cephalotoxins are best characterized in other cephalopod species, not _O. bimaculoides_ specifically |
+| Draw to Mouth (capture)          | After the bite, the arms and suckers restrain and draw prey to the mouth                                                                                 | Verified (behaviour)   | Bidel 2022       | Reuses the game's existing tether/reel mechanic                                                          |
+| Shark: preys on cephalopods      | Several Pacific shark species, studied via stomach-content analysis, prey on cephalopods, including _Argonauta_ spp. (the paper nautilus, a pelagic relative of the octopus, not the benthic species depicted in the game's art) | Verified (abstract-level) | Galván-Magaña 2013 | The game's shark is a generic threat, not drawn to represent any one of the six species the study examined |
+| Shark: detects prey at close range | The small-spotted catshark (_Scyliorhinus canicula_), in captivity, located and attacked a flatfish buried under sand that it could not see, hear, or smell, using electroreceptors (the ampullae of Lorenzini) that sense the prey's own weak bioelectric field | Verified              | Kalmijn 1971     | Game abstraction: holding still reduces the shark's detection much less than it reduces the octopus-threat's detection in the main campaign, echoing that electroreception doesn't require motion to work — but the detection radius and the amount by which stillness still helps are tuned for play, not measured from the study (real electroreception in this experiment operated at short range, on the order of centimetres) |
+
+## Gameplay model: the escalation level (all **Abstraction** unless noted above)
+
+The octopus reuses the cone-snail hunt's existing systems and tuning shape (`src/config/tuning.ts`): venom (here,
+the octopus's own paralytic bite venom) with the same cost/cooldown/regen model, and a threat AI with the same
+patrol → chase → grab → retreat state machine as the octopus-vs-snail threat, parameterised separately as
+`TUNING.shark`. The ability kinds (`strike`, `lock`, `reel`) are the same ones Catalyst uses; only the labels,
+palette, and tuning numbers differ, matching the evidence table above.
+
+
 
 ## Gameplay model (all **Abstraction**)
 
@@ -71,12 +100,24 @@ otherwise. Fish flee with hysteresis.
 - Is there any evidence of a somatostatin-like override component in _C. tulipa_? (None assigned until confirmed.)
 - Ziconotide facts for the ending: verify the source species and approval details against an authoritative review.
 - Image sourcing: licensed photographs of each species (e.g., Wikimedia Commons, with per-file license checks).
+- Is _Argonauta_ (the paper nautilus) a fair stand-in for "octopus" when citing Galván-Magaña 2013? It is a true
+  octopus (order Octopoda, family Argonautidae), but a pelagic, shell-less-except-for-the-female-case species with
+  a very different ecology from the benthic _O. bimaculoides_/_O. vulgaris_ the rest of this section is based on.
+  Flagged in the evidence table above rather than glossed over.
+- The paralytic-bite ability is based on cephalotoxin research that is best characterized in other octopus and
+  cuttlefish species (see Gonçalves 2021), not confirmed specifically in _O. bimaculoides_. Treated as a
+  genus/class-level finding, not a species-specific one, until checked further.
+- Kalmijn 1971 demonstrated electroreception-based prey detection in one named species, the small-spotted catshark.
+  The game's shark threat is generic (no species named on screen) so as not to overstate which species this applies
+  to; it borrows the mechanism, not a claim about sharks in general or about shark predation on octopus specifically.
 
-## Predators (for the octopus)
+## Predators (for the octopus-vs-snail threat in the main campaign)
 
 The abstract of Dutertre 2014 mentions cephalopods (octopus and relatives) and fish as predators that cone snails
-defend themselves against. Cone snails that hunt other snails also eat cone snails. The game's octopus, and how it
-spots and chases the snail, are gameplay inventions.
+defend themselves against. It does not mention sharks. Cone snails that hunt other snails also eat cone snails. The
+game's octopus threat in the three-snail campaign, and how it spots and chases the snail, are gameplay inventions —
+this is unchanged by the real octopus prey-capture research added above for the separate escalation level, which
+documents how an octopus hunts fish, not how it would catch a cone snail.
 
 ## Links used in the game
 
@@ -90,6 +131,10 @@ PubMed and open-access pages are preferred because some publisher DOI pages bloc
 - https://doi.org/10.1038/s41467-024-50470-2 (Yeung 2024, open access)
 - https://doi.org/10.1038/s41598-019-54186-y (Dutt 2019, open access)
 - https://pubmed.ncbi.nlm.nih.gov/38779019/ (Lin et al. 2024, _A comprehensive review on ziconotide_, Heliyon; source for the ending's medicine screen)
+- https://pubmed.ncbi.nlm.nih.gov/36130600/ (Bidel et al. 2022, octopus arm recruitment during prey capture)
+- https://doi.org/10.3389/fmars.2021.647344 (Gonçalves & Costa 2021, open access, cephalotoxins review)
+- https://doi.org/10.1016/j.dsr2.2013.04.002 (Galván-Magaña et al. 2013, shark predation on cephalopods)
+- https://pubmed.ncbi.nlm.nih.gov/5114029/ (Kalmijn 1971, electroreception in sharks and rays)
 
 ## Pending documentation
 
