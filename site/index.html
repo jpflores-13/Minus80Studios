@@ -729,12 +729,17 @@
           aria-label="Pixel art: a small salamander crossing a narrow forested ridge between two separate mountain streams"
         >
           <rect width="160" height="90" fill="#0f1a16" />
+          <rect x="0" y="0" width="160" height="34" fill="#1c2f28" opacity="0.5" />
           <rect x="0" y="0" width="58" height="90" fill="#629bac" opacity="0.55" />
           <rect x="102" y="0" width="58" height="90" fill="#629bac" opacity="0.55" />
           <!-- the mountains each stream drains from -->
           <g fill="#4a5a5e" opacity="0.6">
             <polygon points="0,26 14,6 29,26" />
             <polygon points="131,30 146,8 160,30" />
+          </g>
+          <g fill="#5f7276" opacity="0.4">
+            <polygon points="18,26 26,14 36,26" />
+            <polygon points="124,30 134,16 146,30" />
           </g>
           <!-- a shimmer of current on each stream -->
           <g stroke="#cfe9f0" stroke-width="1" opacity="0.45">
@@ -751,20 +756,30 @@
           </g>
           <!-- the ridge: a band of darker forest floor between the two streams -->
           <rect x="58" y="0" width="44" height="90" fill="#14201a" />
+          <!-- moss patches on the forest floor, echoing the game's own tile art -->
+          <g fill="#3a4e33" opacity="0.6">
+            <circle cx="62" cy="48" r="3" />
+            <circle cx="96" cy="22" r="2.4" />
+            <circle cx="64" cy="70" r="2" />
+          </g>
           <!-- a scattering of firs along the ridge -->
           <g fill="#1c3328">
             <polygon points="66,30 71,18 76,30" />
             <polygon points="68,36 71,28 74,36" />
             <polygon points="84,74 90,60 96,74" />
             <polygon points="86,80 90,72 94,80" />
+            <polygon points="60,58 64,50 68,58" />
+            <polygon points="94,12 98,4 102,12" />
           </g>
           <g fill="#4a3f30">
             <rect x="64" y="52" width="3" height="3" />
             <rect x="90" y="44" width="3" height="3" />
             <rect x="72" y="66" width="3" height="3" />
           </g>
-          <!-- a firefly, drifting over the divide -->
+          <!-- fireflies, drifting over the divide -->
           <circle cx="94" cy="24" r="1.2" fill="#d9b27c" opacity="0.8" />
+          <circle cx="62" cy="62" r="1" fill="#d9b27c" opacity="0.6" />
+          <circle cx="88" cy="40" r="0.9" fill="#d9b27c" opacity="0.5" />
           <!-- Moss, crossing: a longer, sinuous body with a wider head and small splayed legs -->
           <g transform="translate(70 46)">
             <ellipse cx="3" cy="2" rx="5" ry="3" fill="#6b5a44" />
