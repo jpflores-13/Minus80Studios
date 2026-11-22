@@ -2,7 +2,28 @@
 
 ## [Unreleased]
 
+### Added
+
+- A small minimap in the HUD's top-right corner, covering the whole playable area (most of
+  which is off-screen at any one time behind the zoomed camera): every site, color-coded by
+  what it needs, every nestmate as a dot, the player picked out, and the camera's own current
+  view outlined on top.
+- Every level's intro text now shows on screen too, in a short non-blocking corner panel, not
+  just in the screen-reader-only announcement it always went to. Level 1's panel also includes
+  a short flower/brood-cell/debris/honeypot key, since it's the first thing a new player sees
+  before learning what any of those actually look like.
+- Visible on-screen confirmation, not just a screen-reader announcement, for Buzz Pulse's
+  result and the game's bigger moments (a disturbance, the queen leaving).
+
 ### Fixed
+
+- The "DID YOU KNOW?" line on every results screen sat at a fixed position regardless of how
+  many menu buttons ended up below the stats block, so it always overlapped one of them. The
+  title screen's menu (7-8 rows once Full Screen is available) ran its last couple of rows off
+  the bottom of the canvas entirely, past the point where they could be seen or clicked. A
+  research page on the "Did You Know?" screen could, for a long enough page, overlap its own
+  title or push its citation off the bottom of the screen. All three now size themselves off
+  their actual content instead of a guessed constant.
 
 - The player's own job never actually worked: walking onto a flower, brood cell, or debris pile
   did nothing, and nothing ever reached the honeypot, because `stepColony()` only ran the
