@@ -3,11 +3,13 @@ import { approach, clamp, length, normalize, type Vec2 } from '../utils/math';
 import type { Rng } from '../utils/rng';
 import type { Arena } from './fish';
 
-// An octopus patrols the reef. It spots the snail when the snail moves nearby,
-// chases it, and grabs it on contact. Holding still is how you stay hidden.
-// It doesn't end the hunt: a grab stuns the snail and costs venom.
+// A threat (the octopus, or the shark in the escalation level) patrols the reef. It spots the
+// player when they move nearby, chases, and grabs on contact. Holding still is how you stay
+// hidden, though how much it helps depends on the tuning (see TUNING.predator vs TUNING.shark).
+// It doesn't end the hunt: a grab stuns the player and costs venom.
 
 export type PredatorMode = 'patrol' | 'chase' | 'retreat';
+export type PredatorTuning = typeof TUNING.predator;
 
 export interface Predator {
   pos: Vec2;
@@ -32,7 +34,7 @@ export function createPredator(arena: Arena, rng: Rng): Predator {
   };
 }
 
-// Returns true on the frame the octopus grabs the snail.
+// Returns true on the frame the threat grabs the player.
 export function stepPredator(
   o: Predator,
   snailPos: Vec2,
@@ -40,8 +42,9 @@ export function stepPredator(
   arena: Arena,
   rng: Rng,
   dt: number,
+  tuning: PredatorTuning = TUNING.predator,
 ): boolean {
-  const p = TUNING.predator;
+  const p = tuning;
   const toSnail = { x: snailPos.x - o.pos.x, y: snailPos.y - o.pos.y };
   const dist = length(toSnail);
 

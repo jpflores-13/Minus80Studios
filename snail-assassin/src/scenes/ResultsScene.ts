@@ -42,7 +42,7 @@ export class ResultsScene extends Phaser.Scene {
       TEXT_STYLES.warm,
     );
 
-    this.add.image(width / 2, height * 0.4, `snail-${c.id}`).setScale(PIXEL * 1.6);
+    this.add.image(width / 2, height * 0.4, `player-${c.id}`).setScale(PIXEL * 1.6);
     (data.capturedSchools ?? []).forEach((school, i, all) => {
       const x = width / 2 + (i - (all.length - 1) / 2) * 60;
       const fish = this.add
@@ -64,12 +64,25 @@ export class ResultsScene extends Phaser.Scene {
       { ...TEXT_STYLES.body, align: 'center', lineSpacing: 10 },
     );
 
-    const fact = randomQuickFact(c.id, Math.floor(data.seconds * 1000) + data.captured);
-    addCenteredText(this, height * 0.72, `${DID_YOU_KNOW} ${fact}`, {
-      ...TEXT_STYLES.hint,
-      wordWrap: { width: width - 200 },
-      align: 'center',
-    });
+    const seedBase = Math.floor(data.seconds * 1000) + data.captured;
+    const fact = randomQuickFact(c.id, seedBase);
+    // Cipher's results screen also surfaces a fact about the shark that was hunting it. The
+    // three snails don't get an equivalent fact about their octopus threat, because that threat
+    // is a marked gameplay invention, not the real octopus biology cited for Cipher.
+    const threatFact = c.id === 'octopus' ? randomQuickFact('shark', seedBase + 1) : null;
+    addCenteredText(
+      this,
+      height * (threatFact ? 0.7 : 0.72),
+      [`${DID_YOU_KNOW} ${fact}`, threatFact ? `AND THE SHARK? ${threatFact}` : null]
+        .filter((line): line is string => line !== null)
+        .join('\n\n'),
+      {
+        ...TEXT_STYLES.hint,
+        wordWrap: { width: width - 200 },
+        align: 'center',
+        lineSpacing: 10,
+      },
+    );
 
     new Button(
       this,

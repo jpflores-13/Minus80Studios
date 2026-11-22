@@ -46,7 +46,7 @@ export class TitleScene extends Phaser.Scene {
 
     CHARACTERS.forEach((c, i) => {
       const snail = this.add
-        .image(width / 2 + (i - 1) * 140, height * 0.46, `snail-${c.id}`)
+        .image(width / 2 + (i - (CHARACTERS.length - 1) / 2) * 140, height * 0.46, `player-${c.id}`)
         .setScale(PIXEL * 1.3)
         .setAlpha(0);
       this.tweens.add({ targets: snail, alpha: 1, duration: 800, delay: 900 + i * 200 });

@@ -23,7 +23,7 @@ export interface Settings {
   volume: number;
   muted: boolean;
   reducedEffects: boolean;
-  /** No hunt timer, and the octopus never grabs. */
+  /** No hunt timer, and the current threat (octopus or shark) never grabs. */
   relaxed: boolean;
   /** All text 25% bigger. */
   largeText: boolean;

@@ -95,7 +95,7 @@ export class SettingsScene extends Phaser.Scene {
       },
       {
         label: () => `RELAXED MODE: ${onOff(settings().relaxed)}`,
-        help: 'No timer on the hunt, and the octopus never grabs you. Take as long as you like.',
+        help: 'No timer on the hunt, and the octopus or shark never grabs you. Take as long as you like.',
         activate: () => updateSettings({ relaxed: !settings().relaxed }),
       },
       {

@@ -31,6 +31,10 @@ export class SelectScene extends Phaser.Scene {
   private mode: 'hunt' | 'science' = 'hunt';
   private cards: Phaser.GameObjects.Container[] = [];
   private frames: Phaser.GameObjects.Rectangle[] = [];
+  // Cards slide so the selected one is always centered, a "windowed" carousel that scales to
+  // any roster size (today: three cone snails plus the octopus escalation level).
+  private readonly cardW = 400;
+  private readonly cardSpacing = this.cardW + 16;
 
   constructor() {
     super('Select');
@@ -55,15 +59,14 @@ export class SelectScene extends Phaser.Scene {
     addCenteredText(
       this,
       height - 26,
-      `← → or 1 2 3 choose · ENTER ${this.mode === 'hunt' ? 'hunt' : 'view'} · ESC back`,
+      `← → or 1–${CHARACTERS.length} choose · ENTER ${this.mode === 'hunt' ? 'hunt' : 'view'} · ESC back`,
       TEXT_STYLES.hint,
     );
 
     new Button(this, 70, height - 26, 110, 36, 'HOME', () => this.scene.start('Title'));
-    const cardW = 400;
     CHARACTERS.forEach((c, i) => {
-      const x = width / 2 + (i - 1) * (cardW + 16);
-      const card = this.buildCard(c, x, 92, cardW, height - 150);
+      const x = width / 2 + (i - this.index) * this.cardSpacing;
+      const card = this.buildCard(c, x, 92, this.cardW, height - 150);
       this.cards.push(card);
     });
     this.highlight();
@@ -76,6 +79,7 @@ export class SelectScene extends Phaser.Scene {
     kb?.on('keydown-ONE', () => this.pick(0));
     kb?.on('keydown-TWO', () => this.pick(1));
     kb?.on('keydown-THREE', () => this.pick(2));
+    kb?.on('keydown-FOUR', () => this.pick(3));
     kb?.on('keydown-ENTER', () => this.confirm());
     kb?.on('keydown-SPACE', () => this.confirm());
     kb?.on('keydown-ESC', () => this.scene.start('Title'));
@@ -106,7 +110,7 @@ export class SelectScene extends Phaser.Scene {
     const txt = (y: number, s: string, style: Phaser.Types.GameObjects.Text.TextStyle) =>
       this.add.text(left, y, s, { ...style, ...wrap });
 
-    const portrait = this.add.image(0, 70, `snail-${c.id}`).setScale(PIXEL * 2.2);
+    const portrait = this.add.image(0, 70, `player-${c.id}`).setScale(PIXEL * 2.2);
     if (!settings().reducedEffects) {
       this.tweens.add({
         targets: portrait,
@@ -202,10 +206,17 @@ export class SelectScene extends Phaser.Scene {
         `${c.name}, ${c.title}, ${c.species}. ${c.tagline} ${c.personality} ${abilities} Press Enter to choose. ${this.index + 1} of ${CHARACTERS.length}.`,
       );
     }
+    const { width } = this.scale;
     this.cards.forEach((card, i) => {
       const active = i === this.index;
       card.setAlpha(active ? 1 : 0.55);
       card.setScale(active ? 1 : 0.97);
+      this.tweens.add({
+        targets: card,
+        x: width / 2 + (i - this.index) * this.cardSpacing,
+        duration: 250,
+        ease: 'Sine.easeOut',
+      });
       this.frames[i]?.setStrokeStyle(
         active ? 4 : 2,
         CHARACTERS[i]!.palette.accent,

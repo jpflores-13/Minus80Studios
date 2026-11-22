@@ -68,7 +68,8 @@ export const TUNING = {
     hitStartle: 0.65,
   },
   predator: {
-    // Octopus. Faster than the snail when chasing, so holding still is the way out.
+    // Octopus (threatens the snail characters). Faster than the snail when chasing, so holding
+    // still is the way out.
     patrolSpeed: 35,
     chaseSpeed: 62,
     agility: 120,
@@ -83,6 +84,28 @@ export const TUNING = {
     retreatSeconds: 7,
     /** What a grab costs the snail. */
     stunSeconds: 2.5,
+    venomLost: 25,
+  },
+  shark: {
+    // Threatens the octopus character. Same patrol/chase/grab/retreat shape as `predator`
+    // (src/systems/predator.ts), tuned differently: faster, and stillVisibility is much higher
+    // because the real inspiration (Kalmijn 1971) is an electroreception sense that detects a
+    // prey animal's own bioelectric field at close range, not its motion. Holding still still
+    // helps here (the game only models detection falling off with distance, not a full
+    // electroreception model), just less than it does against the octopus threat.
+    patrolSpeed: 42,
+    chaseSpeed: 78,
+    agility: 140,
+    sightRadius: 210,
+    stillVisibility: 0.4,
+    gain: 1.5,
+    decay: 0.45,
+    chaseAbove: 0.55,
+    loseInterestBelow: 0.2,
+    grabRadius: 38,
+    retreatSeconds: 6,
+    /** What a bite costs the octopus. */
+    stunSeconds: 2,
     venomLost: 25,
   },
   capture: {

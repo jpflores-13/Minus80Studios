@@ -15,7 +15,7 @@ import { currentAt } from './current';
 import { createFish, dampen, stepFish, vulnerability, type Arena, type Fish } from './fish';
 import { expose } from './metabolic';
 import { stepVelocity } from './movement';
-import { createPredator, stepPredator, wrap, type Predator } from './predator';
+import { createPredator, stepPredator, wrap, type Predator, type PredatorTuning } from './predator';
 import { createVenom, refund, stepVenom, tryUse, type AbilitySlot, type VenomState } from './venom';
 
 // The hunt as plain data plus a step function. No Phaser in here, so whole hunts can run in tests.
@@ -96,7 +96,7 @@ export const NO_INPUT: HuntInput = {
 };
 
 export interface HuntOptions {
-  /** Relaxed mode: no time limit, and the octopus never grabs. */
+  /** Relaxed mode: no time limit, and the threat (octopus or shark) never grabs. */
   relaxed: boolean;
 }
 
@@ -153,11 +153,11 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   const events: HuntEvent[] = [];
   state.time += dt;
 
-  // Snail movement. Slower while reeling in prey; frozen while stunned by the octopus.
+  // Player movement. Slower while reeling in prey; frozen while stunned by the threat.
   const snail = state.snail;
   snail.stunned = Math.max(0, snail.stunned - dt);
   const reeling = state.tether?.reeling === true;
-  const params = { maxSpeed: state.character.snailSpeed * (reeling ? 0.3 : 1), ...TUNING.snail };
+  const params = { maxSpeed: state.character.speed * (reeling ? 0.3 : 1), ...TUNING.snail };
   const move = snail.stunned > 0 ? { x: 0, y: 0 } : input.move;
   snail.vel = stepVelocity(snail.vel, move, params, dt);
   snail.pos.x = wrap(snail.pos.x + snail.vel.x * dt, state.arena.width);
@@ -187,7 +187,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   state.clouds = state.clouds.filter((c) => c.age < c.life);
 
   // Fish: exposure from clouds, then behaviour.
-  const snailMotion = length(state.snail.vel) / state.character.snailSpeed;
+  const snailMotion = length(state.snail.vel) / state.character.speed;
   const bySchool = new Map<number, Fish[]>();
   for (const f of state.fish) bySchool.set(f.school, [...(bySchool.get(f.school) ?? []), f]);
   for (const f of state.fish) {
@@ -213,15 +213,16 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
 
   events.push(...stepTether(state, dt));
 
-  // The octopus.
+  // The threat (the octopus, or the shark when playing as the octopus).
+  const threat = threatTuning(state.character);
   const o = state.predator;
   const wasChasing = o.mode === 'chase';
-  const snailMotionNow = length(snail.vel) / state.character.snailSpeed;
-  const grabbed = stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt);
+  const snailMotionNow = length(snail.vel) / state.character.speed;
+  const grabbed = stepPredator(o, snail.pos, snailMotionNow, state.arena, state.rng, dt, threat);
   if (grabbed && !state.options.relaxed) {
-    snail.stunned = TUNING.predator.stunSeconds;
+    snail.stunned = threat.stunSeconds;
     snail.vel = { x: 0, y: 0 };
-    state.venom.reserve = Math.max(0, state.venom.reserve - TUNING.predator.venomLost);
+    state.venom.reserve = Math.max(0, state.venom.reserve - threat.venomLost);
     if (state.tether) releaseTether(state, true);
     state.stats.timesGrabbed++;
     events.push({ type: 'grabbed' });
@@ -403,6 +404,11 @@ function startle(state: HuntState, at: Vec2, amount: number): void {
       f.awareness = Math.max(f.awareness, amount * f.responsiveness);
     }
   }
+}
+
+/** Which threat tuning applies to this character (see CharacterConfig.threat). */
+export function threatTuning(character: CharacterConfig): PredatorTuning {
+  return character.threat === 'shark' ? TUNING.shark : TUNING.predator;
 }
 
 function clampToRange(from: Vec2, aim: Vec2, range: number): Vec2 {

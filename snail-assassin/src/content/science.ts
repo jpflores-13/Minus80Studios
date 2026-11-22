@@ -19,7 +19,15 @@ export interface Discovery {
 
 export const REVIEW_STATUS = 'Draft text: pending review by a cone snail researcher.';
 
-export const DISCOVERIES: Record<CharacterConfig['id'], Discovery> = {
+/**
+ * Ids with a Discovery entry: every playable character, plus 'shark' for the threat that hunts
+ * the octopus in the escalation level. The shark isn't a playable CharacterConfig (it's an AI
+ * threat, see src/systems/predator.ts and TUNING.shark), but it still gets a reveal, the same way
+ * the octopus's own research is shown while playing as Cipher. See DiscoveryScene's 'threat' step.
+ */
+export type DiscoveryId = CharacterConfig['id'] | 'shark';
+
+export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
   catalyst: {
     reveal: 'MEET THE REAL CATALYST',
     text:
@@ -83,6 +91,50 @@ export const DISCOVERIES: Record<CharacterConfig['id'], Discovery> = {
       url: 'https://doi.org/10.1038/s41598-019-54186-y',
     },
   },
+  octopus: {
+    reveal: 'MEET THE REAL CIPHER',
+    text:
+      'The California two-spot octopus combines patient ambush with a jet-propelled pounce: it spreads its web like ' +
+      'a parachute and wraps its arms around prey on landing, choosing which arms to use based on what it is ' +
+      'catching. Once restrained, a bite through its beak delivers paralysing venom from its salivary glands, so the ' +
+      'catch stops struggling before the octopus settles in to eat.',
+    research: [
+      {
+        label: 'Bidel et al. 2022, Current Biology: arm recruitment during prey capture',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/36130600/',
+      },
+      {
+        label: 'Gonçalves & Costa 2021, Frontiers in Marine Science: cephalotoxins',
+        url: 'https://doi.org/10.3389/fmars.2021.647344',
+      },
+    ],
+    explore: {
+      label: 'Gonçalves & Costa 2021 (open access): the paralytic venom in an octopus bite',
+      url: 'https://doi.org/10.3389/fmars.2021.647344',
+    },
+  },
+  shark: {
+    reveal: 'MEET THE REAL SHARK',
+    text:
+      'In a lab test, the small-spotted catshark located and attacked a flatfish buried out of sight in sand, ' +
+      'guided only by the weak electric field the fish’s own body gives off; electrodes alone, buried with no fish ' +
+      'present, drew the same attack. Many shark species are documented predators of cephalopods, including the ' +
+      'open-ocean paper nautilus, a relative of the octopus, though not every hunt depends on electroreception.',
+    research: [
+      {
+        label: 'Kalmijn 1971, Journal of Experimental Biology: electroreception in sharks',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/5114029/',
+      },
+      {
+        label: 'Galván-Magaña et al. 2013, Deep-Sea Research Part II: sharks that eat cephalopods',
+        url: 'https://doi.org/10.1016/j.dsr2.2013.04.002',
+      },
+    ],
+    explore: {
+      label: 'Kalmijn 1971: the shark that attacked a buried electrode like real prey',
+      url: 'https://pubmed.ncbi.nlm.nih.gov/5114029/',
+    },
+  },
 };
 
 export const MEDICINE = {
@@ -103,7 +155,7 @@ export const DID_YOU_KNOW = 'DID YOU KNOW?';
 // Short one-liners for the results screen, each a condensed restatement of a fact already
 // checked and cited in full in DISCOVERIES/MEDICINE above, not a new claim. Per character, so
 // the fact matches whichever assassin the player just hunted as.
-export const QUICK_FACTS: Record<CharacterConfig['id'], string[]> = {
+export const QUICK_FACTS: Record<DiscoveryId, string[]> = {
   catalyst: [
     'The real cat cone fires its venomous harpoon in one of the fastest strikes recorded in the animal kingdom, then reels in the fish it tethers.',
     'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
@@ -116,10 +168,18 @@ export const QUICK_FACTS: Record<CharacterConfig['id'], string[]> = {
     'The real tulip cone’s venom includes a molecule that, in lab tests with zebrafish larvae, dramatically slowed the fish’s ability to escape.',
     'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
   ],
+  octopus: [
+    'The real California two-spot octopus ambushes prey with a jet-propelled pounce, spreading its web like a parachute and wrapping its arms around the catch on landing.',
+    'Once an octopus has its prey restrained, a venomous bite through its beak helps paralyse the catch so it stops struggling.',
+  ],
+  shark: [
+    'The real small-spotted catshark can locate prey it cannot see, hear, or smell, using electroreceptors that sense the prey’s own weak electric field.',
+    'Many shark species are documented predators of cephalopods, including the paper nautilus, a relative of the octopus.',
+  ],
 };
 
-export function randomQuickFact(characterId: CharacterConfig['id'], seed: number): string {
-  const facts = QUICK_FACTS[characterId];
+export function randomQuickFact(id: DiscoveryId, seed: number): string {
+  const facts = QUICK_FACTS[id];
   return facts[Math.abs(seed) % facts.length] ?? facts[0]!;
 }
 

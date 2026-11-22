@@ -70,15 +70,20 @@ export interface Attributes {
 }
 
 export interface CharacterConfig {
-  id: 'catalyst' | 'atlas' | 'nightshade';
+  id: 'catalyst' | 'atlas' | 'nightshade' | 'octopus';
   name: string;
   species: string;
   commonName: string;
+  /** How the reveal screen names what the player was: "a real cone snail", "a real octopus". */
+  animalLabel: string;
   title: string;
   tagline: string;
   personality: string;
   specialization: string;
-  snailSpeed: number;
+  /** Which threat AI hunts this character, parameterised from TUNING (predator = the octopus, shark = TUNING.shark). */
+  threat: 'octopus' | 'shark';
+  /** Top swim speed of the player-controlled animal (px/s). */
+  speed: number;
   palette: {
     shell: number;
     pattern: number;

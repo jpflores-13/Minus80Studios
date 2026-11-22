@@ -41,8 +41,8 @@ export class HuntScene extends Phaser.Scene {
   private reef!: Reef;
   private hud!: Hud;
   private snail!: Phaser.GameObjects.Image;
-  private octopus!: Phaser.GameObjects.Image;
-  private octopusIcon!: Phaser.GameObjects.Text;
+  private threat!: Phaser.GameObjects.Image;
+  private threatIcon!: Phaser.GameObjects.Text;
   private fishSprites = new Map<number, Phaser.GameObjects.Image>();
   private fishIcons = new Map<number, Phaser.GameObjects.Text>();
   private fx!: Phaser.GameObjects.Graphics;
@@ -95,7 +95,7 @@ export class HuntScene extends Phaser.Scene {
       );
     }
     this.snail = this.add
-      .image(this.state.snail.pos.x, this.state.snail.pos.y, `snail-${this.character.id}`)
+      .image(this.state.snail.pos.x, this.state.snail.pos.y, `player-${this.character.id}`)
       .setScale(PIXEL)
       .setDepth(11);
 
@@ -120,12 +120,12 @@ export class HuntScene extends Phaser.Scene {
       this.character.palette.accent,
     );
     const o = this.state.predator;
-    this.octopus = this.add
-      .image(o.pos.x, o.pos.y, 'octopus')
+    this.threat = this.add
+      .image(o.pos.x, o.pos.y, this.character.threat)
       .setScale(PIXEL)
       .setDepth(11)
       .setVisible(!settings().relaxed);
-    this.octopusIcon = this.add
+    this.threatIcon = this.add
       .text(o.pos.x, o.pos.y, '', { ...TEXT_STYLES.hud, color: '#ffb3c1' })
       .setOrigin(0.5)
       .setDepth(12);
@@ -207,11 +207,13 @@ export class HuntScene extends Phaser.Scene {
     return [
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
       ...lines,
-      'Watch out for the octopus: it spots you when you move. Hold still to hide.',
+      `Watch out for the ${c.threat}: it spots you when you move. Hold still to hide.`,
       this.touch
         ? 'Touch: use MOVE (bottom left) or press and hold on the reef to crawl there · quick tap to aim · buttons on the right'
         : `Move ${['up', 'left', 'down', 'right'].map((a) => keyLabel(settings().keys[a as 'up'])).join('')} / arrows · aim with the mouse · Pause ${keyLabel(settings().keys.pause)} · Restart R · Help H · Mute M`,
-      settings().relaxed ? 'Relaxed mode: no timer, and the octopus won’t grab you.' : '',
+      settings().relaxed
+        ? `Relaxed mode: no timer, and the ${this.character.threat} won’t grab you.`
+        : '',
       settings().assist
         ? 'Assist is on: abilities aim themselves and capture happens on its own.'
         : '',
@@ -299,12 +301,15 @@ export class HuntScene extends Phaser.Scene {
       case 'predator-chase':
         if (this.state.options.relaxed) break;
         this.sfx('warn');
-        this.hud.say('An octopus spotted you! Hold still or get away.', 2500);
+        this.hud.say(`A ${this.character.threat} spotted you! Hold still or get away.`, 2500);
         break;
       case 'grabbed':
         this.sfx('grab');
         if (!settings().reducedEffects) this.cameras.main.shake(250, 0.006);
-        this.hud.say('Grabbed by the octopus! Stunned, and you lost some venom.', 2500);
+        this.hud.say(
+          `Grabbed by the ${this.character.threat}! Stunned, and you lost some venom.`,
+          2500,
+        );
         break;
       case 'won':
       case 'lost':
@@ -324,9 +329,12 @@ export class HuntScene extends Phaser.Scene {
     this.snail.setPosition(s.snail.pos.x, s.snail.pos.y).setRotation(s.snail.heading);
     this.snail.setAlpha(s.snail.stunned > 0 && Math.floor(time / 120) % 2 === 0 ? 0.4 : 1);
     const o = s.predator;
-    this.octopus.setPosition(o.pos.x, o.pos.y).setRotation(o.heading + Math.PI / 2);
-    this.octopus.setAlpha(o.mode === 'retreat' ? 0.6 : 1);
-    this.octopusIcon
+    // The octopus threat sprite is drawn facing "up"; the shark, like the player sprites, faces
+    // right, so only the octopus needs the extra quarter turn.
+    const threatRotationOffset = this.character.threat === 'shark' ? 0 : Math.PI / 2;
+    this.threat.setPosition(o.pos.x, o.pos.y).setRotation(o.heading + threatRotationOffset);
+    this.threat.setAlpha(o.mode === 'retreat' ? 0.6 : 1);
+    this.threatIcon
       .setPosition(o.pos.x, o.pos.y - 34)
       .setText(o.mode === 'chase' ? '!!' : o.awareness > 0.3 ? '?' : '');
 

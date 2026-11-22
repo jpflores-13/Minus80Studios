@@ -21,12 +21,20 @@ export interface DiscoveryData {
   mode?: 'ending' | 'gallery';
 }
 
-type Step = 'reveal' | 'meet' | 'discovery' | 'medicine' | 'more';
-const STEPS: Step[] = ['reveal', 'meet', 'discovery', 'medicine', 'more'];
+type Step = 'reveal' | 'meet' | 'discovery' | 'threat' | 'medicine' | 'more';
+// Cipher (the octopus) gets an extra step: a reveal about the shark that was hunting it, right
+// after its own discovery. The three cone snails don't, because the main campaign's octopus
+// threat is a marked gameplay invention, not modeled on the research shown here (see
+// docs/SCIENCE.md, "Predators (for the octopus-vs-snail threat in the main campaign)").
+const stepsFor = (characterId: string): Step[] =>
+  characterId === 'octopus'
+    ? ['reveal', 'meet', 'discovery', 'threat', 'medicine', 'more']
+    : ['reveal', 'meet', 'discovery', 'medicine', 'more'];
 
 // The "Did you know?" ending. Space/Enter/click moves on, Esc jumps to the last screen.
 export class DiscoveryScene extends Phaser.Scene {
   private character!: CharacterConfig;
+  private steps: Step[] = [];
   private step = 0;
   private layer!: Phaser.GameObjects.Container;
   private buttons: Button[] = [];
@@ -38,6 +46,7 @@ export class DiscoveryScene extends Phaser.Scene {
 
   create(data: DiscoveryData): void {
     this.character = getCharacter(data.characterId ?? 'atlas');
+    this.steps = stepsFor(this.character.id);
     this.step = 0;
     this.buttons = [];
     this.cameras.main.setBackgroundColor(0x02070c);
@@ -56,10 +65,10 @@ export class DiscoveryScene extends Phaser.Scene {
     kb?.on('keydown-SPACE', () => this.next());
     kb?.on('keydown-ENTER', () => this.next());
     kb?.on('keydown-RIGHT', () => this.next());
-    kb?.on('keydown-ESC', () => this.show(STEPS.length - 1));
+    kb?.on('keydown-ESC', () => this.show(this.steps.length - 1));
     kb?.on('keydown', (e: KeyboardEvent) => {
       const n = Number(e.key);
-      if (STEPS[this.step] === 'more' && n >= 1 && n <= this.buttons.length)
+      if (this.steps[this.step] === 'more' && n >= 1 && n <= this.buttons.length)
         this.buttons[n - 1]?.press();
     });
     this.input.on('pointerdown', (_p: Phaser.Input.Pointer, over: unknown[]) => {
@@ -87,7 +96,7 @@ export class DiscoveryScene extends Phaser.Scene {
   }
 
   private next(): void {
-    if (this.step < STEPS.length - 1) this.show(this.step + 1);
+    if (this.step < this.steps.length - 1) this.show(this.step + 1);
   }
 
   private show(i: number): void {
@@ -96,7 +105,7 @@ export class DiscoveryScene extends Phaser.Scene {
     this.buttons.forEach((b) => b.destroy());
     this.buttons = [];
     this.autoTimer?.remove();
-    const step = STEPS[i]!;
+    const step = this.steps[i]!;
     this.cameras.main.fadeIn(450);
     this[step]();
     if (step === 'more') {
@@ -110,6 +119,7 @@ export class DiscoveryScene extends Phaser.Scene {
       reveal: 2600,
       meet: 4500,
       discovery: 11000,
+      threat: 9000,
       medicine: 9000,
       more: 0,
     };
@@ -143,7 +153,7 @@ export class DiscoveryScene extends Phaser.Scene {
     const d = DISCOVERIES[c.id];
     const glow = this.add.circle(width / 2, height * 0.42, 150, c.palette.accent, 0.08);
     const sprite = this.add
-      .image(width / 2, height * 0.42, `snail-${c.id}`)
+      .image(width / 2, height * 0.42, `player-${c.id}`)
       .setScale(PIXEL)
       .setAlpha(0.9);
     this.layer.add([glow, sprite]);
@@ -159,7 +169,7 @@ export class DiscoveryScene extends Phaser.Scene {
       fontSize: '40px',
       fontStyle: 'italic',
     });
-    this.text(height * 0.78, `${c.commonName} · a real cone snail`, TEXT_STYLES.warm);
+    this.text(height * 0.78, `${c.commonName} · ${c.animalLabel}`, TEXT_STYLES.warm);
     this.text(height * 0.86, ILLUSTRATION_NOTE, TEXT_STYLES.hint);
   }
 
@@ -181,6 +191,25 @@ export class DiscoveryScene extends Phaser.Scene {
       wordWrap: { width: width * 0.68 },
     });
     if (c.id === 'atlas') this.atlasAnimation(height * 0.7);
+    this.text(height * 0.86, REVIEW_STATUS, TEXT_STYLES.hint);
+  }
+
+  /** Sequence C.2 (Cipher only): the real science behind the shark that was hunting the player. */
+  private threat(): void {
+    const { width, height } = this.scale;
+    const d = DISCOVERIES.shark;
+    this.text(height * 0.14, 'And the shark that was hunting you?', {
+      ...TEXT_STYLES.title,
+      fontSize: '36px',
+      color: '#9fc0c8',
+    });
+    this.text(height * 0.42, d.text, {
+      ...TEXT_STYLES.body,
+      fontSize: '27px',
+      align: 'center',
+      lineSpacing: 10,
+      wordWrap: { width: width * 0.68 },
+    });
     this.text(height * 0.86, REVIEW_STATUS, TEXT_STYLES.hint);
   }
 
@@ -224,6 +253,8 @@ export class DiscoveryScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const c = this.character;
     const d = DISCOVERIES[c.id];
+    // Cipher's "more" screen also links the shark's own research, since the player just met it.
+    const shark = c.id === 'octopus' ? DISCOVERIES.shark : null;
     const accent = c.palette.accent;
     this.text(height * 0.08, `${c.name} · ${c.species}`, {
       ...TEXT_STYLES.hud,
@@ -231,19 +262,23 @@ export class DiscoveryScene extends Phaser.Scene {
     });
 
     const open = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
-    this.buttons.push(
-      new Button(
-        this,
-        width / 2 - 250,
-        height * 0.2,
-        460,
-        52,
-        'EXPLORE THE REAL SCIENCE',
-        () => open(d.explore.url),
-        accent,
+    const exploreLinks = shark ? [d.explore, shark.explore] : [d.explore];
+    exploreLinks.forEach((ref, i) =>
+      this.buttons.push(
+        new Button(
+          this,
+          width / 2 - 250,
+          height * 0.2 + i * 62,
+          460,
+          52,
+          i === 0 ? 'EXPLORE THE REAL SCIENCE' : 'EXPLORE: THE SHARK',
+          () => open(ref.url),
+          accent,
+        ),
       ),
     );
-    d.research.forEach((r, i) =>
+    const research = shark ? [...d.research, ...shark.research] : d.research;
+    research.forEach((r, i) =>
       this.buttons.push(
         new Button(
           this,
@@ -257,7 +292,7 @@ export class DiscoveryScene extends Phaser.Scene {
         ),
       ),
     );
-    const row = height * 0.48;
+    const row = height * (shark ? 0.56 : 0.48);
     this.buttons.push(
       new Button(
         this,
