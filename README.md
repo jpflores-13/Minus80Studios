@@ -11,6 +11,7 @@
 | [`dr-anti-crispr/`](dr-anti-crispr/) | **DR. ANTI-CRISPR**: a portrait arcade survival shooter                                        | 8085     |
 | [`starstruck/`](starstruck/)         | **STARSTRUCK.**: sensory exploration arcade (prototype)                                        | 8083     |
 | [`heist/`](heist/)                   | **HEIST.**: a stealth-action puzzle game (prototype)                                           | 8086     |
+| [`ridgerunner/`](ridgerunner/)       | **RIDGERUNNER.**: exploration and survival as a salamander crossing watersheds                | 8088     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 
