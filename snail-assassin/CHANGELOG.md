@@ -15,19 +15,24 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 - **Escalation level: Glaucus, the playable blue shark** (_Prionace glauca_) — the same blue shark that hunted
   Cipher is now playable. After Cipher's level, reachable from the same "Choose Your Assassin" screen: Pursuit
-  Strike (close in and strike one squid), Crushing Bite (stop it from jetting away), and Swallow Whole (pull the
-  catch in). Glaucus hunts squid scattered individually in open water — blue sharks are major, well-documented
-  predators of squid and other cephalopods — while a **pod of orcas** hunts Glaucus in turn: several threats
-  coordinating instead of one, drawn much bigger than the player. Once any pod member spots the player, the rest
-  are alerted toward them too, echoing the real, documented fact that orca pods hunt cooperatively (orcas are
-  documented repeatedly, cooperatively hunting juvenile whale sharks and, via genetic evidence, a white shark —
-  not the blue shark specifically; the game says so plainly rather than overclaiming). "Did you know?" gets an
-  extra step for Glaucus revealing the real science behind the orca pod, and the results screen shows a fact about
-  both. See docs/SCIENCE.md for the citations behind every ability and behaviour.
+  (give chase: lock onto the nearest squid and swim hard at it for a few seconds, no aiming), Burst (a short extra
+  push of speed that buys more time on a chase already underway), and Swallow Whole (pull the catch in). Unlike
+  every other character, Glaucus never aims a cursor at anything — closing the distance before the chase window
+  runs out is the whole challenge, echoing real telemetry showing blue shark swimming speed is far from constant.
+  Glaucus hunts squid scattered individually in open water — blue sharks are major, well-documented predators of
+  squid and other cephalopods — while a **pod of orcas** hunts Glaucus in turn: several threats coordinating
+  instead of one, drawn much bigger than the player. Once any pod member spots the player, the rest are alerted
+  toward them too, echoing the real, documented fact that orca pods hunt cooperatively (orcas are documented
+  repeatedly, cooperatively hunting juvenile whale sharks and, via genetic evidence, a white shark — not the blue
+  shark specifically; the game says so plainly rather than overclaiming). "Did you know?" gets an extra step for
+  Glaucus revealing the real science behind the orca pod, and the results screen shows a fact about both. See
+  docs/SCIENCE.md for the citations behind every ability and behaviour.
 
 - **Escalation level: Cipher, the playable octopus** (_Octopus bimaculoides_). After the three-snail campaign,
-  reachable from the same "Choose Your Assassin" screen: Pounce (an ambush strike that pins one cone snail),
-  Paralytic Bite (keeps the catch from escaping), and Draw to Mouth (pull the catch in). Cipher hunts cone snails
+  reachable from the same "Choose Your Assassin" screen: Camouflage (a timed stealth window that slows Cipher down
+  but makes the shark barely notice it moving), Pounce (a synchronous ambush strike that restrains its catch the
+  instant it lands — no separate hold-still step), and Draw to Mouth (pull the catch in). Camouflage ends the
+  moment Cipher pounces, win or miss, so there's a real decision in when to break cover. Cipher hunts cone snails
   scattered individually across the reef, not schooling fish — cone snails are solitary foragers, so they're placed
   as scattered individuals rather than reusing the three-snail campaign's fish-school spawner. A blue shark
   (_Prionace glauca_) now plays the octopus's old role as the threat that hunts the player, with its own tuning:
@@ -52,6 +57,9 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Changed
 
+- Cipher's and Glaucus's abilities no longer share the same aim/lock/reel skeleton as the cone snails. Each now has
+  a core mechanic grounded in how that animal actually hunts (see the two bullets above and docs/SCIENCE.md) instead
+  of the same three-step combo with different flavor text.
 - The ending is now called "Did you know?".
 
 ## [0.3.0] - 2026-11-19
