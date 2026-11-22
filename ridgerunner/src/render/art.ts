@@ -186,7 +186,10 @@ function drawStream(g: Phaser.GameObjects.Graphics, frame: number): void {
   g.fillStyle(0xe9f4f7, frame === 0 ? 0.35 : 0.2).fillCircle(6 + off * 0.3, 16, 2);
 }
 
-/** A fallen log: bark grain, cut-end rings, and a sunlit edge. */
+/** A fallen log: bark grain, cut-end rings, a sunlit edge, and a couple of tiny pale-green
+ * seedling sprouts along the top. Fallen, decaying logs like this are where a good share of
+ * new conifer growth in Pacific Northwest old-growth forest actually starts — a real "nurse
+ * log" (see docs/SCIENCE.md). */
 function drawLog(g: Phaser.GameObjects.Graphics, seed: number): void {
   g.fillStyle(PALETTE.terracotta, 1).fillRect(0, 0, 32, 32);
   g.fillStyle(0x6a4228, 1).fillRect(0, 10, 32, 12);
@@ -195,6 +198,13 @@ function drawLog(g: Phaser.GameObjects.Graphics, seed: number): void {
   for (let x = 2; x < 32; x += 6) g.lineBetween(x + (seed % 3), 12, x + (seed % 3) - 2, 20);
   g.lineStyle(1, 0xc08a5a, 0.5).lineBetween(0, 12, 32, 12);
   g.fillStyle(0x3d6b4f, 0.5).fillRect(2, 2, 6, 3).fillRect(22, 26, 6, 3);
+  const sprout = seed === 0 ? 9 : 20;
+  g.lineStyle(1, 0x5f9158, 0.9)
+    .lineBetween(sprout, 10, sprout, 6)
+    .lineBetween(sprout + 3, 10, sprout + 3, 7);
+  g.fillStyle(0x6fae63, 0.9)
+    .fillCircle(sprout, 6, 1)
+    .fillCircle(sprout + 3, 7, 0.8);
 }
 
 /** A sunlit clearing: warm ground, scattered pebbles and dry grass. */
@@ -238,6 +248,233 @@ function drawBarrier(g: Phaser.GameObjects.Graphics, seed: number): void {
   }
 }
 
+// --- Per-level biome set-dressing ------------------------------------------------------------
+// Each hand-built level's visual environment is grounded in a real Pacific Northwest setting
+// (see docs/SCIENCE.md, "Backdrop / set-dressing notes", for exactly what's verified vs. a
+// labelled stylistic choice per biome below). Streams, moisture rules and the barrier shape stay
+// the same everywhere; only decorative texture detail changes by biome.
+
+/** A small fern frond: three to four short angled blades off a stem, the way sword fern reads
+ * at this scale. Grounded: western sword fern (Polystichum munitum) is one of the most common
+ * understory plants in westside Pacific Northwest conifer forests (see docs/SCIENCE.md). */
+function fern(g: Phaser.GameObjects.Graphics, x: number, y: number, color: number): void {
+  g.lineStyle(1, color, 0.85);
+  for (const [dx, dy] of [
+    [-3, -2],
+    [-1, -3],
+    [1, -3],
+    [3, -2],
+  ] as const)
+    g.lineBetween(x, y, x + dx, y + dy);
+}
+
+/** Headwater forest floor (levels 1-2): the base forest floor plus sword-fern fronds in the
+ * shaded understory. */
+function drawFloorHeadwater(g: Phaser.GameObjects.Graphics, seed: number): void {
+  drawFloor(g, seed);
+  const spots =
+    seed === 0
+      ? [
+          [12, 18],
+          [25, 6],
+        ]
+      : [
+          [4, 12],
+          [20, 25],
+        ];
+  for (const [x, y] of spots as [number, number][]) fern(g, x, y, 0x3d6b4f);
+}
+
+/** End of the Line's upland floor: drier, paler humus with scattered leaf litter instead of
+ * ferns — the ground past where the stream network reaches. A stylistic choice (the game does
+ * not claim a specific measured moisture gradient here), not a cited fact. */
+function drawFloorUpland(g: Phaser.GameObjects.Graphics, seed: number): void {
+  g.fillStyle(0x2c3f2e, 1).fillRect(0, 0, 32, 32);
+  for (let i = 0; i < 20; i++) {
+    const x = Math.floor(hash(seed + 5, i) * 32);
+    const y = Math.floor(hash(seed + 55, i) * 32);
+    g.fillStyle(hash(seed + 92, i) > 0.5 ? 0x4a4530 : 0x3a3826, 0.6).fillRect(x, y, 2, 2);
+  }
+  const litter =
+    seed === 0
+      ? [
+          [8, 9],
+          [23, 22],
+          [16, 14],
+        ]
+      : [
+          [27, 7],
+          [5, 24],
+          [19, 19],
+        ];
+  g.fillStyle(0x7a6440, 0.7);
+  for (const [x, y] of litter as [number, number][]) g.fillRect(x, y, 2, 1);
+  const pebble = seed === 0 ? [21, 20] : [9, 10];
+  g.fillStyle(0x4c453a, 0.7).fillCircle(pebble[0]!, pebble[1]!, 1.6);
+}
+
+/** Ridge-crossing floor: paler, a little drier at the ridge's edge, a few pale grass tufts
+ * instead of ferns — approaching the open crossing on either side. Stylistic set dressing. */
+function drawFloorRidge(g: Phaser.GameObjects.Graphics, seed: number): void {
+  g.fillStyle(0x33432f, 1).fillRect(0, 0, 32, 32);
+  for (let i = 0; i < 22; i++) {
+    const x = Math.floor(hash(seed + 7, i) * 32);
+    const y = Math.floor(hash(seed + 57, i) * 32);
+    g.fillStyle(hash(seed + 93, i) > 0.5 ? 0x4a5c3f : 0x2a3a26, 0.6).fillRect(x, y, 2, 2);
+  }
+  const tufts =
+    seed === 0
+      ? [
+          [6, 22],
+          [22, 7],
+        ]
+      : [
+          [26, 20],
+          [11, 5],
+        ];
+  g.fillStyle(0x9ba86a, 0.7);
+  for (const [x, y] of tufts as [number, number][])
+    g.fillRect(x, y, 1, 4).fillRect(x + 2, y + 1, 1, 3);
+}
+
+/** Floodplain / valley-bottom floor: warmer and a little more open than a shaded headwater
+ * floor, with the odd river cobble, consistent with a wider, sunnier lower reach (see
+ * docs/SCIENCE.md, Vannote et al. 1980). The exact look is still a stylistic choice. */
+function drawFloorFloodplain(g: Phaser.GameObjects.Graphics, seed: number): void {
+  g.fillStyle(0x2e4330, 1).fillRect(0, 0, 32, 32);
+  for (let i = 0; i < 22; i++) {
+    const x = Math.floor(hash(seed + 9, i) * 32);
+    const y = Math.floor(hash(seed + 59, i) * 32);
+    g.fillStyle(hash(seed + 94, i) > 0.5 ? 0x3c5a3f : 0x24381f, 0.6).fillRect(x, y, 2, 2);
+  }
+  const cobbles =
+    seed === 0
+      ? [
+          [10, 20, 2.2],
+          [24, 10, 1.6],
+        ]
+      : [
+          [18, 24, 2],
+          [6, 8, 1.8],
+        ];
+  for (const [x, y, r] of cobbles as [number, number, number][]) {
+    g.fillStyle(0x8a8470, 0.6).fillCircle(x, y, r);
+    g.fillStyle(0xa8a28c, 0.4).fillCircle(x - r * 0.3, y - r * 0.3, r * 0.4);
+  }
+}
+
+/** Headwater moss patches (levels 1-2): heavier, more layered clumps than the plain default,
+ * dressed with a couple of pale draping fronds — the look of moss hanging thick off a
+ * bigleaf maple's branches, which carries the heaviest moss load of any Pacific Northwest tree
+ * (see docs/SCIENCE.md). */
+function drawMossHeadwater(g: Phaser.GameObjects.Graphics, seed: number): void {
+  drawMossPatch(g, seed);
+  g.lineStyle(1, 0x9fb28a, 0.6);
+  const drapes =
+    seed === 0
+      ? [
+          [14, 6],
+          [24, 14],
+        ]
+      : [
+          [9, 16],
+          [22, 5],
+        ];
+  for (const [x, y] of drapes as [number, number][]) {
+    g.lineBetween(x, y, x - 1, y + 6);
+    g.lineBetween(x + 2, y, x + 1, y + 7);
+  }
+}
+
+/** Ridge-saddle moss: thinner soil at the ridgeline, so smaller, sparser clumps than the
+ * headwater version. Stylistic. */
+function drawMossRidge(g: Phaser.GameObjects.Graphics, seed: number): void {
+  g.fillStyle(PALETTE.moss, 1).fillRect(0, 0, 32, 32);
+  const clumps =
+    seed === 0
+      ? [
+          [11, 12, 3.2],
+          [21, 19, 3.6],
+        ]
+      : [
+          [9, 20, 3],
+          [22, 9, 3.4],
+        ];
+  for (const [x, y, r] of clumps as [number, number, number][]) {
+    g.fillStyle(0x4c6244, 0.5).fillCircle(x + 1, y + 1, r);
+    g.fillStyle(0x5f7a54, 1).fillCircle(x, y, r);
+    g.fillStyle(0x8aa078, 0.8).fillCircle(x - r * 0.3, y - r * 0.3, r * 0.4);
+  }
+}
+
+/** A sunlit ridge clearing: the default clearing plus a small stump silhouette, read as a
+ * disturbance opening. A stylistic choice — the game does not assert a specific logging
+ * history for this spot, only that an open, sun-exposed patch like this drains Moss fast. */
+function drawClearingRidge(g: Phaser.GameObjects.Graphics, seed: number): void {
+  drawClearing(g, seed);
+  const stump = seed === 0 ? [9, 22] : [23, 9];
+  g.fillStyle(0x6a4e32, 0.8).fillCircle(stump[0]!, stump[1]!, 3.4);
+  g.lineStyle(1, 0x4a3420, 0.6).strokeCircle(stump[0]!, stump[1]!, 2);
+  g.fillStyle(0x8a6a44, 0.5).fillCircle(stump[0]! - 1, stump[1]! - 1, 1.2);
+}
+
+/** A floodplain clearing: brighter and a little cooler than the ridge clearing, with river
+ * cobbles instead of a stump — the open ground of a wider valley bottom rather than a cut
+ * opening. Stylistic set dressing on top of the verified wider/sunnier-downstream premise. */
+function drawClearingFloodplain(g: Phaser.GameObjects.Graphics, seed: number): void {
+  g.fillStyle(0xeee7cf, 1).fillRect(0, 0, 32, 32);
+  for (let i = 0; i < 10; i++) {
+    const x = Math.floor(hash(seed + 11, i) * 32);
+    const y = Math.floor(hash(seed + 61, i) * 32);
+    g.fillStyle(hash(seed + 96, i) > 0.5 ? 0xdcd4b4 : 0xc7bd98, 0.7).fillRect(x, y, 2, 2);
+  }
+  const cobbles =
+    seed === 0
+      ? [
+          [21, 20, 2.6],
+          [8, 9, 2],
+        ]
+      : [
+          [11, 23, 2.2],
+          [25, 8, 1.8],
+        ];
+  for (const [x, y, r] of cobbles as [number, number, number][]) {
+    g.fillStyle(0x9a9078, 0.7).fillCircle(x, y, r);
+    g.fillStyle(0xb8ae90, 0.5).fillCircle(x - r * 0.3, y - r * 0.3, r * 0.4);
+  }
+  g.fillStyle(0xf3ead0, 0.4).fillCircle(seed === 0 ? 20 : 10, seed === 0 ? 20 : 12, 5);
+}
+
+export type BiomeName = 'headwater' | 'end-of-stream' | 'ridge' | 'floodplain';
+export const BIOMES: BiomeName[] = ['headwater', 'end-of-stream', 'ridge', 'floodplain'];
+
+/** Which texture key a biome-aware tile kind should use. Falls back to the plain default art
+ * (used by Beyond the Divide, which has no stated biome) when no biome is given. */
+export function biomeTileKey(
+  kind: 'floor' | 'moss' | 'clearing',
+  biome: BiomeName | undefined,
+): string {
+  return biome ? `tile-${kind}-${biome}` : `tile-${kind}`;
+}
+
+/** The draw function behind each biome's variant of a given tile kind, falling back to the
+ * plain default look where this biome has no dedicated decoration for that kind. */
+const BIOME_DRAW: Record<
+  BiomeName,
+  Partial<
+    Record<'floor' | 'moss' | 'clearing', (g: Phaser.GameObjects.Graphics, seed: number) => void>
+  >
+> = {
+  headwater: { floor: drawFloorHeadwater, moss: drawMossHeadwater },
+  'end-of-stream': { floor: drawFloorUpland },
+  ridge: { floor: drawFloorRidge, moss: drawMossRidge, clearing: drawClearingRidge },
+  floodplain: {
+    floor: drawFloorFloodplain,
+    moss: drawMossHeadwater,
+    clearing: drawClearingFloodplain,
+  },
+};
+
 export function makeArt(scene: Phaser.Scene): void {
   for (let step = 0; step < 2; step++) tex(scene, `moss-${step}`, 46, 28, (g) => drawMoss(g, step));
 
@@ -251,6 +488,26 @@ export function makeArt(scene: Phaser.Scene): void {
   tex(scene, 'tile-clearing', 32, 32, (g) => drawClearing(g, 0));
   tex(scene, 'tile-clearing-1', 32, 32, (g) => drawClearing(g, 1));
   tex(scene, 'tile-barrier', 32, 32, (g) => drawBarrier(g, 0));
+
+  // biome-specific variants for the five campaign levels (see docs/SCIENCE.md for what's
+  // verified vs. a stylistic choice in each). Beyond the Divide has no biome and keeps the
+  // plain default art above.
+  const defaults: Record<
+    'floor' | 'moss' | 'clearing',
+    (g: Phaser.GameObjects.Graphics, seed: number) => void
+  > = {
+    floor: drawFloor,
+    moss: drawMossPatch,
+    clearing: drawClearing,
+  };
+  for (const biome of BIOMES) {
+    for (const kind of ['floor', 'moss', 'clearing'] as const) {
+      const draw = BIOME_DRAW[biome][kind] ?? defaults[kind];
+      const key = biomeTileKey(kind, biome);
+      tex(scene, key, 32, 32, (g) => draw(g, 0));
+      tex(scene, `${key}-1`, 32, 32, (g) => draw(g, 1));
+    }
+  }
 
   // the dark vignette: clear near Moss, deepening outward
   if (!scene.textures.exists('vignette')) {

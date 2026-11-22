@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE, ZOOM } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { getLevel } from '../levels';
-import { MOSS_ORIGIN_X, tileVariant } from '../render/art';
+import { biomeTileKey, MOSS_ORIGIN_X, tileVariant } from '../render/art';
 import { halo } from '../render/backdrop';
 import { generateLevel } from '../systems/procedural';
 import { createGame, stepGame, type GameEvent, type GameState, type Input } from '../systems/game';
@@ -121,7 +121,10 @@ export class LevelScene extends Phaser.Scene {
   private tileKey(kind: string, tx: number, ty: number, time = 0): string {
     if (kind === 'stream')
       return Math.floor(time / 500) % 2 === 0 ? 'tile-stream' : 'tile-stream-1';
-    if (VARIED_KINDS.has(kind)) return tileVariant(`tile-${kind}`, tx, ty, 2);
+    if (VARIED_KINDS.has(kind)) {
+      const base = biomeTileKey(kind as 'floor' | 'moss' | 'clearing', this.state.level.biome);
+      return tileVariant(base, tx, ty, 2);
+    }
     return TILE_TEXTURES[kind] ?? 'tile-floor';
   }
 

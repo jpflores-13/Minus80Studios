@@ -62,6 +62,50 @@ are never claimed otherwise.
 - That every road, clearing, or landscape change affects connectivity identically. Real landscape
   resistance depends on the specific species and site.
 
+## Backdrop / set-dressing notes
+
+Added when each level's visual environment (`src/render/art.ts`'s biome-specific tile art,
+selected in `src/levels/*.ts` via `biome`) was grounded in a real Pacific Northwest setting
+instead of one undifferentiated forest look. This section covers decoration only — terrain
+_rules_ (moisture rates, speed) stay gameplay fiction either way, as stated above.
+
+- **Verified and cited:**
+  - Western sword fern (_Polystichum munitum_) is one of the most common understory plants in
+    westside Pacific Northwest conifer forests. Source: Dana Kelley Bressette, "Western Sword
+    Fern, _Polystichum munitum_," Native Plants PNW,
+    https://nativeplantspnw.com/western-sword-fern-polystichum-munitum/. Used for the fern
+    fronds added to the headwater floor tiles in levels 1-2 ("Little Creek," "Against the
+    Current").
+  - Bigleaf maple (_Acer macrophyllum_) carries the heaviest epiphytic moss load of any tree
+    species in the Pacific Northwest. Source: Fryer, J.L. (2011), _Acer macrophyllum_, in Fire
+    Effects Information System, USDA Forest Service, Rocky Mountain Research Station, Fire
+    Sciences Laboratory, https://research.fs.usda.gov/feis/species-reviews/acemac. Used for the
+    heavier, draping moss-clump art used on headwater and floodplain moss tiles.
+  - A fallen, decaying log ("nurse log") is a real site where new growth establishes in Pacific
+    Northwest rainforest. Source: "Hoh Rain Forest Area Brochure," Olympic National Park, U.S.
+    National Park Service, https://www.nps.gov/olym/planyourvisit/hoh-rain-forest-area-brochure.htm
+    ("Dead and downed trees decay slowly and support new life as 'nurselogs.'"). Used for the
+    small seedling-sprout detail added to every fallen-log tile.
+  - Low-order headwater streams are narrow and shaded by riparian canopy, while higher-order
+    downstream reaches are wider and receive more light, per the River Continuum Concept.
+    Source: Vannote, R.L., Minshall, G.W., Cummins, K.W., Sedell, J.R. & Cushing, C.E. (1980),
+    "The River Continuum Concept," _Canadian Journal of Fisheries and Aquatic Sciences_ 37:
+    130-137. Used as the general premise behind "Over the Ridge" and "When It Rains" being
+    visually more open and sun-exposed than the shaded headwater levels; the specific look of
+    any one clearing (stumps, cobbles) is set dressing, not a claim about that cited paper.
+  - The Pacific Northwest west of the Cascades has a wet season concentrated roughly October
+    through March (about 75% of annual precipitation) and a markedly drier summer. Source:
+    "Puget Sound's climate," Encyclopedia of Puget Sound (2012),
+    https://www.eopugetsound.org/articles/puget-sounds-climate. Used as the real-world logic
+    behind "When It Rains" having a rain event mid-run at all; the exact timing and duration of
+    that one in-game rain event is a gameplay choice, not a measured value.
+- **Stylistic choices, not verified claims:** the drier upland forest floor past where the
+  stream ends in "End of the Line," the stump silhouette in "Over the Ridge"'s clearing (no
+  specific logging history is asserted for that spot), and the river-cobble look of
+  "When It Rains"'s clearing and floor (no specific site is claimed to be a documented
+  floodplain). These are reasonable dressing consistent with the verified premises above, not
+  independently sourced facts.
+
 ## Credits
 
 Research inspiration: Christopher Cousins (Oregon State University, Garcia Lab; HHMI Gilliam
