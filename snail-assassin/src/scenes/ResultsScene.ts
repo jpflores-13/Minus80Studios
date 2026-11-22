@@ -60,7 +60,7 @@ export class ResultsScene extends Phaser.Scene {
       height * 0.62,
       [
         `${c.name}  ·  ${c.species}`,
-        `${preyNoun(c, data.captured, true)} captured  ${data.captured}/${TUNING.hunt.objectiveCaptures}     Time  ${mins}:${secs}     Venom spent  ${Math.round(data.venomSpent)}`,
+        `${preyNoun(c, data.captured, true)} captured  ${data.captured}/${TUNING.hunt.objectiveCaptures}     Time  ${mins}:${secs}     ${c.resourceName} spent  ${Math.round(data.venomSpent)}`,
       ].join('\n'),
       { ...TEXT_STYLES.body, align: 'center', lineSpacing: 10 },
     );

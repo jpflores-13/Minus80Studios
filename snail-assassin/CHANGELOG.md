@@ -4,6 +4,13 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Fixed
+
+- The ability HUD, cost text, and a couple of lines of flavor text said "venom" for every
+  character, including Glaucus the blue shark — sharks have no venom at all. Each character now
+  has its own `resourceName` ("Venom" for the cone snails and the octopus, both genuinely
+  venomous; "Energy" for the shark), used everywhere the resource is shown or mentioned.
+
 ### Added
 
 - **Escalation level: Glaucus, the playable blue shark** (_Prionace glauca_) — the same blue shark that hunted

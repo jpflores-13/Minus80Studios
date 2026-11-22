@@ -19,6 +19,7 @@ export const OCTOPUS: CharacterConfig = {
   specialization: 'Ambush pounce, paralytic bite, coordinated arm restraint',
   threat: 'shark',
   prey: 'snail',
+  resourceName: 'Venom',
   speed: 55,
   palette: {
     shell: 0x6a4a63,

@@ -23,6 +23,9 @@ export const BLUESHARK: CharacterConfig = {
   specialization: 'Pursuit strike, crushing bite, swallow prey whole',
   threat: 'orca',
   prey: 'squid',
+  // Sharks have no venom at all — this uses the same cost/cooldown pool every character does,
+  // just under its real name for an animal that hunts by speed and bite force, not toxin.
+  resourceName: 'Energy',
   speed: 70,
   palette: {
     shell: 0x4a6a82,
@@ -36,7 +39,7 @@ export const BLUESHARK: CharacterConfig = {
     primary: {
       kind: 'strike',
       label: 'Pursuit Strike',
-      blurb: 'Close the distance and strike at one squid in open water. Misses waste venom.',
+      blurb: 'Close the distance and strike at one squid in open water. Misses waste energy.',
       cost: 30,
       cooldown: 2,
       range: 180,
@@ -66,7 +69,7 @@ export const BLUESHARK: CharacterConfig = {
   strengths: ['Fast swimmer', 'Immediate effects once locked on', 'Long tether range'],
   weaknesses: [
     'Single target',
-    'Misses waste venom',
+    'Misses waste energy',
     'The orca pod hunts as a coordinated group, not a lone threat',
   ],
   attributes: { speed: 5, range: 4, burst: 4, area: 1, stealth: 2 },

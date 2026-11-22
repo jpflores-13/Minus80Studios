@@ -13,6 +13,7 @@ export const ATLAS: CharacterConfig = {
   specialization: 'Hormonal mimicry and glucose regulation',
   threat: 'octopus',
   prey: 'fish',
+  resourceName: 'Venom',
   speed: 45,
   palette: {
     shell: 0xe9dcc0,

@@ -14,6 +14,7 @@ export const NIGHTSHADE: CharacterConfig = {
   specialization: 'Dampened escape responses and metabolic impairment',
   threat: 'octopus',
   prey: 'fish',
+  resourceName: 'Venom',
   speed: 48,
   palette: {
     shell: 0xe8d9f0,

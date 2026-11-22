@@ -96,6 +96,13 @@ export interface CharacterConfig {
    * squid species do school — see the Open Questions in docs/SCIENCE.md).
    */
   prey: 'fish' | 'snail' | 'squid';
+  /**
+   * What the shared ability-cost pool is called on screen. 'Venom' for the cone snails and the
+   * octopus (both genuinely venomous — see docs/SCIENCE.md). Sharks have no venom at all, so the
+   * blue shark uses 'Energy' instead; its ability text was previously copy-pasted from a
+   * venomous character's and incorrectly said "waste venom" too — fixed alongside this.
+   */
+  resourceName: string;
   /** Top swim speed of the player-controlled animal (px/s). */
   speed: number;
   palette: {

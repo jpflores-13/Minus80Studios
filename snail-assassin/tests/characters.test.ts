@@ -35,6 +35,16 @@ describe('character configs', () => {
     expect(blueshark.prey).toBe('squid');
   });
 
+  it('the cone snails and the octopus are venomous; the shark has no venom at all', () => {
+    for (const c of CHARACTERS.filter((c) => c.id !== 'blueshark')) {
+      expect(c.resourceName).toBe('Venom');
+    }
+    const blueshark = CHARACTERS.find((c) => c.id === 'blueshark')!;
+    expect(blueshark.resourceName).toBe('Energy');
+    const text = JSON.stringify(blueshark).toLowerCase();
+    expect(text).not.toContain('venom');
+  });
+
   it.each(CHARACTERS.map((c) => [c.id, c] as const))('%s is valid', (_id, c) => {
     expect(c.name).toBe(c.name.toUpperCase());
     expect(c.species).toMatch(/^[A-Z][a-z]+ [a-z]+$/);

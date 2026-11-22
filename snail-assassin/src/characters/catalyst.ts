@@ -13,6 +13,7 @@ export const CATALYST: CharacterConfig = {
   specialization: 'Rapid neural disruption',
   threat: 'octopus',
   prey: 'fish',
+  resourceName: 'Venom',
   speed: 50,
   palette: {
     shell: 0xd9a441,

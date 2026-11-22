@@ -98,8 +98,9 @@ export class Hud {
     }
 
     const v = state.venom;
+    const resource = this.character.resourceName;
     this.venomBar.width = 400 * (v.reserve / v.max);
-    this.venomLabel.setText(`VENOM ${Math.floor(v.reserve)}/${v.max}`);
+    this.venomLabel.setText(`${resource.toUpperCase()} ${Math.floor(v.reserve)}/${v.max}`);
 
     SLOTS.forEach(({ slot, key }, i) => {
       const a = this.character.abilities[slot];
@@ -110,14 +111,16 @@ export class Hud {
         cd > 0
           ? `${cd.toFixed(1)}s`
           : v.reserve < a.cost
-            ? 'LOW VENOM'
+            ? `LOW ${resource.toUpperCase()}`
             : needsTarget
               ? 'NEEDS A STRIKE'
               : reeling
                 ? 'REELING…'
                 : 'READY';
       const t = this.abilityTexts[i];
-      t?.setText(`[${key()}] ${a.label}\n${a.cost > 0 ? `${a.cost} venom` : 'free'}\n${status}`);
+      t?.setText(
+        `[${key()}] ${a.label}\n${a.cost > 0 ? `${a.cost} ${resource.toLowerCase()}` : 'free'}\n${status}`,
+      );
       t?.setAlpha(status === 'READY' ? 1 : 0.55);
     });
 

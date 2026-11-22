@@ -315,7 +315,7 @@ export class HuntScene extends Phaser.Scene {
           e.reason === 'cooldown'
             ? 'Still recovering…'
             : e.reason === 'no-venom'
-              ? 'Not enough venom'
+              ? `Not enough ${this.character.resourceName.toLowerCase()}`
               : `${this.character.abilities.primary.label} a ${preyNoun(this.character, 1)} first`,
         );
         break;
@@ -328,7 +328,8 @@ export class HuntScene extends Phaser.Scene {
         this.sfx('grab');
         if (!settings().reducedEffects) this.cameras.main.shake(250, 0.006);
         this.hud.say(
-          `Grabbed by the ${threatNoun(this.character)}! Stunned, and you lost some venom.`,
+          `Grabbed by the ${threatNoun(this.character)}! Stunned, and you lost some ` +
+            `${this.character.resourceName.toLowerCase()}.`,
           2500,
         );
         break;
