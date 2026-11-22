@@ -20,6 +20,18 @@ export const DID_YOU_KNOW = 'DID YOU KNOW?';
 
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
 
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in ENDING_PAGES below, not a new claim.
+export const QUICK_FACTS = [
+  'Cas9 doesn’t always cut only where it’s told to: a 2013 study found some guide RNAs caused off-target cuts in human cells as often as, or more often than, the intended one.',
+  'Anti-CRISPR proteins were first found in 2013, in viruses that infect bacteria — they evolved to disable a bacterium’s CRISPR immune system so the virus could survive.',
+  'One anti-CRISPR protein, AcrIIA4, blocks Cas9 by mimicking the shape of DNA closely enough to occupy the spot where Cas9 would otherwise grab on.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'The Science Behind the Game',

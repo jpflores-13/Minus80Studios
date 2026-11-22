@@ -3,6 +3,7 @@ import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress, recordClear } from '../config/progress';
 import { STAGES } from '../levels';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { scoreGame, type GameState } from '../systems/game';
 import { announce } from '../ui/announce';
 import { Menu } from '../ui/Menu';
@@ -61,6 +62,14 @@ export class ResultsScene extends Phaser.Scene {
       lineSpacing: 8,
     });
 
+    const fact = randomQuickFact(Math.floor(s.time * 1000) + stage.number);
+    addCenteredText(this, 505, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 160 },
+      align: 'center',
+    });
+
     const next = STAGES.find((x) => x.number === stage.number + 1);
     const again = () =>
       this.scene.start('Stage', { stageId: stage.id, hero: data.hero, timeTrial: data.timeTrial });
@@ -80,7 +89,7 @@ export class ResultsScene extends Phaser.Scene {
         : []),
       { label: () => 'STAGES', action: () => this.scene.start('StageSelect') },
     ];
-    const menu = new Menu(this, items, width / 2, 540, 420, 58, () =>
+    const menu = new Menu(this, items, width / 2, 575, 420, 58, () =>
       this.scene.start('StageSelect'),
     );
     if (won && items.length > 2) menu.focus(1, false);
