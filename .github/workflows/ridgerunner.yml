@@ -1,0 +1,37 @@
+name: ridgerunner CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['ridgerunner/**', '.github/workflows/ridgerunner.yml']
+  pull_request:
+    paths: ['ridgerunner/**', '.github/workflows/ridgerunner.yml']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ridgerunner
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: ridgerunner/.node-version
+          cache: npm
+          cache-dependency-path: ridgerunner/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npx vite build
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ridgerunner-web-build
+          path: ridgerunner/dist/
+          retention-days: 14

@@ -1,7 +1,7 @@
 # RIDGERUNNER — Science notes
 
-The game is fiction inspired by research on the Cascade torrent salamander (*Rhyacotriton
-cascadae*) and how landscapes shape where its populations can exchange genes. The ending
+The game is fiction inspired by research on the Cascade torrent salamander (_Rhyacotriton
+cascadae_) and how landscapes shape where its populations can exchange genes. The ending
 (`src/content/science.ts`, the "DID YOU KNOW?" reveal in `EndingScene.ts`) is where the real
 science lives; gameplay numbers (moisture, movement speed, terrain drain rates) are fiction and
 are never claimed otherwise.
@@ -9,15 +9,15 @@ are never claimed otherwise.
 ## Status
 
 - **Published and cited normally:**
-  - AmphibiaWeb's species account for *R. cascadae* (natural history: cold-headwater
+  - AmphibiaWeb's species account for _R. cascadae_ (natural history: cold-headwater
     specialist, range, thermal tolerance).
-  - Thurman, Cousins, Garcia, Olson & Penaluna (2025), *Journal of the American Water Resources
-    Association*, "Mapping habitat suitability rangewide for headwater stream-associated torrent
+  - Thurman, Cousins, Garcia, Olson & Penaluna (2025), _Journal of the American Water Resources
+    Association_, "Mapping habitat suitability rangewide for headwater stream-associated torrent
     salamanders." DOI 10.1111/1752-1688.70045. Full text obtained and checked.
 - **Forthcoming, NOT yet published — treated as such everywhere in this game:** Cousins, Olson,
   Millward, Adams, Pearl, Rowe & Garcia, "Genomics reveals extensive population structure and
-  undescribed phylogenetic relationships in the Cascade torrent salamander (*Rhyacotriton
-  cascadae*)," intended for the *Journal of Biogeography*. A DOI (10.1111/jbi.70167) resolves via
+  undescribed phylogenetic relationships in the Cascade torrent salamander (_Rhyacotriton
+  cascadae_)," intended for the _Journal of Biogeography_. A DOI (10.1111/jbi.70167) resolves via
   Crossref and a USGS publication listing, but Christopher Cousins (whose research this is)
   confirmed directly that the paper has not actually come out yet; a resolving DOI before print is
   common (early/accepted-article registration) and is not the same as a finished, checkable
@@ -31,7 +31,7 @@ are never claimed otherwise.
   phylogeographic boundaries, which is real and cited above, but it does not state the specific
   within-watershed-vs-overland-ridgeline mechanism the gameplay is built on. A similar-sounding
   claim about overland dispersal via forest cover between headwaters traces back to a different
-  paper about different species (Emel et al. 2019, on *R. kezeri* / *R. variegatus*), cited within
+  paper about different species (Emel et al. 2019, on _R. kezeri_ / _R. variegatus_), cited within
   the Thurman et al. 2025 paper, not a finding of the Cousins cascadae study. We do not merge the
   two. The game's central mechanic is presented in the ending explicitly as an open question
   motivating real research, not as something already shown to be true.

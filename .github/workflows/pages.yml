@@ -40,6 +40,9 @@ jobs:
       - name: Build HEIST.
         working-directory: heist
         run: npm ci && npx vite build
+      - name: Build RIDGERUNNER.
+        working-directory: ridgerunner
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -50,6 +53,7 @@ jobs:
           cp -r dr-anti-crispr/dist _site/dr-anti-crispr
           cp -r starstruck/dist _site/starstruck
           cp -r heist/dist _site/heist
+          cp -r ridgerunner/dist _site/ridgerunner
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
