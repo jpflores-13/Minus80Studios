@@ -52,16 +52,12 @@ export class TitleScene extends Phaser.Scene {
           action: () => this.scene.start('Dive', { nextScale: 'drop' }),
         },
         { label: () => 'ONE DROP (ARCADE)', action: () => this.scene.start('ScaleSelect') },
-        { label: () => 'RECONSTRUCT (ARCADE)', action: () => this.scene.start('Reconstruct') },
-        { label: () => 'DISCOVERY JOURNAL', action: () => this.scene.start('Journal') },
-        { label: () => 'SCIENTIFIC MYSTERIES', action: () => this.scene.start('Mystery') },
-        { label: () => 'SOUND ON / OFF', action: () => void sound.toggleMute() },
-        { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
+        { label: () => 'MORE', action: () => this.scene.start('More') },
       ],
       width / 2,
-      230,
+      264,
       560,
-      50,
+      62,
     );
     addCenteredText(this, height - 22, 'A Minus 80 Studios game', TEXT_STYLES.hint);
     sound.playSong('title');

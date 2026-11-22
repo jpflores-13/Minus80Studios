@@ -6,8 +6,11 @@ import { BootScene } from './scenes/BootScene';
 import { CampaignEndingScene } from './scenes/CampaignEndingScene';
 import { DiveResultsScene } from './scenes/DiveResultsScene';
 import { DiveScene } from './scenes/DiveScene';
+import { EndlessResultsScene } from './scenes/EndlessResultsScene';
+import { EndlessScene } from './scenes/EndlessScene';
 import { ExpeditionIntroScene } from './scenes/ExpeditionIntroScene';
 import { JournalScene } from './scenes/JournalScene';
+import { MoreScene } from './scenes/MoreScene';
 import { MysteryScene } from './scenes/MysteryScene';
 import { OneDropResultsScene } from './scenes/OneDropResultsScene';
 import { OneDropScene } from './scenes/OneDropScene';
@@ -33,8 +36,11 @@ const game = new Phaser.Game(
     ReconstructRevealScene,
     JournalScene,
     MysteryScene,
+    MoreScene,
     ExpeditionIntroScene,
     CampaignEndingScene,
+    EndlessScene,
+    EndlessResultsScene,
     PauseScene,
   ]),
 );

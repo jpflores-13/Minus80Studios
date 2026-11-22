@@ -99,3 +99,8 @@ export function clearExpedition(index: number): void {
   const cleared = progress().campaignCleared;
   if (index + 1 > cleared) saveProgress({ campaignCleared: index + 1 });
 }
+
+/** Records an Endless Expedition run if it beats the saved best. */
+export function recordEndless(score: number): void {
+  if (score > progress().bestEndless) saveProgress({ bestEndless: score });
+}

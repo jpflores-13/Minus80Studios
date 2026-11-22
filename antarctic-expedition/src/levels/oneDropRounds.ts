@@ -1,4 +1,4 @@
-import { SPECIMENS, type ScaleId } from '../content/organisms';
+import { SCALE_ORDER, SPECIMENS, type ScaleId } from '../content/organisms';
 import type { OneDropConfig, SpawnEntry } from '../systems/oneDrop';
 
 /** Builds a round for one scale: the target gets most of the weight, decoys split the rest. */
@@ -25,5 +25,23 @@ export function roundFor(
     rampPerTenSeconds: 1.12,
     maxParticles: 18,
     types,
+  };
+}
+
+/**
+ * Builds the round for one lap of Endless Expedition: cycles through every scale in order,
+ * raising the objective and shortening the clock a little each time the cycle repeats.
+ */
+export function endlessRoundFor(lap: number): OneDropConfig {
+  const cycle = Math.floor(lap / SCALE_ORDER.length);
+  const scale = SCALE_ORDER[lap % SCALE_ORDER.length]!;
+  const objectiveCount = Math.min(16, 6 + cycle * 2);
+  const durationSeconds = Math.max(20, 40 - cycle * 3);
+  const base = roundFor(scale, objectiveCount, durationSeconds);
+  return {
+    ...base,
+    id: `endless-${lap}-${scale}`,
+    name: `ENDLESS · LAP ${cycle + 1} · ${scale.toUpperCase()}`,
+    spawnRate: base.spawnRate * (1 + cycle * 0.15),
   };
 }
