@@ -119,10 +119,10 @@ export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
   octopus: {
     reveal: 'MEET THE REAL CIPHER',
     text:
-      'The California two-spot octopus combines patient ambush with a jet-propelled pounce: it spreads its web like ' +
-      'a parachute and wraps its arms around prey on landing, choosing which arms to use based on what it is ' +
-      'catching. Once restrained, a bite through its beak delivers paralysing venom from its salivary glands, so the ' +
-      'catch stops struggling before the octopus settles in to eat.',
+      'The California two-spot octopus can shift from plain sight to nearly invisible against the reef in moments, ' +
+      'its skin blending into its surroundings as a defence against predators. When it does strike, it combines a ' +
+      'jet-propelled pounce with synchronous, simultaneous arm recruitment on hard-shelled prey like crabs, ' +
+      'restraining and paralysing the catch with a venomous bite in one motion, not two.',
     research: [
       {
         label: 'Bidel et al. 2022, Current Biology: arm recruitment during prey capture',
@@ -134,25 +134,26 @@ export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
       },
     ],
     explore: {
-      label: 'Gonçalves & Costa 2021 (open access): the paralytic venom in an octopus bite',
-      url: 'https://doi.org/10.3389/fmars.2021.647344',
+      label: 'Josef et al. 2012 (open access): how octopuses pick their camouflage pattern',
+      url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3359305/',
     },
   },
   blueshark: {
     reveal: 'MEET THE REAL GLAUCUS',
     text:
-      'The blue shark is a major predator of squid: one study off Mexico found its diet was almost entirely ' +
-      'cephalopods, and another recorded squid as the single most common prey by weight. Most are soft, ' +
-      'inactive deep-water species, not fast schooling surface squid. Shark stomachs often hold only beaks, ' +
-      'the one hard part that survives digestion — a clue this prey is swallowed, not chewed apart.',
+      'The blue shark is a major predator of squid, with diet studies off Mexico finding it almost entirely ' +
+      'cephalopods by weight. Real telemetry shows its swimming speed is far from constant, rising sharply ' +
+      'during active periods rather than holding one steady cruise. Stomachs often hold only beaks, the hard ' +
+      "part a squid can't digest away.",
     research: [
       {
         label: 'Galván-Magaña et al. 2013, Deep-Sea Research Part II: sharks that eat cephalopods',
         url: 'https://doi.org/10.1016/j.dsr2.2013.04.002',
       },
       {
-        label: 'Markaida & Sosa-Nishizaki 2010, J. Mar. Biol. Assoc. UK: blue shark feeding habits',
-        url: 'https://doi.org/10.1017/S0025315409991597',
+        label:
+          'Sciarrotta & Nelson 1977, Fishery Bulletin: diel swimming-speed changes in the blue shark',
+        url: 'https://spo.nmfs.noaa.gov/content/diel-behavior-blue-shark-prionace-glauca-near-santa-catalina-island-california',
       },
     ],
     explore: {
@@ -240,16 +241,16 @@ export const QUICK_FACTS: Record<DiscoveryId, string[]> = {
     'Cone snail venom has already inspired an approved medicine: ziconotide, a chronic-pain drug based on a peptide from a different cone snail species.',
   ],
   octopus: [
-    'The real California two-spot octopus ambushes prey with a jet-propelled pounce, spreading its web like a parachute and wrapping its arms around the catch on landing.',
-    'Once an octopus has its prey restrained, a venomous bite through its beak helps paralyse the catch so it stops struggling.',
+    'Real octopuses can shift from plain sight to nearly invisible in moments, their skin blending into the reef as a defence against predators.',
+    'When striking hard-shelled prey like crabs, octopuses recruit several arms at once rather than one at a time, then deliver a venomous, paralysing bite once the catch is restrained.',
   ],
   shark: [
     'Cipher’s threat is modeled on the blue shark, one of several shark species documented preying on cephalopods, including the paper nautilus, a relative of the octopus.',
     'Sharks carry electroreceptors called the ampullae of Lorenzini; in a related species, the small-spotted catshark, that sense alone let it locate prey it could not see, hear, or smell.',
   ],
   blueshark: [
-    'The real blue shark’s diet is dominated by cephalopods — one study off Mexico found it was almost entirely squid and other cephalopods by weight.',
-    'Often all that’s left in a shark’s stomach is a squid’s beak, the one hard part that survives digestion — a clue many squid are swallowed rather than chewed.',
+    'The real blue shark’s diet is dominated by cephalopods, with one study off Mexico finding it was almost entirely squid and other cephalopods by weight.',
+    'Telemetry on real blue sharks shows their swimming speed is not constant: it rises measurably during the shark’s most active periods rather than holding one steady pace.',
   ],
   orca: [
     'A real orca pod in the Gulf of California has repeatedly hunted juvenile whale sharks, targeting the underside to make them bleed out before eating the liver.',
