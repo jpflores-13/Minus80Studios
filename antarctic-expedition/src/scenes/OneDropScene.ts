@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
-import { progress, recordBest } from '../config/progress';
+import { discover, progress, recordBest } from '../config/progress';
 import { SCALES, type ScaleId } from '../content/organisms';
+import { JOURNAL_ENTRIES } from '../content/journal';
 import { roundFor } from '../levels/oneDropRounds';
 import {
   accuracy,
@@ -251,6 +252,7 @@ export class OneDropScene extends Phaser.Scene {
       if (e.type === 'captured') {
         sound.play('capture');
         if (e.combo > 1) sound.play('combo');
+        if (e.typeId in JOURNAL_ENTRIES) discover(e.typeId, 2);
         this.popup(`+${e.points}`, PALETTE.textMint, this.center.x, this.center.y - 200);
       } else if (e.type === 'wrong') {
         sound.play('miss');

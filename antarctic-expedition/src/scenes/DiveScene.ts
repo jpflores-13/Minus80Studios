@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
+import { discover } from '../config/progress';
 import { PALETTE } from '../config/gameConfig';
 import { WILDLIFE } from '../content/wildlife';
 import { diveRoundFor } from '../levels/diveRounds';
@@ -264,6 +265,8 @@ export class DiveScene extends Phaser.Scene {
           `${e.result.quality.toUpperCase()} +${e.result.score}`,
           e.result.quality === 'poor' ? PALETTE.textCoral : PALETTE.textMint,
         );
+        const qualityRank = { poor: 1, good: 2, great: 3, exceptional: 4 }[e.result.quality];
+        discover(e.result.speciesId, qualityRank);
         if (e.result.disturbed) announce('That shot was blurred — the animal was fleeing.');
       } else if (e.type === 'noSubject') {
         this.popup('NOTHING IN FRAME', PALETTE.textDim);

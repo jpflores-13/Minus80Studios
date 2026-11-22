@@ -75,3 +75,18 @@ export function recordBest(roundId: string, score: number, stars: number): void 
   if (prior && prior.score >= score) return;
   saveProgress({ best: { ...current, [roundId]: { score, stars } } });
 }
+
+/** Marks a journal entry discovered, keeping the best quality seen so far. */
+export function discover(entryId: string, quality: number): void {
+  const current = progress().journal;
+  const prior = current[entryId];
+  const bestQuality = Math.max(prior?.bestQuality ?? 0, quality);
+  saveProgress({ journal: { ...current, [entryId]: { discovered: true, bestQuality } } });
+}
+
+/** Records a mystery's chosen interpretation as resolved, without judging right or wrong. */
+export function resolveMystery(mysteryId: string): void {
+  const solved = progress().mysteriesSolved;
+  if (solved.includes(mysteryId)) return;
+  saveProgress({ mysteriesSolved: [...solved, mysteryId] });
+}

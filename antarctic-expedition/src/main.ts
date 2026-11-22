@@ -5,6 +5,8 @@ import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
 import { DiveResultsScene } from './scenes/DiveResultsScene';
 import { DiveScene } from './scenes/DiveScene';
+import { JournalScene } from './scenes/JournalScene';
+import { MysteryScene } from './scenes/MysteryScene';
 import { OneDropResultsScene } from './scenes/OneDropResultsScene';
 import { OneDropScene } from './scenes/OneDropScene';
 import { PauseScene } from './scenes/PauseScene';
@@ -27,6 +29,8 @@ const game = new Phaser.Game(
     DiveResultsScene,
     ReconstructScene,
     ReconstructRevealScene,
+    JournalScene,
+    MysteryScene,
     PauseScene,
   ]),
 );

@@ -24,7 +24,7 @@ export class TitleScene extends Phaser.Scene {
       fontSize: '58px',
       color: PALETTE.textGold,
     });
-    addCenteredText(this, 212, 'A research vessel in the Southern Ocean.', {
+    addCenteredText(this, 206, 'A research vessel in the Southern Ocean.', {
       ...TEXT_STYLES.hud,
       color: PALETTE.textDim,
     });
@@ -37,20 +37,17 @@ export class TitleScene extends Phaser.Scene {
         },
         { label: () => 'ONE DROP (ARCADE)', action: () => this.scene.start('ScaleSelect') },
         { label: () => 'RECONSTRUCT (ARCADE)', action: () => this.scene.start('Reconstruct') },
+        { label: () => 'DISCOVERY JOURNAL', action: () => this.scene.start('Journal') },
+        { label: () => 'SCIENTIFIC MYSTERIES', action: () => this.scene.start('Mystery') },
         { label: () => 'SOUND ON / OFF', action: () => void sound.toggleMute() },
         { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
       ],
       width / 2,
-      310,
+      264,
       560,
-      62,
+      54,
     );
-    addCenteredText(
-      this,
-      height - 34,
-      'Prototype: ONE DROP microscopy minigame · A Minus 80 Studios game',
-      TEXT_STYLES.hint,
-    );
+    addCenteredText(this, height - 22, 'A Minus 80 Studios game', TEXT_STYLES.hint);
     sound.playSong('title');
   }
 }

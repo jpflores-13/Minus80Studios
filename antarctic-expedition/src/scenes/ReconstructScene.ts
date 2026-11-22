@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
-import { recordBest } from '../config/progress';
+import { discover, recordBest } from '../config/progress';
+import { JOURNAL_ENTRIES } from '../content/journal';
 import { roundFor } from '../levels/oneDropRounds';
 import {
   accuracy,
@@ -174,8 +175,10 @@ export class ReconstructScene extends Phaser.Scene {
 
   private handleEvents(events: OneDropEvent[]): void {
     for (const e of events) {
-      if (e.type === 'captured') sound.play('capture');
-      else if (e.type === 'wrong') sound.play('miss');
+      if (e.type === 'captured') {
+        sound.play('capture');
+        if (e.typeId in JOURNAL_ENTRIES) discover(e.typeId, 2);
+      } else if (e.type === 'wrong') sound.play('miss');
       else if (e.type === 'documentedUnknown') sound.play('discover');
       else if (e.type === 'won' || e.type === 'lost') this.finish(e.type === 'won');
     }
