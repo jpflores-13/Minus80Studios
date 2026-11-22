@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { CHARACTER_PITCH, sound, type SfxName } from '../audio/Sound';
-import { getCharacter, preyNoun, preySpritePrefix } from '../characters';
+import { getCharacter, preyNoun, preySpritePrefix, threatNoun } from '../characters';
 import type { CharacterConfig } from '../characters/types';
 import { PIXEL } from '../config/gameConfig';
 import { markOnce, settings } from '../config/settings';
@@ -41,8 +41,10 @@ export class HuntScene extends Phaser.Scene {
   private reef!: Reef;
   private hud!: Hud;
   private snail!: Phaser.GameObjects.Image;
-  private threat!: Phaser.GameObjects.Image;
-  private threatIcon!: Phaser.GameObjects.Text;
+  // One sprite/icon per threat. A lone octopus or shark is a pod of one; the orca pod (Glaucus's
+  // threat) is several, drawn much bigger — see BootScene's drawOrcaThreat and docs/SCIENCE.md.
+  private threatSprites: Phaser.GameObjects.Image[] = [];
+  private threatIcons: Phaser.GameObjects.Text[] = [];
   private fishSprites = new Map<number, Phaser.GameObjects.Image>();
   private fishIcons = new Map<number, Phaser.GameObjects.Text>();
   private fx!: Phaser.GameObjects.Graphics;
@@ -120,16 +122,20 @@ export class HuntScene extends Phaser.Scene {
       () => this.pauseHunt(),
       this.character.palette.accent,
     );
-    const o = this.state.predator;
-    this.threat = this.add
-      .image(o.pos.x, o.pos.y, this.character.threat)
-      .setScale(PIXEL)
-      .setDepth(11)
-      .setVisible(!settings().relaxed);
-    this.threatIcon = this.add
-      .text(o.pos.x, o.pos.y, '', { ...TEXT_STYLES.hud, color: '#ffb3c1' })
-      .setOrigin(0.5)
-      .setDepth(12);
+    const pod = [this.state.predator, ...this.state.pack];
+    this.threatSprites = pod.map((m) =>
+      this.add
+        .image(m.pos.x, m.pos.y, this.character.threat)
+        .setScale(PIXEL)
+        .setDepth(11)
+        .setVisible(!settings().relaxed),
+    );
+    this.threatIcons = pod.map((m) =>
+      this.add
+        .text(m.pos.x, m.pos.y, '', { ...TEXT_STYLES.hud, color: '#ffb3c1' })
+        .setOrigin(0.5)
+        .setDepth(12),
+    );
     this.controls = new HuntControls(this);
     this.touch = this.sys.game.device.input.touch
       ? new TouchControls(this, this.character, () => this.state)
@@ -212,12 +218,12 @@ export class HuntScene extends Phaser.Scene {
     return [
       `${c.name} · ${c.title}   Signature combo: ${c.combo}`,
       ...lines,
-      `Watch out for the ${c.threat}: it spots you when you move. Hold still to hide.`,
+      `Watch out for the ${threatNoun(c)}: it spots you when you move. Hold still to hide.`,
       this.touch
         ? 'Touch: use MOVE (bottom left) or press and hold on the reef to crawl there · quick tap to aim · buttons on the right'
         : `Move ${['up', 'left', 'down', 'right'].map((a) => keyLabel(settings().keys[a as 'up'])).join('')} / arrows · aim with the mouse · Pause ${keyLabel(settings().keys.pause)} · Restart R · Help H · Mute M`,
       settings().relaxed
-        ? `Relaxed mode: no timer, and the ${this.character.threat} won’t grab you.`
+        ? `Relaxed mode: no timer, and the ${threatNoun(this.character)} won’t grab you.`
         : '',
       settings().assist
         ? 'Assist is on: abilities aim themselves and capture happens on its own.'
@@ -316,13 +322,13 @@ export class HuntScene extends Phaser.Scene {
       case 'predator-chase':
         if (this.state.options.relaxed) break;
         this.sfx('warn');
-        this.hud.say(`A ${this.character.threat} spotted you! Hold still or get away.`, 2500);
+        this.hud.say(`A ${threatNoun(this.character)} spotted you! Hold still or get away.`, 2500);
         break;
       case 'grabbed':
         this.sfx('grab');
         if (!settings().reducedEffects) this.cameras.main.shake(250, 0.006);
         this.hud.say(
-          `Grabbed by the ${this.character.threat}! Stunned, and you lost some venom.`,
+          `Grabbed by the ${threatNoun(this.character)}! Stunned, and you lost some venom.`,
           2500,
         );
         break;
@@ -343,15 +349,20 @@ export class HuntScene extends Phaser.Scene {
     const reduced = settings().reducedEffects;
     this.snail.setPosition(s.snail.pos.x, s.snail.pos.y).setRotation(s.snail.heading);
     this.snail.setAlpha(s.snail.stunned > 0 && Math.floor(time / 120) % 2 === 0 ? 0.4 : 1);
-    const o = s.predator;
-    // The octopus threat sprite is drawn facing "up"; the shark, like the player sprites, faces
-    // right, so only the octopus needs the extra quarter turn.
-    const threatRotationOffset = this.character.threat === 'shark' ? 0 : Math.PI / 2;
-    this.threat.setPosition(o.pos.x, o.pos.y).setRotation(o.heading + threatRotationOffset);
-    this.threat.setAlpha(o.mode === 'retreat' ? 0.6 : 1);
-    this.threatIcon
-      .setPosition(o.pos.x, o.pos.y - 34)
-      .setText(o.mode === 'chase' ? '!!' : o.awareness > 0.3 ? '?' : '');
+    // The octopus threat sprite is drawn facing "up"; the shark and orca, like the player
+    // sprites, face right, so only the octopus needs the extra quarter turn.
+    const threatRotationOffset = this.character.threat === 'octopus' ? Math.PI / 2 : 0;
+    const pod = [s.predator, ...s.pack];
+    pod.forEach((o, i) => {
+      const sprite = this.threatSprites[i];
+      const icon = this.threatIcons[i];
+      if (!sprite || !icon) return;
+      sprite.setPosition(o.pos.x, o.pos.y).setRotation(o.heading + threatRotationOffset);
+      sprite.setAlpha(o.mode === 'retreat' ? 0.6 : 1);
+      icon
+        .setPosition(o.pos.x, o.pos.y - 34)
+        .setText(o.mode === 'chase' ? '!!' : o.awareness > 0.3 ? '?' : '');
+    });
 
     const g = this.fx;
     g.clear();

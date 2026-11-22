@@ -10,6 +10,7 @@ import {
   ILLUSTRATION_NOTE,
   MEDICINE,
   REVIEW_STATUS,
+  THREAT_DISCOVERY,
 } from '../content/science';
 import { announce } from '../ui/announce';
 import { Button } from '../ui/Button';
@@ -22,12 +23,13 @@ export interface DiscoveryData {
 }
 
 type Step = 'reveal' | 'meet' | 'discovery' | 'threat' | 'medicine' | 'more';
-// Cipher (the octopus) gets an extra step: a reveal about the shark that was hunting it, right
-// after its own discovery. The three cone snails don't, because the main campaign's octopus
-// threat is a marked gameplay invention, not modeled on the research shown here (see
-// docs/SCIENCE.md, "Predators (for the octopus-vs-snail threat in the main campaign)").
+// Characters with a THREAT_DISCOVERY entry (Cipher, Glaucus) get an extra step: a reveal about
+// the real animal that was hunting them, right after their own discovery. The three cone snails
+// don't, because the main campaign's octopus threat is a marked gameplay invention, not modeled
+// on the research shown here (see docs/SCIENCE.md, "Predators (for the octopus-vs-snail threat
+// in the main campaign)").
 const stepsFor = (characterId: string): Step[] =>
-  characterId === 'octopus'
+  characterId in THREAT_DISCOVERY
     ? ['reveal', 'meet', 'discovery', 'threat', 'medicine', 'more']
     : ['reveal', 'meet', 'discovery', 'medicine', 'more'];
 
@@ -194,11 +196,14 @@ export class DiscoveryScene extends Phaser.Scene {
     this.text(height * 0.86, REVIEW_STATUS, TEXT_STYLES.hint);
   }
 
-  /** Sequence C.2 (Cipher only): the real science behind the shark that was hunting the player. */
+  /** Sequence C.2 (Cipher, Glaucus): the real science behind the animal that was hunting the
+   *  player, looked up from THREAT_DISCOVERY (see docs/SCIENCE.md for why only some threats
+   *  qualify). Only reached when stepsFor() included 'threat', so this is always set. */
   private threat(): void {
     const { width, height } = this.scale;
-    const d = DISCOVERIES.shark;
-    this.text(height * 0.14, 'And the shark that was hunting you?', {
+    const info = THREAT_DISCOVERY[this.character.id]!;
+    const d = DISCOVERIES[info.id];
+    this.text(height * 0.14, info.question, {
       ...TEXT_STYLES.title,
       fontSize: '36px',
       color: '#9fc0c8',
@@ -253,8 +258,10 @@ export class DiscoveryScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const c = this.character;
     const d = DISCOVERIES[c.id];
-    // Cipher's "more" screen also links the shark's own research, since the player just met it.
-    const shark = c.id === 'octopus' ? DISCOVERIES.shark : null;
+    // Cipher's and Glaucus's "more" screens also link their threat's own research, since the
+    // player just met it (see THREAT_DISCOVERY).
+    const threatInfo = THREAT_DISCOVERY[c.id];
+    const threat = threatInfo ? DISCOVERIES[threatInfo.id] : null;
     const accent = c.palette.accent;
     this.text(height * 0.08, `${c.name} · ${c.species}`, {
       ...TEXT_STYLES.hud,
@@ -262,7 +269,7 @@ export class DiscoveryScene extends Phaser.Scene {
     });
 
     const open = (url: string) => window.open(url, '_blank', 'noopener,noreferrer');
-    const exploreLinks = shark ? [d.explore, shark.explore] : [d.explore];
+    const exploreLinks = threat ? [d.explore, threat.explore] : [d.explore];
     exploreLinks.forEach((ref, i) =>
       this.buttons.push(
         new Button(
@@ -271,13 +278,13 @@ export class DiscoveryScene extends Phaser.Scene {
           height * 0.2 + i * 62,
           460,
           52,
-          i === 0 ? 'EXPLORE THE REAL SCIENCE' : 'EXPLORE: THE SHARK',
+          i === 0 ? 'EXPLORE THE REAL SCIENCE' : `EXPLORE: ${threatInfo!.shortLabel}`,
           () => open(ref.url),
           accent,
         ),
       ),
     );
-    const research = shark ? [...d.research, ...shark.research] : d.research;
+    const research = threat ? [...d.research, ...threat.research] : d.research;
     research.forEach((r, i) =>
       this.buttons.push(
         new Button(
@@ -292,7 +299,7 @@ export class DiscoveryScene extends Phaser.Scene {
         ),
       ),
     );
-    const row = height * (shark ? 0.56 : 0.48);
+    const row = height * (threat ? 0.56 : 0.48);
     this.buttons.push(
       new Button(
         this,

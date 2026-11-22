@@ -80,6 +80,7 @@ export class SelectScene extends Phaser.Scene {
     kb?.on('keydown-TWO', () => this.pick(1));
     kb?.on('keydown-THREE', () => this.pick(2));
     kb?.on('keydown-FOUR', () => this.pick(3));
+    kb?.on('keydown-FIVE', () => this.pick(4));
     kb?.on('keydown-ENTER', () => this.confirm());
     kb?.on('keydown-SPACE', () => this.confirm());
     kb?.on('keydown-ESC', () => this.scene.start('Title'));

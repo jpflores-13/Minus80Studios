@@ -3,7 +3,7 @@ import { getCharacter, preyNoun, preySpritePrefix } from '../characters';
 import { PALETTE, PIXEL } from '../config/gameConfig';
 import { settings } from '../config/settings';
 import { TUNING } from '../config/tuning';
-import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
+import { DID_YOU_KNOW, randomQuickFact, THREAT_DISCOVERY } from '../content/science';
 import { Button } from '../ui/Button';
 import { announce } from '../ui/announce';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
@@ -67,14 +67,18 @@ export class ResultsScene extends Phaser.Scene {
 
     const seedBase = Math.floor(data.seconds * 1000) + data.captured;
     const fact = randomQuickFact(c.id, seedBase);
-    // Cipher's results screen also surfaces a fact about the shark that was hunting it. The
-    // three snails don't get an equivalent fact about their octopus threat, because that threat
-    // is a marked gameplay invention, not the real octopus biology cited for Cipher.
-    const threatFact = c.id === 'octopus' ? randomQuickFact('shark', seedBase + 1) : null;
+    // Cipher's and Glaucus's results screens also surface a fact about their threat (see
+    // THREAT_DISCOVERY). The three snails don't get an equivalent fact about their octopus
+    // threat, because that threat is a marked gameplay invention, not real cited biology.
+    const threatInfo = THREAT_DISCOVERY[c.id];
+    const threatFact = threatInfo ? randomQuickFact(threatInfo.id, seedBase + 1) : null;
     addCenteredText(
       this,
       height * (threatFact ? 0.7 : 0.72),
-      [`${DID_YOU_KNOW} ${fact}`, threatFact ? `AND THE SHARK? ${threatFact}` : null]
+      [
+        `${DID_YOU_KNOW} ${fact}`,
+        threatFact ? `AND ${threatInfo!.shortLabel}? ${threatFact}` : null,
+      ]
         .filter((line): line is string => line !== null)
         .join('\n\n'),
       {
