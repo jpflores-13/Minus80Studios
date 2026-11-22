@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { Menu } from '../ui/Menu';
@@ -25,7 +24,7 @@ export class MoreScene extends Phaser.Scene {
         },
         { label: () => 'DISCOVERY JOURNAL', action: () => this.scene.start('Journal') },
         { label: () => 'SCIENTIFIC MYSTERIES', action: () => this.scene.start('Mystery') },
-        { label: () => 'SOUND ON / OFF', action: () => void sound.toggleMute() },
+        { label: () => 'SETTINGS & ACCESSIBILITY', action: () => this.scene.start('Settings') },
         { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
       ],
       width / 2,

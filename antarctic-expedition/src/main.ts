@@ -18,6 +18,7 @@ import { PauseScene } from './scenes/PauseScene';
 import { ReconstructRevealScene } from './scenes/ReconstructRevealScene';
 import { ReconstructScene } from './scenes/ReconstructScene';
 import { ScaleSelectScene } from './scenes/ScaleSelectScene';
+import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';
 import { installTextScaling } from './ui/textScaling';
 
@@ -37,6 +38,7 @@ const game = new Phaser.Game(
     JournalScene,
     MysteryScene,
     MoreScene,
+    SettingsScene,
     ExpeditionIntroScene,
     CampaignEndingScene,
     EndlessScene,
