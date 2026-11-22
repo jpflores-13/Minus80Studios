@@ -51,6 +51,20 @@ export const RESPONSIBLE =
   'Found one of the real bottles? Scan its QR code, report where it is, and leave it where you found it. ' +
   'Please never put bottles or other litter into a waterway yourself.';
 
+export const DID_YOU_KNOW = REVEAL.title;
+
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in REVEAL/TEAM above, not a new claim.
+export const QUICK_FACTS = [
+  'The real GPS-tracked bottles this game is inspired by travelled almost 25 miles down Raleigh creeks in just a few weeks.',
+  'Researchers found that rainfall makes a big difference to how much real litter reaches the water, and how far it travels once it does.',
+  'The real research team installs trash traps, samples the water for microplastics, and maps litter hot spots street by street.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 export const DISCLAIMER =
   'Inspired by real environmental research. Water flow, transport rates, equipment capacities, and intervention ' +
   'effectiveness have been simplified for gameplay.';

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { progress, recordResult } from '../config/progress';
+import { DID_YOU_KNOW, randomQuickFact } from '../content/science';
 import { getLevel, LEVELS } from '../levels';
 import { performance, stars, type Tally } from '../systems/score';
 import { Button } from '../ui/Button';
@@ -99,6 +100,14 @@ export class ResultsScene extends Phaser.Scene {
     const best = progress().levels[level.id];
     if (best)
       addCenteredText(this, 548, `Your best: ${pct(best.bestPerformance)}`, TEXT_STYLES.hint);
+
+    const fact = randomQuickFact(Math.floor(perf * 1000) + t.escaped);
+    addCenteredText(this, 600, `${DID_YOU_KNOW} ${fact}`, {
+      ...TEXT_STYLES.small,
+      color: PALETTE.textDim,
+      wordWrap: { width: width - 260 },
+      align: 'center',
+    });
 
     new Button(this, 70, 36, 110, 40, 'HOME  [H]', () => this.scene.start('Title'), PALETTE.ink);
     this.input.keyboard?.once('keydown-H', () => this.scene.start('Title'));
