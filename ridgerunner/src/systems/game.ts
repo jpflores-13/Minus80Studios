@@ -34,6 +34,8 @@ export interface GameState {
   watershedCrossings: number;
   visitedWatersheds: Set<number>;
   startWatershed: number | null;
+  /** A kinder difficulty: terrain drains moisture more slowly, not a different game. */
+  easyMode: boolean;
 }
 
 export type GameEvent =
@@ -44,7 +46,7 @@ export type GameEvent =
   | { type: 'won' }
   | { type: 'lost'; reason: 'dry' | 'time' };
 
-export function createGame(level: LevelConfig): GameState {
+export function createGame(level: LevelConfig, easyMode = false): GameState {
   const land = fromLevel(level);
   const start = { x: land.start.tx * TILE + TILE / 2, y: land.start.ty * TILE + TILE / 2 };
   const startWatershed = watershedAt(land, land.start.tx, land.start.ty);
@@ -62,6 +64,7 @@ export function createGame(level: LevelConfig): GameState {
     watershedCrossings: 0,
     visitedWatersheds: new Set(startWatershed !== null ? [startWatershed] : []),
     startWatershed,
+    easyMode,
   };
 }
 
@@ -125,6 +128,7 @@ export function stepGame(s: GameState, input: Input, dt: number): GameEvent[] {
   const kind = tileAt(s.land, htx, hty);
   let rate = TERRAIN[kind].moistureRate;
   if (rate < 0 && s.raining) rate *= 1 - TUNING.rainRelief;
+  if (rate < 0 && s.easyMode) rate *= 0.6;
   s.moisture = Math.min(TUNING.maxMoisture, Math.max(0, s.moisture + rate * dt));
 
   // watershed crossings: a new stream network entered this run that wasn't the starting one

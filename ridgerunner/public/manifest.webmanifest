@@ -1,0 +1,19 @@
+{
+  "name": "RIDGERUNNER",
+  "short_name": "RIDGERUNNER",
+  "description": "A Minus 80 Studios game.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#14201a",
+  "theme_color": "#14201a",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

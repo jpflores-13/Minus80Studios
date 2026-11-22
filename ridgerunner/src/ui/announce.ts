@@ -1,26 +1,18 @@
-// A hidden live region for screen readers. Call this for anything a sighted player would see
-// happen, so it reaches someone using a screen reader too.
+// Screen readers can't see inside the game canvas, so important text is also put in a
+// hidden "live region" in the page (see index.html), which screen readers read aloud.
+
 let region: HTMLElement | null = null;
+let last = '';
 
-function get(): HTMLElement {
-  if (region) return region;
-  const el = document.createElement('div');
-  el.setAttribute('aria-live', 'polite');
-  el.setAttribute('role', 'status');
-  el.style.position = 'absolute';
-  el.style.width = '1px';
-  el.style.height = '1px';
-  el.style.overflow = 'hidden';
-  el.style.clip = 'rect(0 0 0 0)';
-  document.body.appendChild(el);
-  region = el;
-  return el;
-}
-
-export function announce(text: string): void {
-  try {
-    get().textContent = text;
-  } catch {
-    // no DOM
-  }
+export function announce(message: string): void {
+  if (typeof document === 'undefined') return;
+  region ??= document.getElementById('sr-announcer');
+  if (!region || !message) return;
+  // Clearing first makes screen readers repeat a message even if it's the same as last time.
+  region.textContent = '';
+  const text = message === last ? `${message} ` : message;
+  last = text;
+  window.setTimeout(() => {
+    if (region) region.textContent = text;
+  }, 60);
 }

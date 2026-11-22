@@ -17,6 +17,7 @@ export const PALETTE = {
   text: '#e9e3d1',
   textDim: '#9fb09a',
   textGold: '#d9b27c',
+  textTerracotta: '#b57955',
 } as const;
 
 export function createGameConfig(
