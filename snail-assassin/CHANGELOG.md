@@ -6,6 +6,14 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Added
 
+- **Escalation level: Cipher, the playable octopus** (_Octopus bimaculoides_). After the three-snail campaign,
+  reachable from the same "Choose Your Assassin" screen: Pounce (an ambush strike that pins one fish), Paralytic
+  Bite (keeps the catch from escaping), and Draw to Mouth (pull the catch in). A shark now plays the octopus's old
+  role as the threat that hunts the player, with its own tuning: it's faster, and holding still helps less against
+  it, since its real-world basis (electroreception) can sense prey that isn't moving. "Did you know?" gets an extra
+  step for Cipher revealing the real science behind the shark too, and the results screen shows a fact about both.
+  See docs/SCIENCE.md for the citations behind every ability and behaviour.
+
 - **Accessibility** (Settings & Accessibility): relaxed mode (no timer, no octopus grabs), large text, assist
   (auto-aim and auto-capture), remappable keys, screen reader announcements, number keys on the ending's buttons,
   and dark outlines on sprites and reef text. See docs/ACCESSIBILITY.md.

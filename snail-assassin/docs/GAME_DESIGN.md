@@ -18,6 +18,17 @@ reef hunt (capture 3 fish in 3:00) → results → **Did You Know?** → replay,
 An octopus patrols the reef and chases the snail when it sees it move; holding still hides you. A grab stuns the
 snail and costs venom but never ends the hunt. The reef wraps around at every edge.
 
+## Escalation level: Cipher, the playable octopus
+
+Selectable from the same Choose Your Assassin screen, after the three snails. The player becomes the predator
+that threatened them all campaign: CIPHER, _Octopus bimaculoides_, hunting reef fish with Pounce (ambush strike),
+Paralytic Bite (immobilizes the catch), and Draw to Mouth (reels it in), the same strike/lock/reel kit Catalyst
+uses, reflavoured around real octopus prey-capture research (see docs/SCIENCE.md). A shark now hunts the player,
+reusing the octopus-threat's patrol/chase/grab/retreat state machine with its own tuning: faster, and far less
+forgiving of holding still, since its real basis is electroreception rather than vision. The "Did you know?"
+ending gets an extra step revealing the shark's own science, and the results screen surfaces a fact about both
+animals.
+
 ## Pitch
 
 You are a cone snail: slow, patient, and armed with one of nature's most sophisticated venoms.
