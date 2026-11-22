@@ -24,6 +24,19 @@ export const OPENING_LINES = [
 export const DID_YOU_KNOW = 'DID YOU KNOW?';
 export const CLOSING_LINE = 'The game ends here. The discovery doesn’t.';
 
+// Short one-liners for the results screen, each a condensed restatement of a fact already
+// checked and cited in full in ENDING_PAGES below, not a new claim.
+export const QUICK_FACTS = [
+  'In real bumble bee colonies, a relatively small number of workers do most of the foraging, well before anything goes wrong.',
+  'A 2026 study tracked over 80 million individual social interactions across whole bumble bee colonies after their queen was removed.',
+  'Queenless bumble bee colonies become more decentralized: work and influence spread out across more workers rather than concentrating.',
+  'Queen loss can trigger reproductive competition among workers, since some may start investing in their own reproduction instead of the colony’s.',
+];
+
+export function randomQuickFact(seed: number): string {
+  return QUICK_FACTS[Math.abs(seed) % QUICK_FACTS.length] ?? QUICK_FACTS[0]!;
+}
+
 export const ENDING_PAGES: EndingPage[] = [
   {
     title: 'A Real Colony, Reorganizing',
