@@ -3,6 +3,8 @@ import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
+import { DiveResultsScene } from './scenes/DiveResultsScene';
+import { DiveScene } from './scenes/DiveScene';
 import { OneDropResultsScene } from './scenes/OneDropResultsScene';
 import { OneDropScene } from './scenes/OneDropScene';
 import { PauseScene } from './scenes/PauseScene';
@@ -19,6 +21,8 @@ const game = new Phaser.Game(
     ScaleSelectScene,
     OneDropScene,
     OneDropResultsScene,
+    DiveScene,
+    DiveResultsScene,
     PauseScene,
   ]),
 );

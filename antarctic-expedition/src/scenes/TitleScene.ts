@@ -31,6 +31,10 @@ export class TitleScene extends Phaser.Scene {
     new Menu(
       this,
       [
+        {
+          label: () => 'DIVE (ARCADE)',
+          action: () => this.scene.start('Dive', { nextScale: 'drop' }),
+        },
         { label: () => 'ONE DROP (ARCADE)', action: () => this.scene.start('ScaleSelect') },
         { label: () => 'SOUND ON / OFF', action: () => void sound.toggleMute() },
         { label: () => 'MORE -80 STUDIOS GAMES', action: () => (window.location.href = '../') },
