@@ -720,17 +720,29 @@
         aria-labelledby="rr-title"
         aria-describedby="rr-desc rr-how"
       >
-        <!-- A ridge scene: two headwater streams on either side of a narrow forest divide,
-             a salamander partway across the overland gap between them -->
+        <!-- A ridge scene: two headwater streams fed by distant mountains on either side of a
+             forested divide, a salamander partway across the overland gap between them -->
         <svg
           viewBox="0 0 160 90"
           shape-rendering="crispEdges"
           role="img"
           aria-label="Pixel art: a small salamander crossing a narrow forested ridge between two separate mountain streams"
         >
-          <rect width="160" height="90" fill="#213d32" />
+          <rect width="160" height="90" fill="#0f1a16" />
           <rect x="0" y="0" width="58" height="90" fill="#629bac" opacity="0.55" />
           <rect x="102" y="0" width="58" height="90" fill="#629bac" opacity="0.55" />
+          <!-- the mountains each stream drains from -->
+          <g fill="#4a5a5e" opacity="0.6">
+            <polygon points="0,26 14,6 29,26" />
+            <polygon points="131,30 146,8 160,30" />
+          </g>
+          <!-- a shimmer of current on each stream -->
+          <g stroke="#cfe9f0" stroke-width="1" opacity="0.45">
+            <line x1="6" y1="40" x2="20" y2="48" />
+            <line x1="14" y1="64" x2="26" y2="70" />
+            <line x1="112" y1="18" x2="124" y2="24" />
+            <line x1="120" y1="56" x2="134" y2="62" />
+          </g>
           <g fill="#78966b">
             <rect x="10" y="10" width="4" height="4" />
             <rect x="140" y="70" width="4" height="4" />
@@ -739,17 +751,34 @@
           </g>
           <!-- the ridge: a band of darker forest floor between the two streams -->
           <rect x="58" y="0" width="44" height="90" fill="#14201a" />
+          <!-- a scattering of firs along the ridge -->
+          <g fill="#1c3328">
+            <polygon points="66,30 71,18 76,30" />
+            <polygon points="68,36 71,28 74,36" />
+            <polygon points="84,74 90,60 96,74" />
+            <polygon points="86,80 90,72 94,80" />
+          </g>
           <g fill="#4a3f30">
-            <rect x="64" y="20" width="3" height="3" />
+            <rect x="64" y="52" width="3" height="3" />
             <rect x="90" y="44" width="3" height="3" />
             <rect x="72" y="66" width="3" height="3" />
           </g>
-          <!-- Moss, crossing -->
-          <g transform="translate(76 44)">
-            <ellipse cx="4" cy="4" rx="4" ry="2.5" fill="#6b5a44" />
-            <ellipse cx="10" cy="4" rx="9" ry="4" fill="#7a6850" />
-            <ellipse cx="18" cy="4" rx="5" ry="3.5" fill="#8a7760" />
-            <circle cx="20" cy="3" r="0.8" fill="#0c0f0c" />
+          <!-- a firefly, drifting over the divide -->
+          <circle cx="94" cy="24" r="1.2" fill="#d9b27c" opacity="0.8" />
+          <!-- Moss, crossing: a longer, sinuous body with a wider head and small splayed legs -->
+          <g transform="translate(70 46)">
+            <ellipse cx="3" cy="2" rx="5" ry="3" fill="#6b5a44" />
+            <ellipse cx="11" cy="2" rx="7" ry="3.4" fill="#7a6850" />
+            <ellipse cx="20" cy="2" rx="7" ry="3.6" fill="#86735c" />
+            <ellipse cx="28" cy="1.5" rx="5.5" ry="3" fill="#8a7760" />
+            <g fill="#5a4a38">
+              <rect x="8" y="-3" width="2" height="3" />
+              <rect x="8" y="5" width="2" height="3" />
+              <rect x="22" y="-3.5" width="2" height="3" />
+              <rect x="22" y="5" width="2" height="3" />
+            </g>
+            <circle cx="31" cy="0.5" r="1.1" fill="#0c0f0c" />
+            <circle cx="31.4" cy="0.1" r="0.4" fill="#d9b27c" />
           </g>
         </svg>
         <div class="info">
