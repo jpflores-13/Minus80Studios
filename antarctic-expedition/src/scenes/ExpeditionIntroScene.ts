@@ -3,7 +3,7 @@ import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
 import { CAMPAIGN } from '../content/campaign';
 import { Menu } from '../ui/Menu';
-import { addCenteredText, TEXT_STYLES } from '../ui/text';
+import { TEXT_STYLES } from '../ui/text';
 
 /** The narrative beat shown before each campaign expedition. */
 export class ExpeditionIntroScene extends Phaser.Scene {
@@ -20,21 +20,32 @@ export class ExpeditionIntroScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.midnight).fadeIn(300);
 
-    addCenteredText(
-      this,
-      120,
-      `EXPEDITION ${expedition.number} OF ${CAMPAIGN.length}`,
-      TEXT_STYLES.hint,
-    );
-    addCenteredText(this, 170, expedition.title.toUpperCase(), {
-      ...TEXT_STYLES.title,
-      color: PALETTE.textGold,
-    });
-    addCenteredText(this, 280, expedition.narrative, {
-      ...TEXT_STYLES.body,
-      align: 'center',
-      wordWrap: { width: width - 300 },
-    });
+    // Each block is stacked off the measured height of the one before it, not a guessed fixed
+    // offset — the narrative text varies a fair amount in length across the seven expeditions,
+    // and at the largeText accessibility setting the longer ones could run up into the title
+    // above with the old fixed y=280.
+    let y = 120;
+    const header = this.add
+      .text(width / 2, y, `EXPEDITION ${expedition.number} OF ${CAMPAIGN.length}`, {
+        ...TEXT_STYLES.hint,
+      })
+      .setOrigin(0.5, 0);
+    y += header.height + 16;
+    const title = this.add
+      .text(width / 2, y, expedition.title.toUpperCase(), {
+        ...TEXT_STYLES.title,
+        color: PALETTE.textGold,
+      })
+      .setOrigin(0.5, 0);
+    y += title.height + 30;
+    const narrative = this.add
+      .text(width / 2, y, expedition.narrative, {
+        ...TEXT_STYLES.body,
+        align: 'center',
+        wordWrap: { width: width - 300 },
+      })
+      .setOrigin(0.5, 0);
+    y += narrative.height + 30;
 
     new Menu(
       this,
@@ -43,7 +54,7 @@ export class ExpeditionIntroScene extends Phaser.Scene {
         { label: () => 'BACK TO TITLE', action: () => this.scene.start('Title') },
       ],
       width / 2,
-      height - 140,
+      Math.max(height - 140, y),
       360,
       58,
     );

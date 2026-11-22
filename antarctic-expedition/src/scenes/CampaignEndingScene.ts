@@ -51,25 +51,49 @@ export class CampaignEndingScene extends Phaser.Scene {
         .setOrigin(0.5, 0);
     });
 
-    addCenteredText(this, 340, 'RESEARCHER CREDIT', {
-      ...TEXT_STYLES.hud,
-      color: PALETTE.textAmber,
-    });
-    addCenteredText(
-      this,
-      374,
-      `${KIENLE_PROFILE.name} — ${KIENLE_PROFILE.affiliation}\n${KIENLE_PROFILE.lab} · ${KIENLE_PROFILE.links.join(', ')}\n${KIENLE_PROFILE.bio}`,
-      { ...TEXT_STYLES.body, align: 'center', wordWrap: { width: width - 240 } },
-    );
+    // The researcher-credit block used fixed Y offsets that assumed a short, fixed-length bio —
+    // but the header and the bio text already overlapped at the default text size (and would
+    // overlap worse with any longer bio, or with the largeText accessibility setting on). Each
+    // block is now stacked off the measured height of the one before it, and the whole section
+    // scales down together as a last resort if it still doesn't fit above the menu. The 3-item
+    // menu below previously sat partly off the bottom of the canvas outright (height - 90 put
+    // its last button's bottom edge past height=720); it now anchors from the bottom instead.
+    const menuDefault = height - 170;
+    const menuMax = height - 20 - (2 * 54 + 25); // keeps the 3rd (last) button fully on-canvas
+    const sectionTop = 330;
+    const available = menuMax - 40 - sectionTop;
 
-    addCenteredText(
-      this,
-      470,
-      'This game simplifies real research into playable mechanics. Open the Discovery Journal ' +
-        'and Scientific Mysteries to see the sources behind what you found, and what real ' +
-        'scientists still do not know.',
-      { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 260 } },
-    );
+    const section = this.add.container(width / 2, sectionTop);
+    let y = 0;
+    const header = this.add
+      .text(0, y, 'RESEARCHER CREDIT', { ...TEXT_STYLES.hud, color: PALETTE.textAmber })
+      .setOrigin(0.5, 0);
+    y += header.height + 14;
+    const bio = this.add
+      .text(
+        0,
+        y,
+        `${KIENLE_PROFILE.name} — ${KIENLE_PROFILE.affiliation}\n${KIENLE_PROFILE.lab} · ${KIENLE_PROFILE.links.join(', ')}\n${KIENLE_PROFILE.bio}`,
+        { ...TEXT_STYLES.body, align: 'center', wordWrap: { width: width - 240 } },
+      )
+      .setOrigin(0.5, 0);
+    y += bio.height + 20;
+    const note = this.add
+      .text(
+        0,
+        y,
+        'This game simplifies real research into playable mechanics. Open the Discovery Journal ' +
+          'and Scientific Mysteries to see the sources behind what you found, and what real ' +
+          'scientists still do not know.',
+        { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 260 } },
+      )
+      .setOrigin(0.5, 0);
+    y += note.height;
+    section.add([header, bio, note]);
+    const sectionHeight = Math.min(y, available);
+    if (y > available) section.setScale(available / y);
+
+    const menuY = Math.max(Math.min(menuDefault, menuMax), sectionTop + sectionHeight + 40);
 
     new Menu(
       this,
@@ -79,7 +103,7 @@ export class CampaignEndingScene extends Phaser.Scene {
         { label: () => 'TITLE', action: () => this.scene.start('Title') },
       ],
       width / 2,
-      height - 90,
+      menuY,
       460,
       54,
       () => this.scene.start('Title'),

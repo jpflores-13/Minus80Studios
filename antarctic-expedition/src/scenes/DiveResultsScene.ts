@@ -27,8 +27,16 @@ export class DiveResultsScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.midnight).fadeIn(200);
 
-    addCenteredText(this, 100, 'EXPEDITION LOG', TEXT_STYLES.title);
-    addCenteredText(this, 140, data.name, TEXT_STYLES.hint);
+    // Stacked off each block's measured height, not a guessed fixed offset — see
+    // OneDropResultsScene for the same fix and why (the largeText accessibility setting scales
+    // every font up, which could otherwise push a block into the one below it).
+    let y = 100;
+    const titleText = this.add
+      .text(width / 2, y, 'EXPEDITION LOG', TEXT_STYLES.title)
+      .setOrigin(0.5, 0);
+    y += titleText.height + 14;
+    const subtitle = this.add.text(width / 2, y, data.name, TEXT_STYLES.hint).setOrigin(0.5, 0);
+    y += subtitle.height + 30;
 
     const lines = [
       `Photos taken: ${data.photos.length}`,
@@ -39,15 +47,21 @@ export class DiveResultsScene extends Phaser.Scene {
         ? `Water sample collected — the ${SCALES[data.nextScale].name} is next.`
         : 'No water sample collected this expedition.',
     ];
-    addCenteredText(this, 220, lines.join('\n'), { ...TEXT_STYLES.body, align: 'center' });
+    const statsText = this.add
+      .text(width / 2, y, lines.join('\n'), { ...TEXT_STYLES.body, align: 'center' })
+      .setOrigin(0.5, 0);
+    y += statsText.height + 30;
 
     if (data.disturbanceEvents > 0) {
-      addCenteredText(
-        this,
-        340,
-        'A fast, close approach startles wildlife and ruins the shot. Slow down near animals for the best photographs.',
-        { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 200 } },
-      );
+      const note = this.add
+        .text(
+          width / 2,
+          y,
+          'A fast, close approach startles wildlife and ruins the shot. Slow down near animals for the best photographs.',
+          { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 200 } },
+        )
+        .setOrigin(0.5, 0);
+      y += note.height + 20;
     }
 
     const items: MenuItem[] = [];
@@ -71,7 +85,8 @@ export class DiveResultsScene extends Phaser.Scene {
     }
     items.push({ label: () => 'TITLE', action: () => this.scene.start('Title') });
 
-    new Menu(this, items, width / 2, 420, 520, 62, () => this.scene.start('Title'));
+    const menuY = Math.min(Math.max(420, y), height - 200);
+    new Menu(this, items, width / 2, menuY, 520, 62, () => this.scene.start('Title'));
     addCenteredText(this, height - 34, 'Esc to go back', TEXT_STYLES.hint);
     sound.playSong('title');
   }

@@ -29,18 +29,29 @@ export class OneDropResultsScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(PALETTE.midnight).fadeIn(200);
     const info = SCALES[data.scaleId];
 
-    addCenteredText(this, 110, data.won ? 'SAMPLE DOCUMENTED' : 'TIME EXPIRED', {
-      ...TEXT_STYLES.title,
-      color: data.won ? PALETTE.textMint : PALETTE.textCoral,
-    });
-    addCenteredText(this, 150, info.name, TEXT_STYLES.hint);
+    // Each block is stacked off the measured height of the one before it, not a guessed fixed
+    // offset, so the largeText accessibility setting (which scales every font up) can't make a
+    // longer title or stats block run into the block below it.
+    let y = 110;
+    const titleText = this.add
+      .text(width / 2, y, data.won ? 'SAMPLE DOCUMENTED' : 'TIME EXPIRED', {
+        ...TEXT_STYLES.title,
+        color: data.won ? PALETTE.textMint : PALETTE.textCoral,
+      })
+      .setOrigin(0.5, 0);
+    y += titleText.height + 14;
+    const subtitle = this.add.text(width / 2, y, info.name, TEXT_STYLES.hint).setOrigin(0.5, 0);
+    y += subtitle.height + 20;
 
     const stars = '★'.repeat(data.stars) + '☆'.repeat(3 - data.stars);
-    addCenteredText(this, 200, stars, {
-      ...TEXT_STYLES.title,
-      color: PALETTE.textGold,
-      fontSize: '36px',
-    });
+    const starsText = this.add
+      .text(width / 2, y, stars, {
+        ...TEXT_STYLES.title,
+        color: PALETTE.textGold,
+        fontSize: '36px',
+      })
+      .setOrigin(0.5, 0);
+    y += starsText.height + 24;
 
     const lines = [
       `Score: ${data.score}`,
@@ -49,15 +60,21 @@ export class OneDropResultsScene extends Phaser.Scene {
       `Uncertain particles documented honestly: ${data.unknownsDocumented}`,
       `Best combo: x${data.bestCombo}`,
     ];
-    addCenteredText(this, 260, lines.join('\n'), { ...TEXT_STYLES.body, align: 'center' });
+    const statsText = this.add
+      .text(width / 2, y, lines.join('\n'), { ...TEXT_STYLES.body, align: 'center' })
+      .setOrigin(0.5, 0);
+    y += statsText.height + 30;
 
     if (data.unknownsDocumented > 0) {
-      addCenteredText(
-        this,
-        400,
-        'Marking something "unknown" instead of guessing is good science. It is never a mistake.',
-        { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 200 } },
-      );
+      const note = this.add
+        .text(
+          width / 2,
+          y,
+          'Marking something "unknown" instead of guessing is good science. It is never a mistake.',
+          { ...TEXT_STYLES.hint, align: 'center', wordWrap: { width: width - 200 } },
+        )
+        .setOrigin(0.5, 0);
+      y += note.height + 20;
     }
 
     const items: MenuItem[] = [];
@@ -83,7 +100,8 @@ export class OneDropResultsScene extends Phaser.Scene {
     }
     items.push({ label: () => 'TITLE', action: () => this.scene.start('Title') });
 
-    new Menu(this, items, width / 2, 460, 460, 62, () => this.scene.start('ScaleSelect'));
+    const menuY = Math.min(Math.max(460, y), height - 200);
+    new Menu(this, items, width / 2, menuY, 460, 62, () => this.scene.start('ScaleSelect'));
     addCenteredText(this, height - 34, 'Esc to go back', TEXT_STYLES.hint);
     sound.playSong('title');
   }

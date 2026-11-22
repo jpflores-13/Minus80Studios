@@ -10,6 +10,13 @@ import { addCenteredText, TEXT_STYLES } from '../ui/text';
 export class JournalScene extends Phaser.Scene {
   private detail?: Phaser.GameObjects.Text;
   private detailTitle?: Phaser.GameObjects.Text;
+  /** Holds detailTitle + detail so the whole panel can be scaled down together — see
+   * showEntry()'s comment for why. */
+  private detailPanel?: Phaser.GameObjects.Container;
+  /** Vertical room available to the detail panel before it would run into the "Esc to go back"
+   * hint at the bottom of the screen — measured once, not guessed, since entries vary a lot in
+   * length (a seal with a cited study and a researcher bio vs. a one-line natural-history note). */
+  private detailAvailableHeight = 0;
 
   constructor() {
     super('Journal');
@@ -29,14 +36,18 @@ export class JournalScene extends Phaser.Scene {
       TEXT_STYLES.hint,
     );
 
-    this.detailTitle = this.add.text(width / 2 + 60, 150, 'Select an entry', {
+    const panelTop = 150;
+    this.detailAvailableHeight = height - 50 - panelTop;
+    this.detailPanel = this.add.container(width / 2 + 60, panelTop);
+    this.detailTitle = this.add.text(0, 0, 'Select an entry', {
       ...TEXT_STYLES.hud,
       color: PALETTE.textGold,
     });
-    this.detail = this.add.text(width / 2 + 60, 190, '', {
+    this.detail = this.add.text(0, 0, '', {
       ...TEXT_STYLES.body,
       wordWrap: { width: width / 2 - 120 },
     });
+    this.detailPanel.add([this.detailTitle, this.detail]);
 
     new Menu(
       this,
@@ -62,6 +73,7 @@ export class JournalScene extends Phaser.Scene {
     if (!discovered) {
       this.detailTitle?.setText('??? UNDOCUMENTED');
       this.detail?.setText('Document this in DIVE or ONE DROP to unlock its entry.');
+      this.fitDetailPanel();
       return;
     }
     const citations = entry.citationIds.map((cid) => {
@@ -90,5 +102,21 @@ export class JournalScene extends Phaser.Scene {
     ];
     this.detailTitle?.setText(entry.name.toUpperCase());
     this.detail?.setText(lines.join('\n'));
+    this.fitDetailPanel();
+  }
+
+  /** Entries vary wildly in length — leopardSeal's cited study and researcher credit is many
+   * times longer than weddellSeal's two-sentence note. Stack the body under the measured title
+   * height (not a guessed gap), then, as a last resort, scale the whole panel down uniformly if
+   * it's still taller than the room available above the "Esc to go back" hint, rather than let
+   * it run past the bottom of the screen. */
+  private fitDetailPanel(): void {
+    if (!this.detailTitle || !this.detail || !this.detailPanel) return;
+    this.detailPanel.setScale(1);
+    this.detail.setY(this.detailTitle.height + 16);
+    const totalHeight = this.detailTitle.height + 16 + this.detail.height;
+    if (totalHeight > this.detailAvailableHeight) {
+      this.detailPanel.setScale(this.detailAvailableHeight / totalHeight);
+    }
   }
 }

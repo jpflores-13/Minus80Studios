@@ -15,20 +15,27 @@ export class EndlessResultsScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(PALETTE.midnight).fadeIn(200);
     const best = progress().bestEndless;
 
-    addCenteredText(this, 140, 'RUN OVER', TEXT_STYLES.title);
-    addCenteredText(
-      this,
-      200,
-      `Final score: ${data.score}\nLaps completed: ${data.laps}\nBest score: ${best}`,
-      { ...TEXT_STYLES.body, align: 'center' },
-    );
+    // Stacked off each block's measured height — see OneDropResultsScene for the same fix.
+    let y = 140;
+    const titleText = this.add.text(width / 2, y, 'RUN OVER', TEXT_STYLES.title).setOrigin(0.5, 0);
+    y += titleText.height + 20;
+    const statsText = this.add
+      .text(
+        width / 2,
+        y,
+        `Final score: ${data.score}\nLaps completed: ${data.laps}\nBest score: ${best}`,
+        { ...TEXT_STYLES.body, align: 'center' },
+      )
+      .setOrigin(0.5, 0);
+    y += statsText.height + 20;
     if (data.score >= best && data.score > 0) {
-      addCenteredText(this, 290, 'New best score!', {
-        ...TEXT_STYLES.hud,
-        color: PALETTE.textGold,
-      });
+      const best2 = this.add
+        .text(width / 2, y, 'New best score!', { ...TEXT_STYLES.hud, color: PALETTE.textGold })
+        .setOrigin(0.5, 0);
+      y += best2.height + 20;
     }
 
+    const menuY = Math.min(Math.max(400, y), height - 200);
     new Menu(
       this,
       [
@@ -36,7 +43,7 @@ export class EndlessResultsScene extends Phaser.Scene {
         { label: () => 'TITLE', action: () => this.scene.start('Title') },
       ],
       width / 2,
-      400,
+      menuY,
       420,
       62,
       () => this.scene.start('Title'),
