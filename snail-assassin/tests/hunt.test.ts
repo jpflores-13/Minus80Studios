@@ -7,6 +7,7 @@ import { NIGHTSHADE } from '../src/characters/nightshade';
 import { OCTOPUS } from '../src/characters/octopus';
 import { TUNING } from '../src/config/tuning';
 import { createHunt, NO_INPUT, stepHunt, type HuntState } from '../src/systems/hunt';
+import { normalize } from '../src/utils/math';
 import {
   atlasBot,
   blueSharkBot,
@@ -161,27 +162,78 @@ describe('Catalyst (strike + tether)', () => {
   });
 });
 
-describe('Cipher (pounce + paralytic bite + draw to mouth)', () => {
+describe('Cipher (camouflage + pounce + draw to mouth)', () => {
   it('a pounce that misses wastes venom and adds a cooldown penalty', () => {
     const s = createHunt(OCTOPUS, 9);
-    const events = stepHunt(s, { ...NO_INPUT, primary: true, aim: { x: 0, y: 0 } }, DT);
+    const events = stepHunt(s, { ...NO_INPUT, secondary: true, aim: { x: 0, y: 0 } }, DT);
     expect(events.some((e) => e.type === 'strike-miss')).toBe(true);
     expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
   });
 
-  it('wins every hunt with Pounce → Paralytic Bite → Draw to Mouth', () => {
+  it('Pounce restrains its catch immediately: synchronous grip, no separate lock step', () => {
+    const s = createHunt(OCTOPUS, 9);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + 100, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, secondary: true, aim: { ...fish.pos } }, DT);
+    expect(s.tether?.fishId).toBe(fish.id);
+    expect(fish.neural).toBeGreaterThan(0.9);
+    // Set to 1 by the pounce itself; it decays a little from lockTau within the same frame's
+    // later neural step (see stepNeural), same as every other instant-lock effect in this game.
+    expect(fish.lock).toBeGreaterThan(0.99);
+  });
+
+  it('Pouncing ends an active Camouflage window immediately, hit or miss', () => {
+    const s = createHunt(OCTOPUS, 9);
+    s.camouflage = 5;
+    stepHunt(s, { ...NO_INPUT, secondary: true, aim: { x: 0, y: 0 } }, DT);
+    expect(s.camouflage).toBe(0);
+  });
+
+  it('Camouflage sharply reduces how much the shark notices the octopus moving', () => {
+    const withCamo = createHunt(OCTOPUS, 3);
+    const withoutCamo = createHunt(OCTOPUS, 3);
+    for (const s of [withCamo, withoutCamo]) {
+      s.predator.pos = { x: s.snail.pos.x + 150, y: s.snail.pos.y };
+    }
+    withCamo.camouflage = 5;
+    for (let i = 0; i < 90; i++) {
+      stepHunt(withCamo, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+      stepHunt(withoutCamo, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+    }
+    expect(withCamo.predator.awareness).toBeLessThan(withoutCamo.predator.awareness);
+  });
+
+  it('wins every hunt with Camouflage → Pounce → Draw to Mouth', () => {
     expect(wins(SEEDS.map((seed) => play(OCTOPUS, seed, octopusBot())))).toBe(SEEDS.length);
   });
 
-  it('skipping the paralytic bite loses the tether on a long reel (same tether physics as Catalyst)', () => {
-    const s = createHunt(OCTOPUS, 9);
-    const fish = s.fish[0]!;
-    fish.pos = { x: s.snail.pos.x + 130, y: s.snail.pos.y };
-    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
-    stepHunt(s, { ...NO_INPUT, capture: true }, DT);
-    for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
-    expect(s.captured).toBe(0);
-    expect(s.stats.tethersBroken).toBe(1);
+  it('Camouflage alone, never pouncing, never catches anything', () => {
+    const results = SEEDS.map((seed) =>
+      play(OCTOPUS, seed, (st) => ({ ...octopusBot()(st), secondary: false })),
+    );
+    expect(wins(results)).toBe(0);
+  });
+
+  it('skipping Camouflage still wins (cone snails are slow): it is a real benefit, not a required step', () => {
+    expect(wins(SEEDS.map((seed) => play(OCTOPUS, seed, octopusBot(false))))).toBe(SEEDS.length);
+  });
+
+  it('Camouflage can keep the shark from ever starting a chase, where the same movement without it would trigger one', () => {
+    const withCamo = createHunt(OCTOPUS, 3);
+    const withoutCamo = createHunt(OCTOPUS, 3);
+    for (const s of [withCamo, withoutCamo]) {
+      s.predator.pos = { x: s.snail.pos.x + 150, y: s.snail.pos.y };
+    }
+    withCamo.camouflage = 5;
+    for (let i = 0; i < 300; i++) {
+      stepHunt(withCamo, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+      stepHunt(withoutCamo, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+    }
+    // Without camouflage the shark notices, chases, and (being much faster) catches the octopus
+    // within the window — it's already moved on to 'retreat' after grabbing. Camouflaged, it
+    // never even starts a chase.
+    expect(withoutCamo.predator.mode).not.toBe('patrol');
+    expect(withCamo.predator.mode).toBe('patrol');
   });
 
   it('hunts cone snails, not reef fish: scattered individuals, no schooling, slower than reef fish', () => {
@@ -214,27 +266,58 @@ describe('the shark (threatens Cipher)', () => {
   });
 });
 
-describe('Glaucus (pursuit strike + crushing bite + swallow whole)', () => {
-  it('a strike that misses wastes venom and adds a cooldown penalty', () => {
-    const s = createHunt(BLUESHARK, 9);
-    const events = stepHunt(s, { ...NO_INPUT, primary: true, aim: { x: 0, y: 0 } }, DT);
-    expect(events.some((e) => e.type === 'strike-miss')).toBe(true);
-    expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
-  });
-
-  it('wins every hunt with Pursuit Strike → Crushing Bite → Swallow Whole, despite the orca pod', () => {
-    expect(wins(SEEDS.map((seed) => play(BLUESHARK, seed, blueSharkBot())))).toBe(SEEDS.length);
-  });
-
-  it('skipping the crushing bite loses the tether on a long reel (same tether physics as Catalyst)', () => {
+describe('Glaucus (pursuit + burst + swallow whole)', () => {
+  /** Isolate a single squid at `distance`, already fleeing at top speed (the worst case for a
+   *  chase), start a pursuit on it, then simulate the chase to its conclusion (caught or lost),
+   *  steering toward it every frame the way a player or bot would. */
+  function chase(distance: number, useBurst: boolean) {
     const s = createHunt(BLUESHARK, 9);
     const fish = s.fish[0]!;
-    fish.pos = { x: s.snail.pos.x + 130, y: s.snail.pos.y };
-    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
-    stepHunt(s, { ...NO_INPUT, capture: true }, DT);
-    for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
-    expect(s.captured).toBe(0);
-    expect(s.stats.tethersBroken).toBe(1);
+    fish.pos = { x: s.snail.pos.x + distance, y: s.snail.pos.y };
+    fish.awareness = 1; // already fleeing at top speed from the first frame
+    for (const f of s.fish) if (f !== fish) f.pos = { x: s.snail.pos.x + 5000, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, primary: true }, DT);
+    for (let i = 0; i < 400 && s.pursuit; i++) {
+      const target = s.fish.find((f) => f.id === s.pursuit?.fishId) ?? fish;
+      const move = normalize({
+        x: target.pos.x - s.snail.pos.x,
+        y: target.pos.y - s.snail.pos.y,
+      });
+      stepHunt(s, { ...NO_INPUT, move, secondary: useBurst }, DT);
+    }
+    return s;
+  }
+
+  it('a pursuit with nothing in range wastes energy and adds a cooldown penalty', () => {
+    const s = createHunt(BLUESHARK, 9);
+    for (const f of s.fish) f.pos = { x: s.snail.pos.x + 5000, y: s.snail.pos.y };
+    const events = stepHunt(s, { ...NO_INPUT, primary: true }, DT);
+    expect(events).toContainEqual({ type: 'pursuit-miss' });
+    expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
+    expect(s.venom.cooldowns.primary).toBeGreaterThan(2.5);
+  });
+
+  it('once caught, the squid is immediately fully restrained: no separate lock step', () => {
+    const s = createHunt(BLUESHARK, 9);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + 20, y: s.snail.pos.y };
+    for (const f of s.fish) if (f !== fish) f.pos = { x: s.snail.pos.x + 5000, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, primary: true }, DT);
+    expect(s.tether?.fishId).toBe(fish.id);
+    expect(fish.neural).toBe(1);
+    expect(fish.lock).toBe(1);
+  });
+
+  it('a bare chase can fail to catch a squid already fleeing at top speed', () => {
+    expect(chase(170, false).tether).toBeNull();
+  });
+
+  it('Burst buys enough extra time to make the same chase succeed', () => {
+    expect(chase(170, true).tether).not.toBeNull();
+  });
+
+  it('wins every hunt with Pursuit → Burst → Swallow Whole, despite the orca pod', () => {
+    expect(wins(SEEDS.map((seed) => play(BLUESHARK, seed, blueSharkBot())))).toBe(SEEDS.length);
   });
 
   it('hunts squid, not reef fish or cone snails: scattered individuals, no schooling', () => {

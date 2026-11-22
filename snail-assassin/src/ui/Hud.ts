@@ -105,18 +105,30 @@ export class Hud {
     SLOTS.forEach(({ slot, key }, i) => {
       const a = this.character.abilities[slot];
       const cd = v.cooldowns[slot];
-      const needsTarget = (a.kind === 'lock' || a.kind === 'reel') && !state.tether;
+      const needsTarget =
+        ((a.kind === 'lock' || a.kind === 'reel') && !state.tether) ||
+        (a.kind === 'burst' && !state.pursuit);
       const reeling = a.kind === 'reel' && state.tether?.reeling;
+      const activeFor =
+        a.kind === 'camouflage' && state.camouflage > 0
+          ? state.camouflage
+          : a.kind === 'pursuit' && state.pursuit
+            ? Math.max(0, state.pursuit.until - state.time)
+            : null;
       const status =
-        cd > 0
-          ? `${cd.toFixed(1)}s`
-          : v.reserve < a.cost
-            ? `LOW ${resource.toUpperCase()}`
-            : needsTarget
-              ? 'NEEDS A STRIKE'
-              : reeling
-                ? 'REELING…'
-                : 'READY';
+        activeFor !== null
+          ? `${a.kind === 'pursuit' ? 'CHASING' : 'ACTIVE'} ${activeFor.toFixed(1)}s`
+          : cd > 0
+            ? `${cd.toFixed(1)}s`
+            : v.reserve < a.cost
+              ? `LOW ${resource.toUpperCase()}`
+              : needsTarget
+                ? a.kind === 'burst'
+                  ? 'NEEDS A CHASE'
+                  : 'NEEDS A STRIKE'
+                : reeling
+                  ? 'REELING…'
+                  : 'READY';
       const t = this.abilityTexts[i];
       t?.setText(
         `[${key()}] ${a.label}\n${a.cost > 0 ? `${a.cost} ${resource.toLowerCase()}` : 'free'}\n${status}`,

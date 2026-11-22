@@ -7,10 +7,14 @@ import type { CharacterConfig } from './types';
 // while a pod of orcas (TUNING.orca + TUNING.orcaPod in src/config/tuning.ts) hunts Glaucus in
 // turn — real, documented, coordinated pack behaviour; see docs/SCIENCE.md for exactly which
 // shark species that behaviour has actually been documented against (not the blue shark itself).
-// Abilities reuse the same strike/lock/reel kinds Catalyst and Cipher use (see src/systems/hunt.ts);
-// see docs/SCIENCE.md for the evidence behind each one. Squid are placed as scattered individuals
-// (`prey: 'squid'` below), the same way Cipher's cone-snail prey is, since the blue shark's
-// documented squid prey are mostly non-schooling deep-water species.
+// Squid are placed as scattered individuals (`prey: 'squid'` below), the same way Cipher's
+// cone-snail prey is, since the blue shark's documented squid prey are mostly non-schooling
+// deep-water species.
+//
+// Glaucus's own core mechanic is genuinely different from the cone snails' and from Cipher's:
+// Pursuit replaces aiming a single precise strike with committing to a time-limited chase at
+// elevated speed, and Burst buys more time mid-chase instead of holding the catch still. See
+// docs/SCIENCE.md for the evidence behind each ability.
 export const BLUESHARK: CharacterConfig = {
   id: 'blueshark',
   name: 'GLAUCUS',
@@ -20,11 +24,11 @@ export const BLUESHARK: CharacterConfig = {
   title: 'The Wanderer',
   tagline: 'You spent a level fleeing this one. Now the water belongs to you — mostly.',
   personality: 'Restless, wide-ranging, always descending toward the next meal.',
-  specialization: 'Pursuit strike, crushing bite, swallow prey whole',
+  specialization: 'Sustained pursuit, a late burst of speed, swallowing prey whole',
   threat: 'orca',
   prey: 'squid',
   // Sharks have no venom at all — this uses the same cost/cooldown pool every character does,
-  // just under its real name for an animal that hunts by speed and bite force, not toxin.
+  // just under its real name for an animal that hunts by speed and endurance, not toxin.
   resourceName: 'Energy',
   speed: 70,
   palette: {
@@ -37,27 +41,31 @@ export const BLUESHARK: CharacterConfig = {
   },
   abilities: {
     primary: {
-      kind: 'strike',
-      label: 'Pursuit Strike',
-      blurb: 'Close the distance and strike at one squid in open water. Misses waste energy.',
+      kind: 'pursuit',
+      label: 'Pursuit',
+      blurb:
+        'Give chase: lock onto the nearest squid and swim hard at it for a few seconds. No ' +
+        'aiming — close the distance before it gets away, or the chase is wasted.',
       cost: 30,
-      cooldown: 2,
-      range: 180,
-      aimTolerance: 36,
+      cooldown: 2.5,
+      range: 190,
+      chaseSpeedMultiplier: 1.35,
+      durationSeconds: 2,
+      grabRadius: 30,
       missPenalty: 2,
     },
     secondary: {
-      kind: 'lock',
-      label: 'Crushing Bite',
-      blurb: 'Clamp down hard enough that the squid cannot jet away.',
+      kind: 'burst',
+      label: 'Burst',
+      blurb: 'A short extra push of speed that buys more time on a chase already underway.',
       cost: 20,
-      cooldown: 4,
-      potency: 1,
+      cooldown: 3.5,
+      extraSeconds: 1.6,
     },
     capture: {
       kind: 'reel',
       label: 'Swallow Whole',
-      blurb: 'Draw the bitten squid in and swallow it.',
+      blurb: 'Draw the caught squid in and swallow it.',
       cost: 0,
       cooldown: 0.5,
       reelSpeed: 70,
@@ -65,12 +73,12 @@ export const BLUESHARK: CharacterConfig = {
       tetherLength: 220,
     },
   },
-  combo: 'Pursuit Strike → Crushing Bite → Swallow Whole',
-  strengths: ['Fast swimmer', 'Immediate effects once locked on', 'Long tether range'],
+  combo: 'Pursuit → Burst → Swallow Whole',
+  strengths: ['Fastest swimmer in the game', 'No aiming required', 'Long tether range'],
   weaknesses: [
-    'Single target',
+    'A chase can simply run out of time',
     'Misses waste energy',
     'The orca pod hunts as a coordinated group, not a lone threat',
   ],
-  attributes: { speed: 5, range: 4, burst: 4, area: 1, stealth: 2 },
+  attributes: { speed: 5, range: 4, burst: 5, area: 1, stealth: 1 },
 };

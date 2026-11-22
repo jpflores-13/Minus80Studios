@@ -247,6 +247,28 @@ export class HuntScene extends Phaser.Scene {
     }
   }
 
+  /** Which slot (primary/secondary/capture) holds an ability of this kind, for this character.
+   *  Slot assignment varies per character (e.g. Pounce is Cipher's secondary, not primary), so
+   *  event reactions below look this up instead of assuming a fixed slot. */
+  private slotOfKind(
+    kind: CharacterConfig['abilities']['primary']['kind'],
+  ): 'primary' | 'secondary' | 'capture' | null {
+    const c = this.character;
+    if (c.abilities.primary.kind === kind) return 'primary';
+    if (c.abilities.secondary.kind === kind) return 'secondary';
+    if (c.abilities.capture.kind === kind) return 'capture';
+    return null;
+  }
+
+  /** The ability (primary or secondary) that actually creates a tether for this character —
+   *  'strike' for the cone snails and Cipher, 'pursuit' for Glaucus — used to name it in denied
+   *  and capture-miss messages instead of assuming it's always the primary slot. */
+  private tetherAbilityLabel(): string {
+    const c = this.character;
+    const slot = this.slotOfKind('strike') ?? this.slotOfKind('pursuit');
+    return slot ? c.abilities[slot].label : c.abilities.primary.label;
+  }
+
   private react(e: HuntEvent): void {
     const now = this.time.now;
     switch (e.type) {
@@ -259,7 +281,7 @@ export class HuntScene extends Phaser.Scene {
         this.helpCard.setVisible(false);
         this.flashes.push({ from: e.from, to: e.to, until: now + 180, hit: true });
         this.sfx('strike');
-        this.tick('primary');
+        this.tick(this.slotOfKind('strike') ?? 'primary');
         break;
       case 'strike-miss':
         this.flashes.push({ from: e.from, to: e.to, until: now + 180, hit: false });
@@ -268,7 +290,7 @@ export class HuntScene extends Phaser.Scene {
         break;
       case 'lock':
         this.sfx('lock');
-        this.tick('secondary');
+        this.tick(this.slotOfKind('lock') ?? 'secondary');
         break;
       case 'reel-start':
         this.sfx('reel');
@@ -279,6 +301,34 @@ export class HuntScene extends Phaser.Scene {
           `The ${preyNoun(this.character, 1)} recovered and broke free. ` +
             `Try ${this.character.abilities.secondary.label} first.`,
         );
+        break;
+      case 'camouflage-on':
+        this.helpCard.setVisible(false);
+        this.sfx('cloud');
+        this.tick(this.slotOfKind('camouflage') ?? 'primary');
+        this.hud.say('Camouflaged — the shark barely notices you now.');
+        break;
+      case 'camouflage-off':
+        break;
+      case 'pursuit-start':
+        this.helpCard.setVisible(false);
+        this.sfx('lock');
+        this.tick(this.slotOfKind('pursuit') ?? 'primary');
+        break;
+      case 'pursuit-miss':
+        this.sfx('miss');
+        this.hud.say('No squid in range to chase.');
+        break;
+      case 'pursuit-catch':
+        this.sfx('lock');
+        break;
+      case 'pursuit-lost':
+        this.sfx('snap');
+        this.hud.say(`The ${preyNoun(this.character, 1)} outran you. Try Burst next time.`);
+        break;
+      case 'burst':
+        this.sfx('reel');
+        this.tick(this.slotOfKind('burst') ?? 'secondary');
         break;
       case 'capture':
         if (!settings().reducedEffects) this.cameras.main.shake(120, 0.002);
@@ -316,7 +366,7 @@ export class HuntScene extends Phaser.Scene {
             ? 'Still recovering…'
             : e.reason === 'no-venom'
               ? `Not enough ${this.character.resourceName.toLowerCase()}`
-              : `${this.character.abilities.primary.label} a ${preyNoun(this.character, 1)} first`,
+              : `${this.tetherAbilityLabel()} a ${preyNoun(this.character, 1)} first`,
         );
         break;
       case 'predator-chase':
@@ -349,7 +399,9 @@ export class HuntScene extends Phaser.Scene {
     const s = this.state;
     const reduced = settings().reducedEffects;
     this.snail.setPosition(s.snail.pos.x, s.snail.pos.y).setRotation(s.snail.heading);
-    this.snail.setAlpha(s.snail.stunned > 0 && Math.floor(time / 120) % 2 === 0 ? 0.4 : 1);
+    this.snail.setAlpha(
+      s.snail.stunned > 0 && Math.floor(time / 120) % 2 === 0 ? 0.4 : s.camouflage > 0 ? 0.5 : 1,
+    );
     // The octopus threat sprite is drawn facing "up"; the shark and orca, like the player
     // sprites, face right, so only the octopus needs the extra quarter turn.
     const threatRotationOffset = this.character.threat === 'octopus' ? Math.PI / 2 : 0;
@@ -417,6 +469,17 @@ export class HuntScene extends Phaser.Scene {
       }
       g.lineTo(f.to.x, f.to.y);
       g.strokePath();
+    }
+
+    // Pursuit (Glaucus): a solid, fading-with-time-left line to the squid being chased, instead
+    // of a single strike flash — there's no single aimed shot to show.
+    if (s.pursuit) {
+      const f = s.fish.find((x) => x.id === s.pursuit?.fishId);
+      if (f) {
+        const left = Math.max(0, Math.min(1, (s.pursuit.until - s.time) / 2));
+        g.lineStyle(3, accent, 0.3 + 0.5 * left);
+        g.lineBetween(s.snail.pos.x, s.snail.pos.y, f.pos.x, f.pos.y);
+      }
     }
 
     // Tether: dashed line from proboscis to the struck fish; lock = spinning ring.
@@ -487,31 +550,35 @@ export class HuntScene extends Phaser.Scene {
   private drawAimPreview(g: Phaser.GameObjects.Graphics): void {
     const s = this.state;
     const p = this.input.activePointer;
-    const primary = this.character.abilities.primary;
+    // The aimed ability isn't always primary (Cipher's Pounce is secondary), so find whichever
+    // slot actually needs a cursor. Pursuit (Glaucus) has no cursor aim at all — it locks onto
+    // the nearest target automatically — so it draws no preview here.
+    const slot = this.slotOfKind('cloud') ?? this.slotOfKind('strike');
+    const aimed = slot ? this.character.abilities[slot] : null;
     const dx = p.worldX - s.snail.pos.x;
     const dy = p.worldY - s.snail.pos.y;
     const d = Math.hypot(dx, dy) || 1;
     // On touch screens the reticle from TouchControls shows the aim instead.
-    if (!this.touch && primary.kind === 'cloud') {
-      const k = d > primary.range ? primary.range / d : 1;
+    if (!this.touch && aimed?.kind === 'cloud') {
+      const k = d > aimed.range ? aimed.range / d : 1;
       g.lineStyle(1, 0xffffff, 0.12);
-      g.strokeCircle(s.snail.pos.x, s.snail.pos.y, primary.range);
+      g.strokeCircle(s.snail.pos.x, s.snail.pos.y, aimed.range);
       g.lineStyle(2, 0xffffff, 0.35);
-      g.strokeCircle(s.snail.pos.x + dx * k, s.snail.pos.y + dy * k, primary.radius);
-    } else if (!this.touch && primary.kind === 'strike' && !s.tether) {
-      const k = d > primary.range ? primary.range / d : 1;
+      g.strokeCircle(s.snail.pos.x + dx * k, s.snail.pos.y + dy * k, aimed.radius);
+    } else if (!this.touch && aimed?.kind === 'strike' && !s.tether) {
+      const k = d > aimed.range ? aimed.range / d : 1;
       const ax = s.snail.pos.x + dx * k;
       const ay = s.snail.pos.y + dy * k;
       const locked = s.fish.some(
         (f) =>
           f.mode !== 'captured' &&
-          Math.hypot(f.pos.x - ax, f.pos.y - ay) <= primary.aimTolerance &&
-          Math.hypot(f.pos.x - s.snail.pos.x, f.pos.y - s.snail.pos.y) <= primary.range,
+          Math.hypot(f.pos.x - ax, f.pos.y - ay) <= aimed.aimTolerance &&
+          Math.hypot(f.pos.x - s.snail.pos.x, f.pos.y - s.snail.pos.y) <= aimed.range,
       );
       g.lineStyle(1, 0xffffff, 0.12);
-      g.strokeCircle(s.snail.pos.x, s.snail.pos.y, primary.range);
+      g.strokeCircle(s.snail.pos.x, s.snail.pos.y, aimed.range);
       g.lineStyle(2, locked ? 0xffe9a8 : 0xffffff, locked ? 1 : 0.4);
-      g.strokeCircle(ax, ay, primary.aimTolerance);
+      g.strokeCircle(ax, ay, aimed.aimTolerance);
       g.lineBetween(ax - 8, ay, ax + 8, ay);
       g.lineBetween(ax, ay - 8, ax, ay + 8);
     }

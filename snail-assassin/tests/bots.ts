@@ -79,59 +79,85 @@ export function catalystBot(useLock = true, reelImmediately = false): Bot {
   };
 }
 
-/** Same strike/lock/reel shape as catalystBot, since Cipher's abilities reuse those kinds. */
-export function octopusBot(useBite = true, reelImmediately = false): Bot {
+/**
+ * Cipher's own mechanic: Camouflage (primary, timed stealth) while approaching, then Pounce
+ * (secondary, a strike that restrains on contact — see `instantGrip`), then Draw to Mouth. Set
+ * `useCamouflage` to false to prove camouflage isn't required to catch anything (cone snails are
+ * slow; it exists to reduce shark grabs, not to enable capture — see hunt.test.ts).
+ */
+export function octopusBot(useCamouflage = true): Bot {
   return (s) => {
     const t = s.tether;
     if (t) {
       const f = s.fish.find((x) => x.id === t.fishId)!;
-      const bitten = !useBite || f.lock > 0.3;
       return {
         move: toward(s, f),
         aim: f.pos,
         primary: false,
-        secondary: useBite && f.lock < 0.3 && ready(s, 'secondary'),
-        capture: !t.reeling && (bitten || reelImmediately),
+        secondary: false,
+        capture: !t.reeling,
       };
     }
     const target = nearest(s, live(s));
     const d = dist(s, target);
-    const r = OCTOPUS.abilities.primary.kind === 'strike' ? OCTOPUS.abilities.primary.range : 0;
+    const pounce = OCTOPUS.abilities.secondary;
+    const r = pounce.kind === 'strike' ? pounce.range : 0;
+    const inPounceRange = d < r - 5;
     return {
       move: d > r - 20 ? toward(s, target) : { x: 0, y: 0 },
       aim: target.pos,
-      // Only pounce when there's enough venom to follow up with the paralytic bite.
-      primary: d < r - 5 && ready(s, 'primary') && s.venom.reserve >= 30 + (useBite ? 20 : 0),
-      secondary: false,
+      // Camouflage only while still closing the distance — pouncing cancels it anyway, so
+      // triggering both in the same frame would just waste the venom.
+      primary:
+        useCamouflage &&
+        !inPounceRange &&
+        s.camouflage <= 0 &&
+        ready(s, 'primary') &&
+        s.venom.reserve >= 60,
+      secondary: inPounceRange && ready(s, 'secondary') && s.venom.reserve >= 35,
       capture: false,
     };
   };
 }
 
-/** Same strike/lock/reel shape as catalystBot and octopusBot, since Glaucus's abilities reuse
- *  those kinds too. */
-export function blueSharkBot(useBite = true, reelImmediately = false): Bot {
+/**
+ * Glaucus's own mechanic: Pursuit (primary, a time-limited chase with no cursor aim) instead of
+ * a precise strike, then Burst (secondary) to buy more time when the chase is about to run out,
+ * then Swallow Whole. Set `useBurst` to false to prove a bare chase can still fail to catch a
+ * squid that gets away before the window closes — see hunt.test.ts.
+ */
+export function blueSharkBot(useBurst = true): Bot {
   return (s) => {
     const t = s.tether;
     if (t) {
       const f = s.fish.find((x) => x.id === t.fishId)!;
-      const bitten = !useBite || f.lock > 0.3;
       return {
         move: toward(s, f),
         aim: f.pos,
         primary: false,
-        secondary: useBite && f.lock < 0.3 && ready(s, 'secondary'),
-        capture: !t.reeling && (bitten || reelImmediately),
+        secondary: false,
+        capture: !t.reeling,
       };
     }
+    if (s.pursuit) {
+      const f = s.fish.find((x) => x.id === s.pursuit!.fishId);
+      const timeLeft = s.pursuit.until - s.time;
+      return {
+        move: f ? toward(s, f) : { x: 0, y: 0 },
+        aim: f ? f.pos : s.snail.pos,
+        primary: false,
+        secondary: useBurst && timeLeft < 1 && ready(s, 'secondary'),
+        capture: false,
+      };
+    }
+    const pursue = BLUESHARK.abilities.primary;
+    const r = pursue.kind === 'pursuit' ? pursue.range : 0;
     const target = nearest(s, live(s));
     const d = dist(s, target);
-    const r = BLUESHARK.abilities.primary.kind === 'strike' ? BLUESHARK.abilities.primary.range : 0;
     return {
       move: d > r - 20 ? toward(s, target) : { x: 0, y: 0 },
       aim: target.pos,
-      // Only strike when there's enough venom to follow up with the crushing bite.
-      primary: d < r - 5 && ready(s, 'primary') && s.venom.reserve >= 30 + (useBite ? 20 : 0),
+      primary: d < r - 10 && ready(s, 'primary') && s.venom.reserve >= 30,
       secondary: false,
       capture: false,
     };

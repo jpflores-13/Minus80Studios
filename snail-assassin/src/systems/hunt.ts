@@ -1,10 +1,13 @@
 import type {
   AbilityConfig,
+  BurstAbility,
+  CamouflageAbility,
   CharacterConfig,
   CloudAbility,
   CloudEffect,
   EngulfAbility,
   LockAbility,
+  PursuitAbility,
   ReelAbility,
   StrikeAbility,
 } from '../characters/types';
@@ -42,6 +45,13 @@ export interface Tether {
   reeling: boolean;
 }
 
+/** Glaucus's in-progress chase (see PursuitAbility, stepPursuit). */
+export interface Pursuit {
+  fishId: number;
+  /** The chase fails if the target isn't caught before this time (HuntState.time). */
+  until: number;
+}
+
 export interface HuntStats {
   abilitiesUsed: number;
   strikesHit: number;
@@ -67,6 +77,10 @@ export interface HuntState {
   fish: Fish[];
   clouds: Cloud[];
   tether: Tether | null;
+  /** Cipher only: seconds remaining on an active Camouflage window (0 = not camouflaged). */
+  camouflage: number;
+  /** Glaucus only: an in-progress chase started by Pursuit (see stepPursuit). */
+  pursuit: Pursuit | null;
   venom: VenomState;
   captured: number;
   capturedIds: number[];
@@ -96,6 +110,13 @@ export type HuntEvent =
   | { type: 'capture'; fishIds: number[] }
   | { type: 'capture-miss' }
   | { type: 'denied'; slot: AbilitySlot; reason: DenyReason }
+  | { type: 'camouflage-on' }
+  | { type: 'camouflage-off' }
+  | { type: 'pursuit-start'; fishId: number }
+  | { type: 'pursuit-miss' }
+  | { type: 'pursuit-catch'; fishId: number }
+  | { type: 'pursuit-lost'; fishId: number }
+  | { type: 'burst' }
   | { type: 'predator-chase' }
   | { type: 'grabbed' }
   | { type: 'won' }
@@ -166,6 +187,8 @@ export function createHunt(
     fish,
     clouds: [],
     tether: null,
+    camouflage: 0,
+    pursuit: null,
     venom: createVenom(TUNING.venom.max, TUNING.venom.regenPerSecond),
     captured: 0,
     capturedIds: [],
@@ -182,16 +205,39 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   const events: HuntEvent[] = [];
   state.time += dt;
 
-  // Player movement. Slower while reeling in prey; frozen while stunned by the threat.
+  // Player movement. Slower while reeling in prey or camouflaged (Cipher), faster while
+  // pursuing (Glaucus); frozen while stunned by the threat.
   const snail = state.snail;
   snail.stunned = Math.max(0, snail.stunned - dt);
   const reeling = state.tether?.reeling === true;
-  const params = { maxSpeed: state.character.speed * (reeling ? 0.3 : 1), ...TUNING.snail };
+  const camo = abilityOfKind(state.character, 'camouflage');
+  const camouflaged = camo !== undefined && state.camouflage > 0;
+  const pursuitAbility = abilityOfKind(state.character, 'pursuit');
+  const pursuing = pursuitAbility !== undefined && state.pursuit !== null;
+  let speedMultiplier = 1;
+  if (reeling) speedMultiplier = 0.3;
+  else if (camouflaged && camo) speedMultiplier = camo.speedMultiplier;
+  else if (pursuing && pursuitAbility) speedMultiplier = pursuitAbility.chaseSpeedMultiplier;
+  const params = { maxSpeed: state.character.speed * speedMultiplier, ...TUNING.snail };
   const move = snail.stunned > 0 ? { x: 0, y: 0 } : input.move;
   snail.vel = stepVelocity(snail.vel, move, params, dt);
   snail.pos.x = wrap(snail.pos.x + snail.vel.x * dt, state.arena.width);
   snail.pos.y = wrap(snail.pos.y + snail.vel.y * dt, state.arena.height);
   if (length(snail.vel) > 2) snail.heading = Math.atan2(snail.vel.y, snail.vel.x);
+
+  // Camouflage countdown: ends on its own, or the instant a strike/pursuit ability fires (see
+  // useAbility) — a sudden lunge reveals the octopus either way.
+  if (camo) {
+    const was = state.camouflage > 0;
+    state.camouflage = Math.max(0, state.camouflage - dt);
+    if (was && state.camouflage <= 0) events.push({ type: 'camouflage-off' });
+  }
+
+  // The same motion signal both the threat's sightRadius detection and nearby prey's awareness
+  // key off (see stepPredator, stepAwareness). While camouflaged, Cipher's real movement barely
+  // registers on it — see CamouflageAbility.detectionMultiplier.
+  const motionRatio = length(snail.vel) / state.character.speed;
+  const motionSignal = camouflaged && camo ? motionRatio * camo.detectionMultiplier : motionRatio;
 
   // Abilities.
   stepVenom(state.venom, dt);
@@ -216,7 +262,6 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   state.clouds = state.clouds.filter((c) => c.age < c.life);
 
   // Fish: exposure from clouds, then behaviour.
-  const snailMotion = length(state.snail.vel) / state.character.speed;
   const pt = preyTuning(state.character);
   const bySchool = new Map<number, Fish[]>();
   for (const f of state.fish) bySchool.set(f.school, [...(bySchool.get(f.school) ?? []), f]);
@@ -234,7 +279,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
       f,
       bySchool.get(f.school) ?? [],
       state.snail.pos,
-      snailMotion,
+      motionSignal,
       state.arena,
       state.rng,
       dt,
@@ -243,6 +288,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   }
 
   events.push(...stepTether(state, dt));
+  events.push(...stepPursuit(state, dt));
 
   // The threat: the octopus, the shark (when playing as the octopus), or the orca pod (when
   // playing as the blue shark). `pack` is empty outside the orca tier, so this loop behaves
@@ -250,7 +296,6 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
   const threat = threatTuning(state.character);
   const pod = [state.predator, ...state.pack];
   const wasChasing = pod.some((m) => m.mode === 'chase');
-  const snailMotionNow = length(snail.vel) / state.character.speed;
   let grabbed = false;
   for (const m of pod) {
     // Pack coordination: once any pod member is chasing, the others are alerted toward the
@@ -260,7 +305,7 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
     if (wasChasing && m.mode === 'patrol') {
       m.awareness = clamp(m.awareness + TUNING.orcaPod.alertGain * dt, 0, 1);
     }
-    if (stepPredator(m, snail.pos, snailMotionNow, state.arena, state.rng, dt, threat))
+    if (stepPredator(m, snail.pos, motionSignal, state.arena, state.rng, dt, threat))
       grabbed = true;
   }
   const isChasingNow = pod.some((m) => m.mode === 'chase');
@@ -269,6 +314,8 @@ export function stepHunt(state: HuntState, input: HuntInput, dt: number): HuntEv
     snail.vel = { x: 0, y: 0 };
     state.venom.reserve = Math.max(0, state.venom.reserve - threat.venomLost);
     if (state.tether) releaseTether(state, true);
+    state.camouflage = 0;
+    state.pursuit = null;
     state.stats.timesGrabbed++;
     events.push({ type: 'grabbed' });
   } else if (!wasChasing && isChasingNow) {
@@ -295,9 +342,14 @@ function useAbility(
   if ((ability.kind === 'lock' || ability.kind === 'reel') && !state.tether) {
     return [{ type: 'denied', slot, reason: 'no-target' }];
   }
+  if (ability.kind === 'burst' && !state.pursuit) {
+    return [{ type: 'denied', slot, reason: 'no-target' }];
+  }
   const result = tryUse(state.venom, slot, ability.cost, ability.cooldown);
   if (result !== 'ok') return [{ type: 'denied', slot, reason: result }];
   state.stats.abilitiesUsed++;
+  // A lunge (Cipher's Pounce, Glaucus's Pursuit) reveals the octopus even if camouflaged.
+  if (ability.kind === 'strike' || ability.kind === 'pursuit') state.camouflage = 0;
   switch (ability.kind) {
     case 'cloud':
       return [releaseCloud(state, ability, aim)];
@@ -309,7 +361,25 @@ function useAbility(
       return [motorLock(state, ability)];
     case 'reel':
       return [startReel(state, ability)];
+    case 'camouflage':
+      return [activateCamouflage(state, ability)];
+    case 'pursuit':
+      return [beginPursuit(state, ability, slot)];
+    case 'burst':
+      return [extendPursuit(state, ability)];
   }
+}
+
+/** Find this character's ability of a given kind, wherever it lives among its three slots
+ *  (primary/secondary/capture). Returns undefined for characters that don't have one. */
+function abilityOfKind<K extends AbilityConfig['kind']>(
+  character: CharacterConfig,
+  kind: K,
+): Extract<AbilityConfig, { kind: K }> | undefined {
+  const { primary, secondary, capture } = character.abilities;
+  return [primary, secondary, capture].find(
+    (a): a is Extract<AbilityConfig, { kind: K }> => a.kind === kind,
+  );
 }
 
 /** Place a cloud at the aim point, clamped to the ability's range from the snail. */
@@ -373,6 +443,7 @@ export function strike(
   target.neural = 1;
   target.tethered = true;
   target.vel = { x: 0, y: 0 };
+  if (a.instantGrip) target.lock = 1;
   state.tether = { fishId: target.id, reeling: false };
   state.stats.strikesHit++;
   return { type: 'strike-hit', fishId: target.id, from, to: { ...target.pos } };
@@ -388,6 +459,69 @@ export function startReel(state: HuntState, _a: ReelAbility): HuntEvent {
   const t = state.tether!;
   t.reeling = true;
   return { type: 'reel-start', fishId: t.fishId };
+}
+
+/** Camouflage (Cipher): start (or refresh) the stealth window. See CamouflageAbility and the
+ *  motion-signal dampening in stepHunt. */
+export function activateCamouflage(state: HuntState, a: CamouflageAbility): HuntEvent {
+  state.camouflage = a.durationSeconds;
+  return { type: 'camouflage-on' };
+}
+
+/** Pursuit (Glaucus): lock onto the nearest live, untethered squid in range and start a
+ *  time-limited chase (see stepPursuit). No cursor aim check, unlike a strike. */
+export function beginPursuit(state: HuntState, a: PursuitAbility, slot: AbilitySlot): HuntEvent {
+  if (state.tether) releaseTether(state, false);
+  const s = state.snail.pos;
+  const target = state.fish
+    .filter((f) => f.mode !== 'captured' && !f.tethered)
+    .map((f) => ({ f, d: Math.hypot(f.pos.x - s.x, f.pos.y - s.y) }))
+    .filter(({ d }) => d <= a.range)
+    .sort((p, q) => p.d - q.d)[0]?.f;
+  if (!target) {
+    state.venom.cooldowns[slot] += a.missPenalty;
+    return { type: 'pursuit-miss' };
+  }
+  startle(state, target.pos, TUNING.escape.hitStartle);
+  state.pursuit = { fishId: target.id, until: state.time + a.durationSeconds };
+  return { type: 'pursuit-start', fishId: target.id };
+}
+
+/** Burst (Glaucus): buy more time on an in-progress chase. Needs an active pursuit — denied
+ *  otherwise (see the pre-check in useAbility). */
+export function extendPursuit(state: HuntState, a: BurstAbility): HuntEvent {
+  state.pursuit!.until += a.extraSeconds;
+  return { type: 'burst' };
+}
+
+/** Pursuit rules (Glaucus): the chase ends in a catch — tethered exactly like a strike hit, see
+ *  stepTether — if the snail reaches grabRadius before the window closes, or a lost chase
+ *  otherwise. A caught fish is immediately fully restrained (neural = lock = 1): for a pursuit
+ *  predator, closing the distance is the hard part, not holding on afterward, so there's no
+ *  separate lock step (see docs/SCIENCE.md). */
+function stepPursuit(state: HuntState, _dt: number): HuntEvent[] {
+  const p = state.pursuit;
+  if (!p) return [];
+  const fish = state.fish.find((f) => f.id === p.fishId);
+  if (!fish || fish.mode === 'captured') {
+    state.pursuit = null;
+    return [];
+  }
+  if (state.time >= p.until) {
+    state.pursuit = null;
+    return [{ type: 'pursuit-lost', fishId: fish.id }];
+  }
+  const grabRadius = abilityOfKind(state.character, 'pursuit')?.grabRadius ?? 0;
+  const d = Math.hypot(fish.pos.x - state.snail.pos.x, fish.pos.y - state.snail.pos.y);
+  if (d <= grabRadius) {
+    fish.neural = 1;
+    fish.lock = 1;
+    fish.tethered = true;
+    state.tether = { fishId: fish.id, reeling: false };
+    state.pursuit = null;
+    return [{ type: 'pursuit-catch', fishId: fish.id }];
+  }
+  return [];
 }
 
 /** Tether rules: reel the fish in, capture on arrival; it breaks if the fish recovers or is too far. */
