@@ -1,28 +1,44 @@
 import type { LevelConfig } from './types';
 
-// The first real watershed crossing. A clearing (fast drain) and a line of fallen logs
-// (sheltered, slower) offer two different routes across the same gap. A patch of moss sits
-// between them as a place to catch your breath either way.
+// No stream connects these two places. Only ground does. A rock ridge splits the crossing into
+// two zigzagging lanes: an exposed clearing route on top (faster, drains hard, forced to weave
+// through narrow gaps between blocks), a fallen-log route below (slower, gentler, same weaving
+// the other way). A moss saddle cut through the ridge lets Moss swap lanes partway. A short
+// stream pocket waits at the far side, the first water in the whole level.
 export const level4: LevelConfig = {
   id: 'level-4',
   number: 4,
   name: 'Over the Ridge',
   tagline: 'Away from the water, on purpose.',
+  biome: 'ridge',
   intro: [
     'No stream connects these two places. Only ground does.',
     'The open clearing is faster, but it dries you out fast. The fallen logs are slower, but kinder.',
-    'A patch of moss sits between them if you need it.',
+    'A gap in the ridge lets you swap between them, if you need to.',
   ],
-  timeLimit: 75,
+  timeLimit: 115,
   rain: [],
-  stars: [700, 1000, 1250],
+  stars: [450, 680, 950],
   map: [
-    '########################################',
-    '#......................................#',
-    '#.P~~~~~~~~~~~......CCCCC...LLL........#',
-    '#..............MMM..CCCCC...LLL........#',
-    '#..............MMM..........LLL.~~~~~~E#',
-    '#......................................#',
-    '########################################',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'X..........................................X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
+    'X..X....X....X....XMMM.X....X....X.........X',
+    'XPXXXXXXXXXXXXXXXXXMMMXXXXXXXXXXXXXXXX~~~~EX',
+    'X....X....X....X...MMM...X....X....X..~~~~~X',
+    'X..................MMM.....................X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
+    'X..........................................X',
+    'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
   ],
 };

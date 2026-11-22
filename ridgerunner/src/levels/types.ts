@@ -11,6 +11,17 @@ export interface RainEvent {
   duration: number;
 }
 
+/**
+ * Which real Pacific Northwest setting this level's art is grounded in (see docs/SCIENCE.md,
+ * "Backdrop / set-dressing notes" for what's verified vs. a stylistic choice per biome):
+ *  - headwater:     a shaded, narrow old-growth headwater stream (Little Creek, Against the Current)
+ *  - end-of-stream: a headwater network's edge, giving way to drier upland forest floor (End of the Line)
+ *  - ridge:         an overland ridge crossing between two drainages (Over the Ridge)
+ *  - floodplain:    a wider valley-bottom crossing, more open than a headwater (When It Rains)
+ * Undefined falls back to the plain headwater palette.
+ */
+export type Biome = 'headwater' | 'end-of-stream' | 'ridge' | 'floodplain';
+
 export interface LevelConfig {
   id: string;
   number: number;
@@ -23,4 +34,5 @@ export interface LevelConfig {
   rain: RainEvent[];
   /** Score for one, two and three rankings. */
   stars: [number, number, number];
+  biome?: Biome;
 }

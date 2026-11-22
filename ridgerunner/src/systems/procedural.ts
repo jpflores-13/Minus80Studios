@@ -6,8 +6,11 @@ import { TERRAIN } from './terrain';
 // Beyond the Divide: reproducible, randomized watershed crossings. Every generated map is
 // checked for a passable route from start to destination before it's handed to the player.
 
-const W = 40;
-const H = 14;
+// Sized to clear the camera viewport at ZOOM 1.4 (914x514px), the same fix applied to the five
+// hand-built levels: a map smaller than that leaves blank space around it instead of filling
+// the screen.
+const W = 44;
+const H = 18;
 
 function randomWalk(rng: Rng, grid: string[][], x0: number, y0: number, steps: number): void {
   let x = x0;
@@ -57,11 +60,11 @@ function generateOnce(rng: Rng): string[] {
       x === 0 || y === 0 || x === W - 1 || y === H - 1 ? 'X' : '.',
     ),
   );
-  randomWalk(rng, grid, 3, 2 + Math.floor(rng.next() * 3), 60);
-  randomWalk(rng, grid, W - 4, H - 4 - Math.floor(rng.next() * 3), 60);
+  randomWalk(rng, grid, 3, 2 + Math.floor(rng.next() * 3), 90);
+  randomWalk(rng, grid, W - 4, H - 4 - Math.floor(rng.next() * 3), 90);
 
   // scatter a few clearings, moss patches and logs on dry land
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 16; i++) {
     const x = 1 + Math.floor(rng.next() * (W - 2));
     const y = 1 + Math.floor(rng.next() * (H - 2));
     if (grid[y]?.[x] !== '.') continue;
