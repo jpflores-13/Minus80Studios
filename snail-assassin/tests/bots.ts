@@ -1,6 +1,7 @@
 import { ATLAS } from '../src/characters/atlas';
 import { CATALYST } from '../src/characters/catalyst';
 import { NIGHTSHADE } from '../src/characters/nightshade';
+import { OCTOPUS } from '../src/characters/octopus';
 import type { CharacterConfig } from '../src/characters/types';
 import { TUNING } from '../src/config/tuning';
 import type { Fish } from '../src/systems/fish';
@@ -71,6 +72,35 @@ export function catalystBot(useLock = true, reelImmediately = false): Bot {
       aim: target.pos,
       // Only strike when there's enough venom to follow up with Motor Lock.
       primary: d < r - 5 && ready(s, 'primary') && s.venom.reserve >= 30 + (useLock ? 20 : 0),
+      secondary: false,
+      capture: false,
+    };
+  };
+}
+
+/** Same strike/lock/reel shape as catalystBot, since Cipher's abilities reuse those kinds. */
+export function octopusBot(useBite = true, reelImmediately = false): Bot {
+  return (s) => {
+    const t = s.tether;
+    if (t) {
+      const f = s.fish.find((x) => x.id === t.fishId)!;
+      const bitten = !useBite || f.lock > 0.3;
+      return {
+        move: toward(s, f),
+        aim: f.pos,
+        primary: false,
+        secondary: useBite && f.lock < 0.3 && ready(s, 'secondary'),
+        capture: !t.reeling && (bitten || reelImmediately),
+      };
+    }
+    const target = nearest(s, live(s));
+    const d = dist(s, target);
+    const r = OCTOPUS.abilities.primary.kind === 'strike' ? OCTOPUS.abilities.primary.range : 0;
+    return {
+      move: d > r - 20 ? toward(s, target) : { x: 0, y: 0 },
+      aim: target.pos,
+      // Only pounce when there's enough venom to follow up with the paralytic bite.
+      primary: d < r - 5 && ready(s, 'primary') && s.venom.reserve >= 30 + (useBite ? 20 : 0),
       secondary: false,
       capture: false,
     };

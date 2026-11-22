@@ -3,9 +3,10 @@ import { CHARACTERS } from '../src/characters';
 import { ATLAS } from '../src/characters/atlas';
 import { CATALYST } from '../src/characters/catalyst';
 import { NIGHTSHADE } from '../src/characters/nightshade';
+import { OCTOPUS } from '../src/characters/octopus';
 import { TUNING } from '../src/config/tuning';
 import { createHunt, NO_INPUT, stepHunt, type HuntState } from '../src/systems/hunt';
-import { atlasBot, catalystBot, nightshadeBot, play, SEEDS } from './bots';
+import { atlasBot, catalystBot, nightshadeBot, octopusBot, play, SEEDS } from './bots';
 
 const DT = 1 / 60;
 const wins = (results: HuntState[]) => results.filter((s) => s.outcome === 'won').length;
@@ -138,6 +139,49 @@ describe('Catalyst (strike + tether)', () => {
 
   it('wins every hunt with Lightning Strike → Motor Lock → Reel In', () => {
     expect(wins(SEEDS.map((seed) => play(CATALYST, seed, catalystBot())))).toBe(SEEDS.length);
+  });
+});
+
+describe('Cipher (pounce + paralytic bite + draw to mouth)', () => {
+  it('a pounce that misses wastes venom and adds a cooldown penalty', () => {
+    const s = createHunt(OCTOPUS, 9);
+    const events = stepHunt(s, { ...NO_INPUT, primary: true, aim: { x: 0, y: 0 } }, DT);
+    expect(events.some((e) => e.type === 'strike-miss')).toBe(true);
+    expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
+  });
+
+  it('wins every hunt with Pounce → Paralytic Bite → Draw to Mouth', () => {
+    expect(wins(SEEDS.map((seed) => play(OCTOPUS, seed, octopusBot())))).toBe(SEEDS.length);
+  });
+
+  it('skipping the paralytic bite loses the tether on a long reel (same tether physics as Catalyst)', () => {
+    const s = createHunt(OCTOPUS, 9);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + 130, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
+    stepHunt(s, { ...NO_INPUT, capture: true }, DT);
+    for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
+    expect(s.captured).toBe(0);
+    expect(s.stats.tethersBroken).toBe(1);
+  });
+});
+
+describe('the shark (threatens Cipher)', () => {
+  it('is tuned differently from the octopus that threatens the three snail characters', () => {
+    expect(TUNING.shark.chaseSpeed).toBeGreaterThan(TUNING.predator.chaseSpeed);
+    // Electroreception doesn't need the prey to move, so holding still helps much less here.
+    expect(TUNING.shark.stillVisibility).toBeGreaterThan(TUNING.predator.stillVisibility);
+  });
+
+  it('a bite stuns Cipher and costs venom, using the shark tuning, not the octopus tuning', () => {
+    const s = createHunt(OCTOPUS, 3);
+    s.predator.pos = { x: s.snail.pos.x + 10, y: s.snail.pos.y };
+    s.predator.mode = 'chase';
+    s.predator.awareness = 1;
+    const events = stepHunt(s, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+    expect(events).toContainEqual({ type: 'grabbed' });
+    expect(s.snail.stunned).toBeCloseTo(TUNING.shark.stunSeconds, 5);
+    expect(s.venom.reserve).toBe(TUNING.venom.max - TUNING.shark.venomLost);
   });
 });
 

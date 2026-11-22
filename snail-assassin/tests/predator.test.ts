@@ -51,6 +51,23 @@ describe('octopus', () => {
   });
 });
 
+describe('the shark', () => {
+  it('notices a motionless target from much closer than the octopus would, not from across the sight radius', () => {
+    const octopus = createPredator(arena, createRng(1));
+    const shark = createPredator(arena, createRng(1));
+    const stillTarget = (p: { x: number; y: number }) => ({ x: p.x - 80, y: p.y });
+    for (let i = 0; i < 300; i++) {
+      stepPredator(octopus, stillTarget(octopus.pos), 0, arena, createRng(2), DT, TUNING.predator);
+      stepPredator(shark, stillTarget(shark.pos), 0, arena, createRng(2), DT, TUNING.shark);
+    }
+    // Neither chases from 80px away while motionless (electroreception in the real study worked
+    // at a much shorter range than this), but the shark's awareness still climbs further.
+    expect(octopus.mode).not.toBe('chase');
+    expect(shark.mode).not.toBe('chase');
+    expect(shark.awareness).toBeGreaterThan(octopus.awareness);
+  });
+});
+
 describe('wrap-around reef', () => {
   it('a fish swimming off the right edge comes back on the left', () => {
     const s = createHunt(ATLAS, 1);

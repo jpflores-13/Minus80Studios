@@ -27,6 +27,15 @@ describe('discovery content', () => {
     }
   });
 
+  it('the shark has its own discovery, not a playable character but still cited the same way', () => {
+    const d = DISCOVERIES.shark;
+    expect(d.reveal).toBe('MEET THE REAL SHARK');
+    expect(wordCount(d.text)).toBeGreaterThanOrEqual(40);
+    expect(wordCount(d.text)).toBeLessThanOrEqual(70);
+    expect(d.research.length).toBeGreaterThanOrEqual(1);
+    expect(d.research.length).toBeLessThanOrEqual(2);
+  });
+
   it('the medicine sequence names the source species and labels experimental leads honestly', () => {
     expect(MEDICINE.text).toContain('Conus magus');
     expect(MEDICINE.text).toMatch(/different species/);

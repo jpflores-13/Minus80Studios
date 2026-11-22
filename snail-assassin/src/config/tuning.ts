@@ -97,7 +97,7 @@ export const TUNING = {
     chaseSpeed: 78,
     agility: 140,
     sightRadius: 210,
-    stillVisibility: 0.4,
+    stillVisibility: 0.2,
     gain: 1.5,
     decay: 0.45,
     chaseAbove: 0.55,
