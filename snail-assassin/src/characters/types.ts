@@ -70,7 +70,7 @@ export interface Attributes {
 }
 
 export interface CharacterConfig {
-  id: 'catalyst' | 'atlas' | 'nightshade' | 'octopus';
+  id: 'catalyst' | 'atlas' | 'nightshade' | 'octopus' | 'blueshark';
   name: string;
   species: string;
   commonName: string;
@@ -80,14 +80,22 @@ export interface CharacterConfig {
   tagline: string;
   personality: string;
   specialization: string;
-  /** Which threat AI hunts this character, parameterised from TUNING (predator = the octopus, shark = TUNING.shark). */
-  threat: 'octopus' | 'shark';
+  /**
+   * Which threat AI hunts this character, parameterised from TUNING (predator = the octopus,
+   * shark = TUNING.shark, orca = TUNING.orca). 'orca' is a pod (see TUNING.orcaPod,
+   * HuntState.pack): several coordinating threats instead of one.
+   */
+  threat: 'octopus' | 'shark' | 'orca';
   /**
    * What this character hunts: 'fish' places a few schools of reef fish (the three cone snails);
-   * 'snail' scatters individual cone snails with no schooling (Cipher). See docs/SCIENCE.md: cone
-   * snails are solitary foragers, so Cipher's prey is placed as scattered individuals, not a school.
+   * 'snail' scatters individual cone snails with no schooling (Cipher); 'squid' scatters
+   * individual squid with no schooling (the blue shark). See docs/SCIENCE.md: cone snails are
+   * solitary foragers, so Cipher's prey is placed as scattered individuals, not a school; the
+   * blue shark's documented squid prey are mostly deep-water, non-schooling species, and 'squid'
+   * reuses that same scattered-individual placement as a deliberate simplification (some other
+   * squid species do school — see the Open Questions in docs/SCIENCE.md).
    */
-  prey: 'fish' | 'snail';
+  prey: 'fish' | 'snail' | 'squid';
   /** Top swim speed of the player-controlled animal (px/s). */
   speed: number;
   palette: {

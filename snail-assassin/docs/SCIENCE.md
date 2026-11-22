@@ -11,23 +11,26 @@ Labels: **Verified** = stated in a cited abstract · **Hypothesis** = proposed b
 
 ## References
 
-| Key                  | Citation                                                                                                                                | Link                                                |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| Safavi-Hemami 2015   | _Specialized insulin is used for chemical warfare by fish-hunting cone snails._ PNAS 112:1743–1748                                      | https://doi.org/10.1073/pnas.1423857112             |
-| Ahorukomeye 2019     | _Fish-hunting cone snail venoms are a rich source of minimized ligands of the vertebrate insulin receptor._ eLife 8:e41574              | https://doi.org/10.7554/eLife.41574                 |
-| Yeung 2024           | _Fish-hunting cone snail disrupts prey's glucose homeostasis with weaponized mimetics of somatostatin and insulin._ Nat Commun 15:6408  | https://doi.org/10.1038/s41467-024-50470-2          |
-| Dutt 2019            | _The α1-adrenoceptor inhibitor ρ-TIA facilitates net hunting in piscivorous Conus tulipa._ Sci Rep 9:17841                              | https://doi.org/10.1038/s41598-019-54186-y          |
-| Olivera 2015         | _Prey-capture strategies of fish-hunting cone snails: behavior, neurobiology and evolution._ Brain Behav Evol 86:58–74                  | https://doi.org/10.1159/000438449                   |
-| Dutertre 2014        | _Evolution of separate predation- and defence-evoked venoms in carnivorous cone snails._ Nat Commun 5:3521                              | https://doi.org/10.1038/ncomms4521                  |
-| Ramiro 2022          | _Somatostatin venom analogs evolved by fish-hunting cone snails: from prey capture behavior to identifying drug leads._ Sci Adv 8(12)   | https://doi.org/10.1126/sciadv.abk1410 (PMC8942377) |
-| Koch 2026            | _From neuropeptides to toxins: illuminating the origins of venom complexity in cone snails._ Mol Biol Evol 43:msag206                   | https://doi.org/10.1093/molbev/msag206              |
-| Bjørn-Yoshimoto 2025 | _Cone snail venom-inspired somatostatin receptor 4 (SSTR4) agonists as new drug leads for peripheral pain._ Sci Rep 15:42638            | https://doi.org/10.1038/s41598-025-26820-5          |
-| Himaya 2015          | _Comparative venomics reveals the complex prey capture strategy of the piscivorous cone snail Conus catus._ J Proteome Res 14:4372–4381 | https://doi.org/10.1021/acs.jproteome.5b00630       |
-| Schulz 2019          | _The high speed radular prey strike of a fish-hunting cone snail._ Curr Biol 29:R788–R789                                               | https://doi.org/10.1016/j.cub.2019.07.034           |
-| Bidel 2022           | _Octopus bimaculoides' arm recruitment and use during visually evoked prey capture._ Curr Biol 32:4727–4733.e3                          | https://pubmed.ncbi.nlm.nih.gov/36130600/           |
-| Gonçalves 2021       | _Cephalotoxins: a hotspot for marine bioprospecting?_ Front Mar Sci 8:647344                                                            | https://doi.org/10.3389/fmars.2021.647344           |
-| Galván-Magaña 2013   | _Shark predation on cephalopods in the Mexican and Ecuadorian Pacific Ocean._ Deep-Sea Res Part II 95:52–62                             | https://doi.org/10.1016/j.dsr2.2013.04.002          |
-| Kalmijn 1971         | _The electric sense of sharks and rays._ J Exp Biol 55:371–383                                                                          | https://pubmed.ncbi.nlm.nih.gov/5114029/            |
+| Key                  | Citation                                                                                                                                                               | Link                                                |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Safavi-Hemami 2015   | _Specialized insulin is used for chemical warfare by fish-hunting cone snails._ PNAS 112:1743–1748                                                                     | https://doi.org/10.1073/pnas.1423857112             |
+| Ahorukomeye 2019     | _Fish-hunting cone snail venoms are a rich source of minimized ligands of the vertebrate insulin receptor._ eLife 8:e41574                                             | https://doi.org/10.7554/eLife.41574                 |
+| Yeung 2024           | _Fish-hunting cone snail disrupts prey's glucose homeostasis with weaponized mimetics of somatostatin and insulin._ Nat Commun 15:6408                                 | https://doi.org/10.1038/s41467-024-50470-2          |
+| Dutt 2019            | _The α1-adrenoceptor inhibitor ρ-TIA facilitates net hunting in piscivorous Conus tulipa._ Sci Rep 9:17841                                                             | https://doi.org/10.1038/s41598-019-54186-y          |
+| Olivera 2015         | _Prey-capture strategies of fish-hunting cone snails: behavior, neurobiology and evolution._ Brain Behav Evol 86:58–74                                                 | https://doi.org/10.1159/000438449                   |
+| Dutertre 2014        | _Evolution of separate predation- and defence-evoked venoms in carnivorous cone snails._ Nat Commun 5:3521                                                             | https://doi.org/10.1038/ncomms4521                  |
+| Ramiro 2022          | _Somatostatin venom analogs evolved by fish-hunting cone snails: from prey capture behavior to identifying drug leads._ Sci Adv 8(12)                                  | https://doi.org/10.1126/sciadv.abk1410 (PMC8942377) |
+| Koch 2026            | _From neuropeptides to toxins: illuminating the origins of venom complexity in cone snails._ Mol Biol Evol 43:msag206                                                  | https://doi.org/10.1093/molbev/msag206              |
+| Bjørn-Yoshimoto 2025 | _Cone snail venom-inspired somatostatin receptor 4 (SSTR4) agonists as new drug leads for peripheral pain._ Sci Rep 15:42638                                           | https://doi.org/10.1038/s41598-025-26820-5          |
+| Himaya 2015          | _Comparative venomics reveals the complex prey capture strategy of the piscivorous cone snail Conus catus._ J Proteome Res 14:4372–4381                                | https://doi.org/10.1021/acs.jproteome.5b00630       |
+| Schulz 2019          | _The high speed radular prey strike of a fish-hunting cone snail._ Curr Biol 29:R788–R789                                                                              | https://doi.org/10.1016/j.cub.2019.07.034           |
+| Bidel 2022           | _Octopus bimaculoides' arm recruitment and use during visually evoked prey capture._ Curr Biol 32:4727–4733.e3                                                         | https://pubmed.ncbi.nlm.nih.gov/36130600/           |
+| Gonçalves 2021       | _Cephalotoxins: a hotspot for marine bioprospecting?_ Front Mar Sci 8:647344                                                                                           | https://doi.org/10.3389/fmars.2021.647344           |
+| Galván-Magaña 2013   | _Shark predation on cephalopods in the Mexican and Ecuadorian Pacific Ocean._ Deep-Sea Res Part II 95:52–62                                                            | https://doi.org/10.1016/j.dsr2.2013.04.002          |
+| Kalmijn 1971         | _The electric sense of sharks and rays._ J Exp Biol 55:371–383                                                                                                         | https://pubmed.ncbi.nlm.nih.gov/5114029/            |
+| Markaida 2010        | _Food and feeding habits of the blue shark Prionace glauca caught off Ensenada, Baja California, Mexico, with a review on its feeding._ J Mar Biol Assoc UK 90:977–994 | https://doi.org/10.1017/S0025315409991597           |
+| Pancaldi 2024        | _Killer whales (Orcinus orca) hunt, kill and consume the largest fish on Earth, the whale shark (Rhincodon typus)._ Front Mar Sci 11:1448254                           | https://doi.org/10.3389/fmars.2024.1448254          |
+| Reeves 2025          | _Genetic evidence of killer whale predation on white sharks in Australia._ Ecol Evol 15(1):e70786                                                                      | https://pubmed.ncbi.nlm.nih.gov/39872902/           |
 
 ## Evidence table: implemented character (Atlas, _Conus geographus_)
 
@@ -72,6 +75,36 @@ alone; true coordinated pack-hunting is not well documented for the species abov
 for non-hunting reasons (for example, scalloped hammerheads are well known to school by day), but that is a
 different, species-specific behaviour from blue sharks, and is not claimed here.
 
+## Evidence table: the second escalation level (playable blue shark, hunted by an orca pod)
+
+A second escalation level flips the roles again: the blue shark that threatened Cipher is now playable (Glaucus,
+_Prionace glauca_ — the same species, same art, not a duplicate), hunting squid scattered in open water, while a
+**pod of orcas** (_Orcinus orca_) hunts Glaucus the way Glaucus hunted cone snails, except as a coordinating group
+instead of one animal. Real orca pack-hunting of sharks is well documented, but **not against the blue shark**: the
+two sources below document it against juvenile whale sharks and a white shark, not _Prionace glauca_. The game
+honestly reuses that real, coordinated behavior for a different shark species — see "Orca pod chosen over a direct
+blue-shark citation" below the table.
+
+| Ability                                             | Plain-language inspiration                                                                                                                                                                                                                                                                                   | Status               | Sources                           | Intentional simplifications                                                                                                                                                                                                                                                                                    |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pursuit Strike (primary)                            | Blue sharks are major predators of cephalopods: one study found the blue shark's diet was ~98% cephalopods by weight                                                                                                                                                                                         | Verified (diet)      | Galván-Magaña 2013                | One strike, on a cooldown, reuses the game's existing aimed-strike mechanic; the pursuit itself (closing distance in open water) is a gameplay abstraction, not a modeled behavior                                                                                                                             |
+| Glaucus's own prey: squid                           | Off Baja California, squid (_Gonatus californiensis_, _Ancistrocheirus lesueurii_, and others) were the most important blue shark prey by weight; a second study recorded _Dosidicus gigas_ and _Ancistrocheirus lesueurii_ as predominant cephalopod prey across six shark species including the blue shark | Verified             | Markaida 2010; Galván-Magaña 2013 | Modeled as individually scattered prey (`TUNING.squidPrey`, `prey: 'squid'`), reusing Cipher's scattered-cone-snail placement, because the dominant prey species named above are mostly non-schooling, meso- to bathypelagic squid — not a claim that squid never school (see Open Questions)                  |
+| Crushing Bite (secondary)                           | A hard bite that stops prey from escaping                                                                                                                                                                                                                                                                    | **Abstraction**      | (none — see Open Questions)       | No species-specific bite-force or bite-mechanics data for _Prionace glauca_ on squid is cited; this reuses the game's existing "hold the catch still" mechanic with no real finding behind the specific numbers                                                                                                |
+| Swallow Whole (capture)                             | Blue shark stomachs examined for cephalopod prey often contain only beaks — the one hard part a squid has that survives digestion — suggesting much of this prey is swallowed rather than mechanically torn apart                                                                                            | Verified (inference) | Markaida 2010                     | Reuses the game's existing tether/reel mechanic; "swallowed largely intact" is inferred from what survives in stomach contents, not a direct observation of the bite                                                                                                                                           |
+| Orca pod: preys on sharks                           | Orca pods are documented repeatedly, cooperatively attacking juvenile whale sharks (Gulf of California, 2018–2024) and, via genetic evidence from a carcass, a white shark (Australia, 2023)                                                                                                                 | Verified             | Pancaldi 2024; Reeves 2025        | The game names the threat "orca pod" and draws it much larger than the player, but **does not claim** either source documents predation on the blue shark specifically — see the note below the table                                                                                                          |
+| Orca pod: targets a vulnerable zone, then the liver | In both sources, the pod attacked the shark's ventral/pelvic region — less protected than the dorsal side — causing it to bleed out, then fed on the lipid-rich liver                                                                                                                                        | Verified             | Pancaldi 2024; Reeves 2025        | The game's "grab" doesn't model anatomy or bleeding; this is flavor text in docs/SCIENCE.md and the Discovery screen, not a mechanic the grab itself simulates                                                                                                                                                 |
+| Orca pod: cooperative, coordinated hunting          | Pancaldi 2024 explicitly describes "cooperative and coordinate hunting behavior" among pod members (up to six individuals across the four documented events), and suggests pod-level specialization in hunting elasmobranchs                                                                                 | Verified             | Pancaldi 2024                     | The game's pod has 3 members (`TUNING.orcaPod.size`), not the 1–6 range actually observed; "coordination" is implemented as a shared-awareness alert (`TUNING.orcaPod.alertGain` in `stepHunt`) once any member spots the player — a gameplay abstraction of the real behavior, not a model of orca signalling |
+
+**Orca pod chosen over a direct blue-shark citation:** the only well-documented, peer-reviewed cases of orcas
+cooperatively hunting sharks found while building this level are against juvenile whale sharks (Pancaldi 2024) and a
+white shark (Reeves 2025) — not against the blue shark the player controls here. Rather than invent a blue-shark-
+specific finding, the game states this plainly on the Discovery screen: the threat applies a real, documented
+behavior to a different (but closely related, and similarly sized) shark species. This mirrors how Cipher's shark
+threat already borrows the catshark's electroreception finding rather than claiming it for the blue shark (see
+"Blue shark chosen over a hammerhead or a whale shark" above). Whale sharks — the player's original idea for this
+tier, before being corrected to orcas as the real pack hunters — are a real, documented **victim** of exactly this
+behavior, not a predator; Pancaldi 2024 is the citation for that.
+
 ## Gameplay model: the escalation level (all **Abstraction** unless noted above)
 
 The octopus reuses the cone-snail hunt's existing systems and tuning shape (`src/config/tuning.ts`): venom (here,
@@ -82,6 +115,17 @@ the labels, palette, and tuning numbers differ, matching the evidence table abov
 snails) reuses the same prey simulation (`src/systems/fish.ts`) as the three-snail campaign's reef fish, but with
 its own tuning (`TUNING.snailPrey`) and placement: scattered individuals instead of schools, since cone snails are
 solitary foragers (see the evidence table row above).
+
+## Gameplay model: the orca pod (all **Abstraction** unless noted above)
+
+Glaucus's threat reuses `src/systems/predator.ts`'s single-threat state machine (patrol → chase → grab → retreat),
+run once per pod member (`HuntState.pack`, stepped alongside `HuntState.predator` in `stepHunt`), parameterised as
+`TUNING.orca`. The only new logic is pack coordination: each frame, if any pod member is already chasing, every
+other member still patrolling gets its own awareness nudged up by `TUNING.orcaPod.alertGain · dt`, so it tends to
+start chasing shortly after, rather than only reacting to the player on its own. This models the real, cited fact
+that orca pods hunt cooperatively, without claiming any specific signalling mechanism (echolocation, vocal calls, or
+otherwise) — none is cited here. `TUNING.orcaPod.size` (3) is a gameplay choice within, not matching, the 1–6 range
+actually observed across the four documented whale-shark events in Pancaldi 2024.
 
 ## Gameplay model (all **Abstraction**)
 
@@ -132,6 +176,28 @@ otherwise. Fish flee with hysteresis.
   malacological knowledge of the genus; a dedicated primary-literature citation for this specific claim has not yet
   been added to the References table. Treat it as **Hypothesis-strength until a citation is added**, even though the
   game only relies on it for an absence (no schooling behaviour), not a positive claim.
+- Treating Glaucus's squid prey as non-schooling, scattered individuals (like Cipher's cone snails) is based on the
+  specific squid species named as dominant blue-shark prey in Markaida 2010 and Galván-Magaña 2013, which are mostly
+  meso- to bathypelagic and described as "non-active" — not on a general claim that squid never school. Some squid
+  species (e.g., market squid, _Doryteuthis opalescens_) are well known to school; this is a deliberate simplification
+  for the specific prey species the citations name, not a universal statement about the genus the way the cone-snail
+  claim (above) is intended to be.
+- The Crushing Bite ability (Glaucus's secondary) has no cited bite-force or bite-mechanics source for _Prionace
+  glauca_ specifically — it's a straightforward gameplay abstraction ("a hard bite stops the prey"), flagged as such
+  in the evidence table above rather than invented a citation for it.
+- Orca pack-hunting of sharks is documented against juvenile whale sharks (Pancaldi 2024, Gulf of California) and a
+  white shark via genetic/DNA evidence from a carcass (Reeves 2025, Australia) — not against the blue shark the
+  player controls as Glaucus. The game states this plainly rather than implying the citations are about the blue
+  shark; see "Orca pod chosen over a direct blue-shark citation" above. Earlier South African observations of orcas
+  preying on white sharks (Gansbaai, Alison Towner and colleagues) were found in preliminary research but not
+  independently verified against a primary source before this was written, so they are not cited here — only the
+  two sources that were checked directly.
+- Reeves 2025 notes that population assignment couldn't be confirmed from the genomic evidence alone, so whether the
+  Australian white-shark kill was a coordinated group hunt (as in the Gulf of California whale-shark events) or an
+  individual kill with packmates nearby is not fully settled by that paper alone; at least three catalogued
+  individuals were sighted together that day. The game's "coordinated pod" framing leans on Pancaldi 2024, where
+  cooperative hunting is explicitly described, plus Reeves 2025 as corroborating evidence that orcas prey on sharks
+  this way more than once, in more than one place.
 
 ## Predators (for the octopus-vs-snail threat in the main campaign)
 
@@ -157,6 +223,9 @@ PubMed and open-access pages are preferred because some publisher DOI pages bloc
 - https://doi.org/10.3389/fmars.2021.647344 (Gonçalves & Costa 2021, open access, cephalotoxins review)
 - https://doi.org/10.1016/j.dsr2.2013.04.002 (Galván-Magaña et al. 2013, shark predation on cephalopods)
 - https://pubmed.ncbi.nlm.nih.gov/5114029/ (Kalmijn 1971, electroreception in sharks and rays)
+- https://doi.org/10.1017/S0025315409991597 (Markaida & Sosa-Nishizaki 2010, blue shark feeding habits)
+- https://doi.org/10.3389/fmars.2024.1448254 (Pancaldi et al. 2024, open access, orcas hunting whale sharks)
+- https://pubmed.ncbi.nlm.nih.gov/39872902/ (Reeves et al. 2025, genetic evidence of orca predation on a white shark)
 
 ## Pending documentation
 

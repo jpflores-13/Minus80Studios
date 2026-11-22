@@ -21,11 +21,36 @@ export const REVIEW_STATUS = 'Draft text: pending review by a cone snail researc
 
 /**
  * Ids with a Discovery entry: every playable character, plus 'shark' for the threat that hunts
- * the octopus in the escalation level. The shark isn't a playable CharacterConfig (it's an AI
- * threat, see src/systems/predator.ts and TUNING.shark), but it still gets a reveal, the same way
- * the octopus's own research is shown while playing as Cipher. See DiscoveryScene's 'threat' step.
+ * the octopus in the first escalation level, and 'orca' for the pod that hunts the blue shark in
+ * the second. Neither 'shark' nor 'orca' is a playable CharacterConfig (they're AI threats, see
+ * src/systems/predator.ts and TUNING.shark / TUNING.orca), but they still get a reveal, the same
+ * way the octopus's and blue shark's own research is shown while playing as them. See
+ * DiscoveryScene's 'threat' step and THREAT_DISCOVERY below.
  */
-export type DiscoveryId = CharacterConfig['id'] | 'shark';
+export type DiscoveryId = CharacterConfig['id'] | 'shark' | 'orca';
+
+/**
+ * Which non-playable threat discovery accompanies a playable character's own discovery, and the
+ * short label used for it on screen (DiscoveryScene's 'threat' step and "more" buttons,
+ * ResultsScene's results-screen fact). Only characters whose threat is itself a real, cited
+ * species get an entry here — the three cone snails' octopus threat does not, because it's a
+ * marked gameplay invention, not the real octopus research shown for Cipher (see docs/SCIENCE.md,
+ * "Predators (for the octopus-vs-snail threat in the main campaign)").
+ */
+export const THREAT_DISCOVERY: Partial<
+  Record<CharacterConfig['id'], { id: DiscoveryId; shortLabel: string; question: string }>
+> = {
+  octopus: {
+    id: 'shark',
+    shortLabel: 'THE SHARK',
+    question: 'And the shark that was hunting you?',
+  },
+  blueshark: {
+    id: 'orca',
+    shortLabel: 'THE ORCA POD',
+    question: 'And the orca pod that was hunting you?',
+  },
+};
 
 export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
   catalyst: {
@@ -113,6 +138,52 @@ export const DISCOVERIES: Record<DiscoveryId, Discovery> = {
       url: 'https://doi.org/10.3389/fmars.2021.647344',
     },
   },
+  blueshark: {
+    reveal: 'MEET THE REAL GLAUCUS',
+    text:
+      'The blue shark is a major predator of squid: one study off Mexico found its diet was almost entirely ' +
+      'cephalopods, and another recorded squid as the single most common prey by weight. Most are soft, ' +
+      'inactive deep-water species, not fast schooling surface squid. Shark stomachs often hold only beaks, ' +
+      'the one hard part that survives digestion — a clue this prey is swallowed, not chewed apart.',
+    research: [
+      {
+        label: 'Galván-Magaña et al. 2013, Deep-Sea Research Part II: sharks that eat cephalopods',
+        url: 'https://doi.org/10.1016/j.dsr2.2013.04.002',
+      },
+      {
+        label: 'Markaida & Sosa-Nishizaki 2010, J. Mar. Biol. Assoc. UK: blue shark feeding habits',
+        url: 'https://doi.org/10.1017/S0025315409991597',
+      },
+    ],
+    explore: {
+      label: 'Markaida & Sosa-Nishizaki 2010: what a blue shark actually eats',
+      url: 'https://doi.org/10.1017/S0025315409991597',
+    },
+  },
+  orca: {
+    reveal: 'MEET THE REAL ORCA POD',
+    text:
+      'Orca pods are documented cooperatively hunting sharks far larger than themselves. Off Mexico’s Gulf of ' +
+      'California, one pod has repeatedly attacked juvenile whale sharks; in Australia, genetic evidence confirmed ' +
+      'an orca kill on a white shark. Both times, the pod targeted the shark’s underside, causing it to bleed out, ' +
+      'then ate the liver. No published study documents this against the blue shark Glaucus plays — this threat ' +
+      'applies that same real, coordinated behavior to a different shark species.',
+    research: [
+      {
+        label: 'Pancaldi et al. 2024, Frontiers in Marine Science: orcas hunting whale sharks',
+        url: 'https://doi.org/10.3389/fmars.2024.1448254',
+      },
+      {
+        label:
+          'Reeves et al. 2025, Ecology and Evolution: genetic evidence of orca predation on a white shark',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/39872902/',
+      },
+    ],
+    explore: {
+      label: 'Pancaldi et al. 2024 (open access): orcas that hunt the largest fish on Earth',
+      url: 'https://doi.org/10.3389/fmars.2024.1448254',
+    },
+  },
   shark: {
     reveal: 'MEET THE REAL BLUE SHARK',
     text:
@@ -175,6 +246,14 @@ export const QUICK_FACTS: Record<DiscoveryId, string[]> = {
   shark: [
     'Cipher’s threat is modeled on the blue shark, one of several shark species documented preying on cephalopods, including the paper nautilus, a relative of the octopus.',
     'Sharks carry electroreceptors called the ampullae of Lorenzini; in a related species, the small-spotted catshark, that sense alone let it locate prey it could not see, hear, or smell.',
+  ],
+  blueshark: [
+    'The real blue shark’s diet is dominated by cephalopods — one study off Mexico found it was almost entirely squid and other cephalopods by weight.',
+    'Often all that’s left in a shark’s stomach is a squid’s beak, the one hard part that survives digestion — a clue many squid are swallowed rather than chewed.',
+  ],
+  orca: [
+    'A real orca pod in the Gulf of California has repeatedly hunted juvenile whale sharks, targeting the underside to make them bleed out before eating the liver.',
+    'In 2025, genetic evidence from a shark carcass in Australia confirmed an orca kill for the first time there too — the liver was missing, same as elsewhere.',
   ],
 };
 
