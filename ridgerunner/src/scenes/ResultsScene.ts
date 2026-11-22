@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
 import { getLevel, LEVELS } from '../levels';
+import { drawBackdrop } from '../render/backdrop';
 import { score, type GameState } from '../systems/game';
 import { announce } from '../ui/announce';
 import { Menu } from '../ui/Menu';
@@ -20,6 +21,7 @@ export class ResultsScene extends Phaser.Scene {
     const { total, stars } = score(s);
     const { width } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.charcoal);
+    drawBackdrop(this);
     const key = data.beyond ? 'beyond' : data.levelId;
     if (won && (!progress().best[key] || total > progress().best[key]!.score))
       saveProgress({ best: { ...progress().best, [key]: { score: total, stars } } });

@@ -4,6 +4,16 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Added
+
+- A painted backdrop (ridges, a tree line, a stream band, drifting fireflies) behind Title,
+  Intro, Level Select and Settings, instead of a flat colour fill.
+- Richer tile art: two stable-by-position variants each for forest floor, moss patches and
+  clearings so the ground doesn't look like one tile repeated; animated water shimmer; grain and
+  highlights on logs and rock barriers.
+- A soft halo around Moss, and drifting ambient motes through the forest while it's not raining,
+  on dry weather and in menus. All skip under Reduced Motion, same as the existing rain effect.
+
 ## [0.1.0] - 2026-11-22
 
 ### Added

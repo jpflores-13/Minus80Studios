@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 import { progress, saveProgress } from '../config/progress';
+import { drawBackdrop } from '../render/backdrop';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -13,6 +14,7 @@ export class SettingsScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(PALETTE.forest);
+    drawBackdrop(this);
     const { width, height } = this.scale;
     addCenteredText(this, 70, 'SETTINGS & ACCESSIBILITY', TEXT_STYLES.title);
     this.menu = new Menu(

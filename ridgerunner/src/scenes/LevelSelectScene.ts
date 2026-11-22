@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { drawBackdrop } from '../render/backdrop';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -12,6 +13,7 @@ export class LevelSelectScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(PALETTE.forest);
+    drawBackdrop(this);
     const { width, height } = this.scale;
     const cleared = LEVELS.filter((l) => progress().best[l.id]).length;
     addCenteredText(this, 60, 'LEVELS', TEXT_STYLES.title);

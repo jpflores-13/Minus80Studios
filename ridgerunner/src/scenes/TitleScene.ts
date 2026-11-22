@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { PALETTE } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { LEVELS } from '../levels';
+import { drawBackdrop, halo } from '../render/backdrop';
 import { Menu } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
@@ -10,6 +11,9 @@ function clearedCount(): number {
 }
 
 export class TitleScene extends Phaser.Scene {
+  private haloFx!: Phaser.GameObjects.Graphics;
+  private moss!: Phaser.GameObjects.Image;
+
   constructor() {
     super('Title');
   }
@@ -17,10 +21,15 @@ export class TitleScene extends Phaser.Scene {
   create(): void {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.forest).fadeIn(300);
-    const moss = this.add.image(width * 0.18, height * 0.6, 'moss-0').setScale(6);
+    drawBackdrop(this);
+    this.haloFx = this.add.graphics().setDepth(-1);
+    this.moss = this.add
+      .image(width * 0.18, height * 0.6, 'moss-0')
+      .setScale(6)
+      .setDepth(0);
     if (!progress().reducedEffects)
       this.tweens.add({
-        targets: moss,
+        targets: this.moss,
         y: '+=10',
         duration: 1400,
         yoyo: true,
@@ -60,5 +69,11 @@ export class TitleScene extends Phaser.Scene {
       68,
     );
     addCenteredText(this, height - 30, 'A Minus 80 Studios game', TEXT_STYLES.hint);
+  }
+
+  override update(time: number): void {
+    this.haloFx.clear();
+    const pulse = progress().reducedEffects ? 0 : Math.sin(time / 260) * 6;
+    halo(this.haloFx, this.moss.x, this.moss.y, 86 + pulse, PALETTE.gold);
   }
 }

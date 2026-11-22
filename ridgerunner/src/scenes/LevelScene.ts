@@ -2,19 +2,19 @@ import Phaser from 'phaser';
 import { PALETTE, ZOOM } from '../config/gameConfig';
 import { progress } from '../config/progress';
 import { getLevel } from '../levels';
+import { tileVariant } from '../render/art';
+import { halo } from '../render/backdrop';
 import { generateLevel } from '../systems/procedural';
 import { createGame, stepGame, type GameEvent, type GameState, type Input } from '../systems/game';
 import { TILE } from '../systems/network';
 import { announce } from '../ui/announce';
 
 const TILE_TEXTURES: Record<string, string> = {
-  stream: 'tile-stream',
-  floor: 'tile-floor',
-  moss: 'tile-moss',
   log: 'tile-log',
-  clearing: 'tile-clearing',
   barrier: 'tile-barrier',
 };
+/** These kinds have two stable-by-position variants, picked by tileVariant(). */
+const VARIED_KINDS = new Set(['floor', 'moss', 'clearing']);
 
 /** Touch input shared with the HUD's on-screen stick. */
 export const touchInput = { dx: 0, dy: 0 };
@@ -32,6 +32,8 @@ export class LevelScene extends Phaser.Scene {
   private moss!: Phaser.GameObjects.Image;
   private vignette!: Phaser.GameObjects.Image;
   private rainFx!: Phaser.GameObjects.Graphics;
+  private moteFx!: Phaser.GameObjects.Graphics;
+  private haloFx!: Phaser.GameObjects.Graphics;
   private destMarker!: Phaser.GameObjects.Graphics;
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private ended = false;
@@ -63,13 +65,15 @@ export class LevelScene extends Phaser.Scene {
         const kind = s.land.tiles[ty * s.land.cols + tx] ?? 'floor';
         this.tiles.push(
           this.add
-            .image(tx * TILE, ty * TILE, TILE_TEXTURES[kind] ?? 'tile-floor')
+            .image(tx * TILE, ty * TILE, this.tileKey(kind, tx, ty))
             .setOrigin(0)
             .setDepth(0),
         );
       }
     this.destMarker = this.add.graphics().setDepth(1);
+    this.haloFx = this.add.graphics().setDepth(3);
     this.moss = this.add.image(s.moss.x, s.moss.y, 'moss-0').setDepth(4).setOrigin(0.56, 0.5);
+    this.moteFx = this.add.graphics().setDepth(5);
     this.vignette = this.add.image(0, 0, 'vignette').setDepth(6).setScale(2.2);
     this.rainFx = this.add.graphics().setDepth(7).setScrollFactor(0);
     cam.startFollow(this.moss, true, 0.12, 0.12);
@@ -106,6 +110,16 @@ export class LevelScene extends Phaser.Scene {
     if (this.state.status !== 'playing') return;
     this.scene.pause();
     this.scene.launch('Pause', { levelId: this.levelId, beyond: this.beyond });
+  }
+
+  /** Which texture a tile should show: an animated frame for water, a stable variant for
+   * floor/moss/clearing (so the ground doesn't look like one tile stamped over and over), or
+   * the plain texture for everything else. */
+  private tileKey(kind: string, tx: number, ty: number, time = 0): string {
+    if (kind === 'stream')
+      return Math.floor(time / 500) % 2 === 0 ? 'tile-stream' : 'tile-stream-1';
+    if (VARIED_KINDS.has(kind)) return tileVariant(`tile-${kind}`, tx, ty, 2);
+    return TILE_TEXTURES[kind] ?? 'tile-floor';
   }
 
   private readInput(): Input {
@@ -145,7 +159,7 @@ export class LevelScene extends Phaser.Scene {
       const img = this.tiles[i];
       const kind = s.land.tiles[i];
       if (img && kind) {
-        const key = TILE_TEXTURES[kind] ?? 'tile-floor';
+        const key = this.tileKey(kind, i % s.land.cols, Math.floor(i / s.land.cols), time);
         if (img.texture.key !== key) img.setTexture(key);
       }
     }
@@ -154,6 +168,27 @@ export class LevelScene extends Phaser.Scene {
       .setRotation(s.moss.heading)
       .setTexture(`moss-${s.moss.moving && !reduced ? Math.floor(time / 160) % 2 : 0}`);
     this.vignette.setPosition(s.moss.x, s.moss.y);
+
+    this.haloFx.clear();
+    if (!reduced)
+      halo(this.haloFx, s.moss.x, s.moss.y, 34 + Math.sin(time / 260) * 4, PALETTE.gold);
+
+    this.moteFx.clear();
+    if (!s.raining && !reduced) {
+      const cam = this.cameras.main;
+      const cx = cam.midPoint.x;
+      const cy = cam.midPoint.y;
+      const spread = 460;
+      for (let i = 0; i < 12; i++) {
+        const x = cx + (((i * 137.2 + time / 40) % spread) - spread / 2);
+        const y =
+          cy +
+          Math.sin(time / 900 + i) * 70 +
+          (((i * 71.9 - time / 28) % spread) - spread / 2) * 0.6;
+        const a = 0.25 + 0.3 * Math.sin(time / 520 + i * 2);
+        this.moteFx.fillStyle(PALETTE.gold, Math.max(0, a)).fillCircle(x, y, 1.6);
+      }
+    }
 
     this.destMarker.clear();
     const pulse = reduced ? 6 : 6 + Math.sin(time / 180) * 2;
