@@ -537,7 +537,7 @@ export class LevelScene extends Phaser.Scene {
         wordWrap: { width: 540 },
       })
       .setDepth(44)
-      .setBackgroundColor('#f4ead2ee')
+      .setBackgroundColor('#f4ead2b0')
       .setPadding(10, 8, 10, 8);
     this.hintFx = this.add.graphics().setDepth(43);
     this.hintLabel = this.add
@@ -552,6 +552,10 @@ export class LevelScene extends Phaser.Scene {
   private drawScoutHints(time: number): void {
     const scouting = this.phase === 'investigate' && !this.briefing;
     this.scoutPanel.setVisible(scouting);
+    // The panel can sit over a place worth tapping (every level has at least one in that
+    // corner). Once the player has scouted anything at all, fade it mostly out of the way —
+    // they've shown they know to tap, so it only needs to be a faint reminder from here.
+    this.scoutPanel.setAlpha(this.inspected.size === 0 ? 1 : 0.35);
     this.hintFx.clear();
     // Pulse every place until the player has tapped one.
     const showHint = scouting && this.inspected.size === 0;
