@@ -5,6 +5,7 @@ import { discover, progress, recordBest } from '../config/progress';
 import { SCALES, type ScaleId } from '../content/organisms';
 import { JOURNAL_ENTRIES } from '../content/journal';
 import { roundFor } from '../levels/oneDropRounds';
+import { organismTextureKey } from '../render/art';
 import {
   accuracy,
   capture,
@@ -27,7 +28,13 @@ const KIND_COLOR: Record<ParticleKind, number> = {
 };
 
 interface Sprite {
-  body: Phaser.GameObjects.Arc;
+  /** A stroke-only ring behind the species sprite, carrying the existing kind-color cue
+   * (coral for artifacts, ice otherwise) exactly as the old plain-circle sprite's border did —
+   * see docs/ACCESSIBILITY.md ("particle kinds pair color with stroke style"). */
+  ring: Phaser.GameObjects.Arc;
+  /** The species-specific sprite (src/render/art.ts), tinted with the kind color so
+   * classification still reads at a glance on top of the added species identity. */
+  body: Phaser.GameObjects.Image;
   mark: Phaser.GameObjects.Arc;
   markLabel: Phaser.GameObjects.Text;
 }
@@ -171,15 +178,16 @@ export class OneDropScene extends Phaser.Scene {
         s = this.makeSprite(p);
         this.sprites.set(p.id, s);
       }
-      s.body.setPosition(this.center.x + p.x, this.center.y + p.y);
-      s.mark.setPosition(
-        this.center.x + p.x + p.radius * 0.8,
-        this.center.y + p.y - p.radius * 0.8,
-      );
+      const x = this.center.x + p.x;
+      const y = this.center.y + p.y;
+      s.ring.setPosition(x, y);
+      s.body.setPosition(x, y);
+      s.mark.setPosition(x + p.radius * 0.8, y - p.radius * 0.8);
       s.markLabel.setPosition(s.mark.x, s.mark.y);
     }
     for (const [id, s] of this.sprites) {
       if (!live.has(id)) {
+        s.ring.destroy();
         s.body.destroy();
         s.mark.destroy();
         s.markLabel.destroy();
@@ -190,15 +198,19 @@ export class OneDropScene extends Phaser.Scene {
 
   private makeSprite(p: Particle): Sprite {
     const color = KIND_COLOR[p.kind];
-    const body = this.add.circle(
-      this.center.x + p.x,
-      this.center.y + p.y,
-      p.radius,
-      color,
-      p.kind === 'unknown' ? 0.35 : 0.9,
-    );
-    body.setStrokeStyle(2, p.kind === 'artifact' ? PALETTE.coral : PALETTE.ice, 0.7);
-    body.setInteractive({ useHandCursor: true });
+    const x = this.center.x + p.x;
+    const y = this.center.y + p.y;
+
+    const ring = this.add
+      .circle(x, y, p.radius + 3, 0x000000, 0)
+      .setStrokeStyle(2, p.kind === 'artifact' ? PALETTE.coral : PALETTE.ice, 0.7);
+
+    const body = this.add
+      .image(x, y, organismTextureKey(p.typeId))
+      .setDisplaySize(p.radius * 2, p.radius * 2)
+      .setTint(color)
+      .setAlpha(p.kind === 'unknown' ? 0.55 : 1)
+      .setInteractive({ useHandCursor: true });
     body.on('pointerup', () => this.capture(p.id));
 
     const mark = this.add.circle(
@@ -219,7 +231,7 @@ export class OneDropScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    return { body, mark, markLabel };
+    return { ring, body, mark, markLabel };
   }
 
   private capture(id: number): void {

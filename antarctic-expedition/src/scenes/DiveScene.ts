@@ -4,6 +4,7 @@ import { discover } from '../config/progress';
 import { PALETTE } from '../config/gameConfig';
 import { WILDLIFE } from '../content/wildlife';
 import { diveRoundFor } from '../levels/diveRounds';
+import { wildlifeTextureKey } from '../render/art';
 import {
   collectSample,
   createDive,
@@ -19,8 +20,11 @@ import { addCenteredText, TEXT_STYLES } from '../ui/text';
 import type { ScaleId } from '../content/organisms';
 
 interface DiveSprite {
-  body: Phaser.GameObjects.Arc;
-  glyph: Phaser.GameObjects.Text;
+  /** The species-specific sprite (src/render/art.ts). */
+  body: Phaser.GameObjects.Image;
+  /** Mood border, stroke-only, sized around the body — carries the existing idle/alert/fleeing
+   * cue that used to live on the body circle's own stroke. */
+  moodRing: Phaser.GameObjects.Arc;
   label: Phaser.GameObjects.Text;
 }
 
@@ -193,10 +197,12 @@ export class DiveScene extends Phaser.Scene {
         this.sprites.set(w.id, s);
       }
       const species = WILDLIFE[w.speciesId]!;
-      s.body.setPosition(this.origin.x + w.x, this.origin.y + w.y);
-      s.body.setStrokeStyle(w.behaviorActive ? 4 : 2, MOOD_BORDER[w.mood], 1);
-      s.glyph.setPosition(s.body.x, s.body.y);
-      s.label.setPosition(s.body.x, s.body.y - 24);
+      const x = this.origin.x + w.x;
+      const y = this.origin.y + w.y;
+      s.body.setPosition(x, y);
+      s.moodRing.setPosition(x, y);
+      s.moodRing.setStrokeStyle(w.behaviorActive ? 4 : 2, MOOD_BORDER[w.mood], 1);
+      s.label.setPosition(x, y - 24);
       s.label.setText(
         `${species.name}${w.behaviorActive && species.behavior ? ` — ${species.behavior}` : ''}`,
       );
@@ -210,7 +216,7 @@ export class DiveScene extends Phaser.Scene {
     for (const [id, s] of this.sprites) {
       if (!live.has(id)) {
         s.body.destroy();
-        s.glyph.destroy();
+        s.moodRing.destroy();
         s.label.destroy();
         this.sprites.delete(id);
       }
@@ -228,21 +234,17 @@ export class DiveScene extends Phaser.Scene {
 
   private makeSprite(w: WildlifeInstance): DiveSprite {
     const species = WILDLIFE[w.speciesId]!;
-    const body = this.add.circle(
-      this.origin.x + w.x,
-      this.origin.y + w.y,
-      16,
-      PALETTE.glacier,
-      0.85,
-    );
-    body.setStrokeStyle(2, PALETTE.ice, 1);
-    const glyph = this.add
-      .text(body.x, body.y, species.name[0] ?? '?', { ...TEXT_STYLES.small, color: '#040f17' })
-      .setOrigin(0.5);
+    const x = this.origin.x + w.x;
+    const y = this.origin.y + w.y;
+    const moodRing = this.add.circle(x, y, 19, 0x000000, 0).setStrokeStyle(2, PALETTE.ice, 1);
+    const body = this.add
+      .image(x, y, wildlifeTextureKey(w.speciesId))
+      .setDisplaySize(32, 32)
+      .setTint(PALETTE.glacier);
     const label = this.add
-      .text(body.x, body.y - 24, species.name, { ...TEXT_STYLES.small, color: PALETTE.textDim })
+      .text(x, y - 24, species.name, { ...TEXT_STYLES.small, color: PALETTE.textDim })
       .setOrigin(0.5);
-    return { body, glyph, label };
+    return { body, moodRing, label };
   }
 
   private shoot(): void {

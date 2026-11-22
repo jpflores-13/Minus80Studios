@@ -24,3 +24,9 @@ All dates are build order, not calendar order (this game was built in one contin
 - A Settings & Accessibility screen (sound, volume, music, reduced effects, large text, relaxed
   microscopy, controls summary).
 - This documentation set.
+- Per-species code-drawn sprites (`src/render/art.ts`) for ONE DROP's organisms and DIVE's wildlife,
+  replacing plain colored circles shared by every specimen of a kind. Real organisms (copepod, krill and
+  krill larva, diatom, dinoflagellate, ciliate, labelled bacterium, virus-like particle, and the five DIVE
+  species) get a shape grounded in a real distinguishing feature; artifacts and "unknown" particles stay
+  deliberately abstract. The existing kind-color coding (target/non-target/artifact/unknown) and DIVE's
+  mood border are both kept as an added cue on top, not replaced.
