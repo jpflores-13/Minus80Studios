@@ -6,6 +6,11 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Added
 
+- A "Did You Know?" fact now shows on every level results screen, win or lose.
+- A new **Reusables program** action (levels 3–5): switch a neighbourhood to reusable containers
+  instead of disposable ones, cutting its litter for the rest of the level.
+- A small school of fish now swims in the ocean. As more litter escapes than the level's goal
+  allows, they get sadder (X-eyed) — a visual cue, not a measured ecological claim.
 - **Accessibility** (Settings & Accessibility): relaxed mode (half-speed water, auto-pause when rain starts), large
   text, full keyboard play with Tab/arrows and Enter, screen reader announcements, number keys on the ending's
   buttons, and dark outlines on litter and GPS bottles. See docs/ACCESSIBILITY.md.

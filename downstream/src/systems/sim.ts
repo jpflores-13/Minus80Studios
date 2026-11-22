@@ -39,6 +39,8 @@ export interface SimState {
   nextId: number;
   pending: number;
   done: boolean;
+  /** Source ids switched to reusables: their generation rate is cut for the rest of the level. */
+  reusables: Set<string>;
 }
 
 export type SimEvent =
@@ -54,6 +56,7 @@ export type SimEvent =
 export interface SimOptions {
   seed?: number;
   orientations?: Orientations;
+  reusables?: Set<string>;
 }
 
 export function createSim(
@@ -76,6 +79,7 @@ export function createSim(
     nextId: 1,
     pending: 0,
     done: false,
+    reusables: opts.reusables ?? new Set(),
   };
   syncEquipment(state);
   return state;
@@ -167,7 +171,8 @@ function step(state: SimState, dt: number): SimEvent[] {
 
 function generate(state: SimState, dt: number, events: SimEvent[]): void {
   for (const src of state.level.sources) {
-    let acc = (state.sourceAccumulators[src.id] ?? 0) + src.rate * dt;
+    const rate = src.rate * (state.reusables.has(src.id) ? TUNING.reusables.rateMultiplier : 1);
+    let acc = (state.sourceAccumulators[src.id] ?? 0) + rate * dt;
     while (acc >= 1) {
       acc -= 1;
       const item = createLitter(

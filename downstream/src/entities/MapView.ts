@@ -50,6 +50,8 @@ export class MapView {
     { sprite: Phaser.GameObjects.Image; wasOnLand: boolean; moving: boolean }
   >();
   private readonly hotspotLabels = new Map<string, Phaser.GameObjects.Text>();
+  private readonly reusableBadges = new Set<string>();
+  private readonly fish: { img: Phaser.GameObjects.Image; baseY: number }[] = [];
   private readonly tracks: TrackView[] = [];
   private readonly segs: Map<string, Segment>;
   private rainDrops: { x: number; y: number }[] = [];
@@ -66,6 +68,12 @@ export class MapView {
     this.trails = scene.add.graphics().setDepth(7);
     this.drawSources();
     const mapH = scene.scale.height - TOOLBAR_HEIGHT;
+    const oceanX = scene.scale.width - 40;
+    for (let i = 0; i < 5; i++) {
+      const y = (mapH / 6) * (i + 1);
+      const img = scene.add.image(oceanX, y, 'fish').setScale(PIXEL).setDepth(6).setFlipX(true);
+      this.fish.push({ img, baseY: y });
+    }
     this.rainShade = scene.add
       .rectangle(0, 0, scene.scale.width, mapH, 0x1c2a3a, 0)
       .setOrigin(0)
@@ -165,6 +173,7 @@ export class MapView {
     this.drawSlots(time, dep, orient, highlight);
     this.drawTrails(dt);
     this.drawRain(dt, conditions, reduced);
+    this.updateOcean(time, sim);
     if (!sim) {
       for (const [slotId, view] of this.equipment) {
         const kind = dep[slotId];
@@ -185,6 +194,43 @@ export class MapView {
       this.hotspotLabels.get(h.id)?.setText(n > 0 ? `${h.label}: ${n} stuck` : h.label);
     }
     this.drawLitter(sim);
+  }
+
+  /**
+   * A small school of fish in the ocean strip. As litter escapes and performance-so-far
+   * falls further below the level's target, more of them get the sad (X-eyed) texture —
+   * a quiet drama cue, not a measured ecological claim.
+   */
+  private updateOcean(time: number, sim?: SimState): void {
+    let sadCount = 0;
+    if (sim) {
+      const generated = sim.items.length;
+      const escaped = sim.items.filter((i) => i.state === 'escaped').length;
+      const perfSoFar = generated > 0 ? 1 - escaped / generated : 1;
+      const deficit = Math.max(0, sim.level.target - perfSoFar);
+      sadCount = Math.min(this.fish.length, Math.round(deficit * this.fish.length * 5));
+    }
+    this.fish.forEach(({ img, baseY }, i) => {
+      img.setTexture(i < sadCount ? 'fish-sad' : 'fish');
+      img.y = baseY + Math.sin(time / 500 + i * 1.3) * 5;
+    });
+  }
+
+  /** A small persistent badge marking a source that's switched to reusables. */
+  markReusable(sourceId: string): void {
+    if (this.reusableBadges.has(sourceId)) return;
+    const src = this.level.sources.find((s) => s.id === sourceId);
+    if (!src) return;
+    this.reusableBadges.add(sourceId);
+    const g = this.scene.add.graphics().setDepth(9);
+    g.fillStyle(PALETTE.accent, 1).lineStyle(2, 0xffffff, 1);
+    g.fillCircle(src.pos.x + 30, src.pos.y - 34, 13);
+    g.strokeCircle(src.pos.x + 30, src.pos.y - 34, 13);
+    g.beginPath();
+    g.moveTo(src.pos.x + 24, src.pos.y - 34);
+    g.lineTo(src.pos.x + 29, src.pos.y - 29);
+    g.lineTo(src.pos.x + 37, src.pos.y - 40);
+    g.strokePath();
   }
 
   // Short-lived feedback when a cleanup crew works a spot.

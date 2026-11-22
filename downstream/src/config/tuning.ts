@@ -50,6 +50,10 @@ export const TUNING = {
     /** Seconds of warning before rain starts. */
     forecastLead: 15,
   },
+  reusables: {
+    /** Switching a source to reusables cuts its litter generation rate by this fraction, for the rest of the level. */
+    rateMultiplier: 0.4,
+  },
   gps: {
     /** Virtual research bottles travel this many seconds of simulated time at most. */
     maxSeconds: 80,

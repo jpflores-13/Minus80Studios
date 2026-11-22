@@ -70,13 +70,14 @@ export const LEVEL_3: LevelConfig = {
     'Storms overload traps',
     'Booms guide floating litter toward a trap',
     'Cleanup crews empty a full trap',
+    'A reusables program cuts a source’s litter for good',
   ],
   seed: 303,
   generationSeconds: 52,
   durationSeconds: 68,
   target: 0.9,
   stars: { one: 0.9, two: 0.94, three: 0.97 },
-  inventory: { gps: 2, bin: 2, filter: 1, trap: 2, boom: 1, cleanup: 1 },
+  inventory: { gps: 2, reusables: 1, bin: 2, filter: 1, trap: 2, boom: 1, cleanup: 1 },
   segments: [
     {
       id: 'creek',

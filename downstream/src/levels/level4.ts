@@ -87,7 +87,7 @@ export const LEVEL_4: LevelConfig = {
   durationSeconds: 70,
   target: 0.8,
   stars: { one: 0.8, two: 0.85, three: 0.88 },
-  inventory: { gps: 2, bin: 2, filter: 1, trap: 1, boom: 2, cleanup: 1 },
+  inventory: { gps: 2, reusables: 1, bin: 2, filter: 1, trap: 1, boom: 2, cleanup: 1 },
   segments: [
     {
       id: 'west',

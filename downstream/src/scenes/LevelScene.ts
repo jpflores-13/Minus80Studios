@@ -38,6 +38,7 @@ import { TEXT_STYLES } from '../ui/text';
 
 const NAMES: Record<EquipmentKind, string> = {
   gps: 'GPS bottle',
+  reusables: 'Reusables program',
   bin: 'Trash bin',
   filter: 'Storm drain filter',
   trap: 'Trash trap',
@@ -47,6 +48,8 @@ const NAMES: Record<EquipmentKind, string> = {
 
 const HELP: Record<EquipmentKind, string> = {
   gps: 'Tap a neighbourhood to release a tracked research bottle. It shows where that area’s litter goes when it rains.',
+  reusables:
+    'Prevent at the source: tap a neighbourhood to switch it to reusables (like reusable containers instead of disposable wrappers). Cuts its litter for the rest of the level.',
   bin: 'Prevent: place by a neighbourhood to cut its litter.',
   filter: 'Filter: place on a storm drain to catch litter as the rain washes it off the streets.',
   trap: 'Intercept: place across the water. Holds a limited amount.',
@@ -91,6 +94,7 @@ export class LevelScene extends Phaser.Scene {
   private focusFx!: Phaser.GameObjects.Graphics;
   private focusIndex = -1;
   private inspected = new Set<string>();
+  private reusableSources = new Set<string>();
   private hintFx!: Phaser.GameObjects.Graphics;
 
   private header!: Phaser.GameObjects.Text;
@@ -132,6 +136,7 @@ export class LevelScene extends Phaser.Scene {
     this.ended = false;
     this.cards.clear();
     this.inspected = new Set();
+    this.reusableSources = new Set();
 
     this.map = new MapView(this, this.level);
     this.buildTopBar();
@@ -218,7 +223,10 @@ export class LevelScene extends Phaser.Scene {
       this.say('Drag equipment onto highlighted spots, or click a tool and then a spot.', 5000);
     } else if (phase === 'flow') {
       this.mainButton.setVisible(false);
-      this.sim = createSim(this.level, this.dep, { orientations: this.orient });
+      this.sim = createSim(this.level, this.dep, {
+        orientations: this.orient,
+        reusables: this.reusableSources,
+      });
       this.sim.used = this.used;
       this.say('Here it comes. You can still place anything you have left.', 3500);
     }
@@ -239,7 +247,11 @@ export class LevelScene extends Phaser.Scene {
     this.ended = true;
     this.phase = 'results';
     const t = tally(this.sim.items);
-    const placed = Object.keys(this.dep).length + (this.used.gps ?? 0) + (this.used.cleanup ?? 0);
+    const placed =
+      Object.keys(this.dep).length +
+      (this.used.gps ?? 0) +
+      (this.used.cleanup ?? 0) +
+      (this.used.reusables ?? 0);
     const total = Object.values(this.level.inventory).reduce((a, b) => a + (b ?? 0), 0);
     this.time.delayedCall(700, () =>
       this.scene.start('Results', { levelId: this.level.id, tally: t, used: placed, total }),
@@ -286,6 +298,22 @@ export class LevelScene extends Phaser.Scene {
     const stops =
       track.stops.length > 0 ? ` It was held up ${track.stops.length} time(s) on the way.` : '';
     this.say(`Bottle released from ${src.label}. ${where}${stops}`, 5000);
+    this.refreshToolbar();
+  }
+
+  private useReusables(src: PollutionSource): void {
+    if (this.phase !== 'investigate' && this.phase !== 'deploy')
+      return this.say('Switching to reusables is a change made before the storm.');
+    if (this.reusableSources.has(src.id))
+      return this.say(`${src.label} already switched to reusables.`);
+    if (remaining(this.level, this.dep, 'reusables', this.used) <= 0)
+      return this.say('No reusables programs left.');
+    this.used.reusables = (this.used.reusables ?? 0) + 1;
+    this.reusableSources.add(src.id);
+    this.map.markReusable(src.id);
+    sound.play('place');
+    this.say(`${src.label} switches to reusables. Less plastic litter from here on.`, 5000);
+    if (remaining(this.level, this.dep, 'reusables', this.used) === 0) this.selected = null;
     this.refreshToolbar();
   }
 
@@ -354,6 +382,7 @@ export class LevelScene extends Phaser.Scene {
         if (src) {
           this.showInspect(src);
           if (this.selected === 'gps') this.releaseGps(src);
+          else if (this.selected === 'reusables') this.useReusables(src);
           return;
         } else this.inspect.setVisible(false);
       },
@@ -436,6 +465,8 @@ export class LevelScene extends Phaser.Scene {
     if (remaining(this.level, this.dep, kind, this.used) <= 0) return 'None left.';
     if (kind === 'gps' && this.phase !== 'investigate' && this.phase !== 'deploy')
       return 'GPS bottles are for scouting before the flow.';
+    if (kind === 'reusables' && this.phase !== 'investigate' && this.phase !== 'deploy')
+      return 'Switching to reusables is a change made before the storm.';
     if (kind === 'cleanup' && this.phase !== 'flow') return 'Cleanup crews work during the flow.';
     if (isSlotKind(kind) && this.phase === 'investigate')
       return 'Scout first, then press PLAN DEPLOYMENT.';
@@ -546,10 +577,16 @@ export class LevelScene extends Phaser.Scene {
           x: src.pos.x,
           y: src.pos.y,
           describe: () => `${src.label}. ${PLACE_DESCRIPTIONS[src.look]}`,
-          verb: sel === 'gps' ? 'learn about it and drop a GPS bottle' : 'learn about it',
+          verb:
+            sel === 'gps'
+              ? 'learn about it and drop a GPS bottle'
+              : sel === 'reusables'
+                ? 'learn about it and switch it to reusables'
+                : 'learn about it',
           activate: () => {
             this.showInspect(src);
             if (this.selected === 'gps') this.releaseGps(src);
+            else if (this.selected === 'reusables') this.useReusables(src);
           },
         });
       }
@@ -1063,6 +1100,11 @@ export class LevelScene extends Phaser.Scene {
       spots.length > 0
         ? `Equipment spots here: ${spots.join(', ')}`
         : 'No equipment spots right here',
+      ...(this.reusableSources.has(src.id)
+        ? ['Switched to reusables: dropping less litter']
+        : (this.level.inventory.reusables ?? 0) > 0
+          ? ['Not yet switched to reusables']
+          : []),
     ];
     announce(lines.join('. '));
     const panelW = 380;

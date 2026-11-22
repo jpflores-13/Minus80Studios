@@ -54,6 +54,20 @@ describe('transport', () => {
     expect(caught.every((i) => i.sourceId === 'store')).toBe(true);
   });
 
+  it('reusables cut a source’s generation rate for the rest of the level', () => {
+    const withReusables = createSim(level1, {}, { reusables: new Set(['houses']) });
+    while (!withReusables.done) advance(withReusables, 0.25);
+    const without = createSim(level1, {});
+    while (!without.done) advance(without, 0.25);
+    const generated = (items: typeof without.items, sourceId: string) =>
+      items.filter((i) => i.sourceId === sourceId).length;
+    expect(generated(withReusables.items, 'houses')).toBeLessThan(
+      generated(without.items, 'houses'),
+    );
+    // Other sources are untouched.
+    expect(generated(withReusables.items, 'store')).toBe(generated(without.items, 'store'));
+  });
+
   it('traps fill up and then let litter past', () => {
     const busy = { ...level1, sources: level1.sources.map((s) => ({ ...s, rate: s.rate * 4 })) };
     const s = runToEnd(busy, { 'trap-lower': 'trap' });

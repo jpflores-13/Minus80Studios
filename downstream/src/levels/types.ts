@@ -6,11 +6,12 @@ import type { Vec2 } from '../utils/math';
 /** Equipment placed on map slots. */
 export type SlotKind = 'bin' | 'trap' | 'filter' | 'boom';
 /** Limited-use actions (not placed on slots). */
-export type ActionKind = 'gps' | 'cleanup';
+export type ActionKind = 'gps' | 'cleanup' | 'reusables';
 export type EquipmentKind = SlotKind | ActionKind;
 
 export const EQUIPMENT_ORDER: readonly EquipmentKind[] = [
   'gps',
+  'reusables',
   'bin',
   'filter',
   'trap',
