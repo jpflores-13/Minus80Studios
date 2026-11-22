@@ -37,12 +37,14 @@ export class ReconstructScene extends Phaser.Scene {
   private progressTrack!: Phaser.GameObjects.Rectangle;
   private hud!: { score: Phaser.GameObjects.Text; time: Phaser.GameObjects.Text };
   private ended = false;
+  private campaignIndex: number | undefined;
 
   constructor() {
     super('Reconstruct');
   }
 
-  create(): void {
+  create(data: { campaignIndex?: number } = {}): void {
+    this.campaignIndex = data.campaignIndex;
     this.ended = false;
     this.sprites.clear();
     const config = roundFor('molecular', 8, 50);
@@ -87,7 +89,10 @@ export class ReconstructScene extends Phaser.Scene {
     const esc = this.input.keyboard?.addKey('ESC');
     esc?.on('down', () => {
       this.scene.pause();
-      this.scene.launch('Pause', { returnTo: 'Reconstruct', returnData: {} });
+      this.scene.launch('Pause', {
+        returnTo: 'Reconstruct',
+        returnData: this.campaignIndex === undefined ? {} : { campaignIndex: this.campaignIndex },
+      });
     });
 
     sound.playSong('drop');
@@ -210,6 +215,7 @@ export class ReconstructScene extends Phaser.Scene {
         unknownsDocumented: this.state.unknownsDocumented,
         bestCombo: this.state.bestCombo,
         stars: won ? 3 : 0,
+        campaignIndex: this.campaignIndex,
       }),
     );
   }

@@ -12,6 +12,8 @@ export interface Progress {
   bestEndless: number;
   journal: Record<string, JournalEntry>;
   mysteriesSolved: string[];
+  /** How many campaign expeditions have been cleared, in order. */
+  campaignCleared: number;
   volume: number;
   muted: boolean;
   music: boolean;
@@ -32,6 +34,7 @@ export function progress(): Progress {
     bestEndless: 0,
     journal: {},
     mysteriesSolved: [],
+    campaignCleared: 0,
     volume: 0.7,
     muted: false,
     music: true,
@@ -89,4 +92,10 @@ export function resolveMystery(mysteryId: string): void {
   const solved = progress().mysteriesSolved;
   if (solved.includes(mysteryId)) return;
   saveProgress({ mysteriesSolved: [...solved, mysteryId] });
+}
+
+/** Advances campaign progress to at least this many expeditions cleared. */
+export function clearExpedition(index: number): void {
+  const cleared = progress().campaignCleared;
+  if (index + 1 > cleared) saveProgress({ campaignCleared: index + 1 });
 }

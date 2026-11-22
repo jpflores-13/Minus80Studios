@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
+import { clearExpedition } from '../config/progress';
 import { SCALES, type ScaleId } from '../content/organisms';
 import type { PhotoResult } from '../systems/dive';
-import { Menu } from '../ui/Menu';
+import { Menu, type MenuItem } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface DiveResultsData {
@@ -14,6 +15,7 @@ interface DiveResultsData {
   disturbanceEvents: number;
   sampleCollected: boolean;
   nextScale: ScaleId;
+  campaignIndex?: number;
 }
 
 export class DiveResultsScene extends Phaser.Scene {
@@ -48,17 +50,24 @@ export class DiveResultsScene extends Phaser.Scene {
       );
     }
 
-    const items = [
-      {
+    const items: MenuItem[] = [];
+    if (data.campaignIndex !== undefined) {
+      clearExpedition(data.campaignIndex);
+      items.push({
+        label: () => 'CONTINUE EXPEDITION',
+        action: () => this.scene.start('ExpeditionIntro', { index: data.campaignIndex! + 1 }),
+      });
+    } else {
+      items.push({
         label: () => 'DIVE AGAIN',
         action: () => this.scene.start('Dive', { nextScale: data.nextScale }),
-      },
-    ];
-    if (data.sampleCollected) {
-      items.push({
-        label: () => `EXAMINE THE SAMPLE (ONE DROP)`,
-        action: () => this.scene.start('OneDrop', { scaleId: data.nextScale }),
       });
+      if (data.sampleCollected) {
+        items.push({
+          label: () => `EXAMINE THE SAMPLE (ONE DROP)`,
+          action: () => this.scene.start('OneDrop', { scaleId: data.nextScale }),
+        });
+      }
     }
     items.push({ label: () => 'TITLE', action: () => this.scene.start('Title') });
 

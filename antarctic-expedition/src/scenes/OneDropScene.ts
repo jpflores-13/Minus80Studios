@@ -53,13 +53,15 @@ export class OneDropScene extends Phaser.Scene {
   private selectRing!: Phaser.GameObjects.Arc;
   private ended = false;
   private speedMul = 1;
+  private campaignIndex: number | undefined;
 
   constructor() {
     super('OneDrop');
   }
 
-  create(data: { scaleId: ScaleId }): void {
+  create(data: { scaleId: ScaleId; campaignIndex?: number }): void {
     this.scaleId = data.scaleId;
+    this.campaignIndex = data.campaignIndex;
     this.ended = false;
     this.selected = null;
     this.sprites.clear();
@@ -131,7 +133,13 @@ export class OneDropScene extends Phaser.Scene {
 
   private pause(): void {
     this.scene.pause();
-    this.scene.launch('Pause', { returnTo: 'OneDrop', returnData: { scaleId: this.scaleId } });
+    this.scene.launch('Pause', {
+      returnTo: 'OneDrop',
+      returnData: {
+        scaleId: this.scaleId,
+        ...(this.campaignIndex === undefined ? {} : { campaignIndex: this.campaignIndex }),
+      },
+    });
   }
 
   override update(_time: number, deltaMs: number): void {
@@ -309,6 +317,7 @@ export class OneDropScene extends Phaser.Scene {
         unknownsDocumented: this.state.unknownsDocumented,
         bestCombo: this.state.bestCombo,
         stars,
+        campaignIndex: this.campaignIndex,
       }),
     );
   }

@@ -3,8 +3,10 @@ import './style.css';
 import { createGameConfig } from './config/gameConfig';
 import { textScale } from './config/progress';
 import { BootScene } from './scenes/BootScene';
+import { CampaignEndingScene } from './scenes/CampaignEndingScene';
 import { DiveResultsScene } from './scenes/DiveResultsScene';
 import { DiveScene } from './scenes/DiveScene';
+import { ExpeditionIntroScene } from './scenes/ExpeditionIntroScene';
 import { JournalScene } from './scenes/JournalScene';
 import { MysteryScene } from './scenes/MysteryScene';
 import { OneDropResultsScene } from './scenes/OneDropResultsScene';
@@ -31,6 +33,8 @@ const game = new Phaser.Game(
     ReconstructRevealScene,
     JournalScene,
     MysteryScene,
+    ExpeditionIntroScene,
+    CampaignEndingScene,
     PauseScene,
   ]),
 );

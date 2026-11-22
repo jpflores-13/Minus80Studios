@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
+import { clearExpedition } from '../config/progress';
 import { SCALES, type ScaleId } from '../content/organisms';
-import { Menu } from '../ui/Menu';
+import { Menu, type MenuItem } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface ResultsData {
@@ -15,6 +16,7 @@ interface ResultsData {
   unknownsDocumented: number;
   bestCombo: number;
   stars: number;
+  campaignIndex?: number;
 }
 
 export class OneDropResultsScene extends Phaser.Scene {
@@ -58,22 +60,30 @@ export class OneDropResultsScene extends Phaser.Scene {
       );
     }
 
-    new Menu(
-      this,
-      [
-        {
-          label: () => 'PLAY AGAIN',
-          action: () => this.scene.start('OneDrop', { scaleId: data.scaleId }),
-        },
-        { label: () => 'CHOOSE A SCALE', action: () => this.scene.start('ScaleSelect') },
-        { label: () => 'TITLE', action: () => this.scene.start('Title') },
-      ],
-      width / 2,
-      460,
-      460,
-      62,
-      () => this.scene.start('ScaleSelect'),
-    );
+    const items: MenuItem[] = [];
+    if (data.campaignIndex !== undefined) {
+      if (data.won) {
+        clearExpedition(data.campaignIndex);
+        items.push({
+          label: () => 'CONTINUE EXPEDITION',
+          action: () => this.scene.start('ExpeditionIntro', { index: data.campaignIndex! + 1 }),
+        });
+      } else {
+        items.push({
+          label: () => 'RETRY EXPEDITION',
+          action: () => this.scene.start('ExpeditionIntro', { index: data.campaignIndex! }),
+        });
+      }
+    } else {
+      items.push({
+        label: () => 'PLAY AGAIN',
+        action: () => this.scene.start('OneDrop', { scaleId: data.scaleId }),
+      });
+      items.push({ label: () => 'CHOOSE A SCALE', action: () => this.scene.start('ScaleSelect') });
+    }
+    items.push({ label: () => 'TITLE', action: () => this.scene.start('Title') });
+
+    new Menu(this, items, width / 2, 460, 460, 62, () => this.scene.start('ScaleSelect'));
     addCenteredText(this, height - 34, 'Esc to go back', TEXT_STYLES.hint);
     sound.playSong('title');
   }

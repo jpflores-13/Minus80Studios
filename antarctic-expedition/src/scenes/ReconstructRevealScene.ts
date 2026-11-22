@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { sound } from '../audio/Sound';
 import { PALETTE } from '../config/gameConfig';
-import { Menu } from '../ui/Menu';
+import { clearExpedition } from '../config/progress';
+import { Menu, type MenuItem } from '../ui/Menu';
 import { addCenteredText, TEXT_STYLES } from '../ui/text';
 
 interface Vec3 {
@@ -50,7 +51,7 @@ export class ReconstructRevealScene extends Phaser.Scene {
     super('ReconstructReveal');
   }
 
-  create(): void {
+  create(data: { campaignIndex?: number } = {}): void {
     const { width, height } = this.scale;
     this.cameras.main.setBackgroundColor(PALETTE.ink).fadeIn(300);
     addCenteredText(this, 90, 'STRUCTURE RECOVERED', {
@@ -66,18 +67,22 @@ export class ReconstructRevealScene extends Phaser.Scene {
     this.graphics = this.add.graphics();
     this.angle = 0;
 
-    new Menu(
-      this,
-      [
-        { label: () => 'RECONSTRUCT AGAIN', action: () => this.scene.start('Reconstruct') },
-        { label: () => 'TITLE', action: () => this.scene.start('Title') },
-      ],
-      width / 2,
-      height - 100,
-      420,
-      58,
-      () => this.scene.start('Title'),
-    );
+    const items: MenuItem[] = [];
+    if (data.campaignIndex !== undefined) {
+      clearExpedition(data.campaignIndex);
+      items.push({
+        label: () => 'CONTINUE',
+        action: () => this.scene.start('ExpeditionIntro', { index: data.campaignIndex! + 1 }),
+      });
+    } else {
+      items.push({
+        label: () => 'RECONSTRUCT AGAIN',
+        action: () => this.scene.start('Reconstruct'),
+      });
+    }
+    items.push({ label: () => 'TITLE', action: () => this.scene.start('Title') });
+
+    new Menu(this, items, width / 2, height - 100, 420, 58, () => this.scene.start('Title'));
     sound.playSong('title');
   }
 

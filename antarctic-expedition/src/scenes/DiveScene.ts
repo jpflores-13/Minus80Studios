@@ -53,13 +53,15 @@ export class DiveScene extends Phaser.Scene {
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: Record<'w' | 'a' | 's' | 'd', Phaser.Input.Keyboard.Key>;
   private ended = false;
+  private campaignIndex: number | undefined;
 
   constructor() {
     super('Dive');
   }
 
-  create(data: { id?: string; name?: string; nextScale: ScaleId }): void {
+  create(data: { id?: string; name?: string; nextScale: ScaleId; campaignIndex?: number }): void {
     this.nextScale = data.nextScale;
+    this.campaignIndex = data.campaignIndex;
     this.ended = false;
     this.sprites.clear();
 
@@ -153,6 +155,7 @@ export class DiveScene extends Phaser.Scene {
         id: this.state.config.id,
         name: this.state.config.name,
         nextScale: this.nextScale,
+        ...(this.campaignIndex === undefined ? {} : { campaignIndex: this.campaignIndex }),
       },
     });
   }
@@ -320,6 +323,7 @@ export class DiveScene extends Phaser.Scene {
         disturbanceEvents: this.state.disturbanceEvents,
         sampleCollected: this.state.sampleCollected,
         nextScale: this.nextScale,
+        campaignIndex: this.campaignIndex,
       }),
     );
   }
