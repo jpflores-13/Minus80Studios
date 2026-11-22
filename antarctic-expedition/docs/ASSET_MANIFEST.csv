@@ -1,0 +1,4 @@
+path,type,source,status,notes
+(none — all visuals procedural),n/a,n/a,n/a,"Every visual in this build is drawn at runtime with Phaser shapes/text (PALETTE colors, Arc/Rectangle/Graphics primitives). No external image, audio, or font files are bundled. See docs/ARTIST_BRIEF.md for the planned asset list."
+src/audio/Sound.ts,synthesized audio,original (Web Audio synthesis),shipped,"All SFX and music are generated in code, not licensed/sampled files."
+public/favicon.svg,icon,original,shipped,"Simple circular icon in the game's palette."
