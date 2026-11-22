@@ -3,9 +3,10 @@ import { CHARACTERS, getCharacter } from '../src/characters';
 import { TUNING } from '../src/config/tuning';
 
 describe('character configs', () => {
-  it('has the three launch characters plus the octopus escalation level, all available', () => {
+  it('has the three launch characters plus both escalation levels, all available', () => {
     expect(CHARACTERS.map((c) => c.id).sort()).toEqual([
       'atlas',
+      'blueshark',
       'catalyst',
       'nightshade',
       'octopus',
@@ -13,7 +14,7 @@ describe('character configs', () => {
   });
 
   it('the three launch characters are cone snails threatened by the octopus, hunting fish', () => {
-    for (const c of CHARACTERS.filter((c) => c.id !== 'octopus')) {
+    for (const c of CHARACTERS.filter((c) => c.id !== 'octopus' && c.id !== 'blueshark')) {
       expect(c.species).toMatch(/^Conus [a-z]+$/);
       expect(c.threat).toBe('octopus');
       expect(c.prey).toBe('fish');
@@ -25,6 +26,13 @@ describe('character configs', () => {
     expect(octopus.species).toBe('Octopus bimaculoides');
     expect(octopus.threat).toBe('shark');
     expect(octopus.prey).toBe('snail');
+  });
+
+  it('the blue shark is threatened by the orca pod, and hunts squid instead of fish', () => {
+    const blueshark = CHARACTERS.find((c) => c.id === 'blueshark')!;
+    expect(blueshark.species).toBe('Prionace glauca');
+    expect(blueshark.threat).toBe('orca');
+    expect(blueshark.prey).toBe('squid');
   });
 
   it.each(CHARACTERS.map((c) => [c.id, c] as const))('%s is valid', (_id, c) => {

@@ -1,12 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { CHARACTERS } from '../src/characters';
 import { ATLAS } from '../src/characters/atlas';
+import { BLUESHARK } from '../src/characters/blueshark';
 import { CATALYST } from '../src/characters/catalyst';
 import { NIGHTSHADE } from '../src/characters/nightshade';
 import { OCTOPUS } from '../src/characters/octopus';
 import { TUNING } from '../src/config/tuning';
 import { createHunt, NO_INPUT, stepHunt, type HuntState } from '../src/systems/hunt';
-import { atlasBot, catalystBot, nightshadeBot, octopusBot, play, SEEDS } from './bots';
+import {
+  atlasBot,
+  blueSharkBot,
+  catalystBot,
+  nightshadeBot,
+  octopusBot,
+  play,
+  SEEDS,
+} from './bots';
 
 const DT = 1 / 60;
 const wins = (results: HuntState[]) => results.filter((s) => s.outcome === 'won').length;
@@ -202,6 +211,89 @@ describe('the shark (threatens Cipher)', () => {
     expect(events).toContainEqual({ type: 'grabbed' });
     expect(s.snail.stunned).toBeCloseTo(TUNING.shark.stunSeconds, 5);
     expect(s.venom.reserve).toBe(TUNING.venom.max - TUNING.shark.venomLost);
+  });
+});
+
+describe('Glaucus (pursuit strike + crushing bite + swallow whole)', () => {
+  it('a strike that misses wastes venom and adds a cooldown penalty', () => {
+    const s = createHunt(BLUESHARK, 9);
+    const events = stepHunt(s, { ...NO_INPUT, primary: true, aim: { x: 0, y: 0 } }, DT);
+    expect(events.some((e) => e.type === 'strike-miss')).toBe(true);
+    expect(s.venom.reserve).toBeLessThan(TUNING.venom.max);
+  });
+
+  it('wins every hunt with Pursuit Strike → Crushing Bite → Swallow Whole, despite the orca pod', () => {
+    expect(wins(SEEDS.map((seed) => play(BLUESHARK, seed, blueSharkBot())))).toBe(SEEDS.length);
+  });
+
+  it('skipping the crushing bite loses the tether on a long reel (same tether physics as Catalyst)', () => {
+    const s = createHunt(BLUESHARK, 9);
+    const fish = s.fish[0]!;
+    fish.pos = { x: s.snail.pos.x + 130, y: s.snail.pos.y };
+    stepHunt(s, { ...NO_INPUT, primary: true, aim: { ...fish.pos } }, DT);
+    stepHunt(s, { ...NO_INPUT, capture: true }, DT);
+    for (let i = 0; i < 600 && s.tether; i++) stepHunt(s, NO_INPUT, DT);
+    expect(s.captured).toBe(0);
+    expect(s.stats.tethersBroken).toBe(1);
+  });
+
+  it('hunts squid, not reef fish or cone snails: scattered individuals, no schooling', () => {
+    expect(BLUESHARK.prey).toBe('squid');
+    expect(TUNING.squidPrey.cohesionWeight).toBe(0);
+    expect(TUNING.squidPrey.separationWeight).toBe(0);
+    const s = createHunt(BLUESHARK, 5);
+    expect(s.fish).toHaveLength(TUNING.hunt.scatteredPreyCount);
+    expect(new Set(s.fish.map((f) => f.school)).size).toBe(s.fish.length);
+  });
+});
+
+describe('the orca pod (threatens Glaucus)', () => {
+  it('is a pod of several threats, not a lone one, tuned differently from the octopus and shark', () => {
+    const s = createHunt(BLUESHARK, 1);
+    expect(s.pack).toHaveLength(TUNING.orcaPod.size - 1);
+    expect(TUNING.orca.chaseSpeed).toBeGreaterThan(TUNING.shark.chaseSpeed);
+    expect(TUNING.orca.grabRadius).toBeGreaterThan(TUNING.shark.grabRadius);
+  });
+
+  it('other characters have no pack: a single-threat hunt behaves exactly as before', () => {
+    expect(createHunt(OCTOPUS, 1).pack).toHaveLength(0);
+    expect(createHunt(ATLAS, 1).pack).toHaveLength(0);
+  });
+
+  it('a bite from any pod member stuns Glaucus and costs venom, using the orca tuning', () => {
+    const s = createHunt(BLUESHARK, 3);
+    const member = s.pack[0]!;
+    member.pos = { x: s.snail.pos.x + 10, y: s.snail.pos.y };
+    member.mode = 'chase';
+    member.awareness = 1;
+    const events = stepHunt(s, { ...NO_INPUT, move: { x: 1, y: 0 } }, DT);
+    expect(events).toContainEqual({ type: 'grabbed' });
+    expect(s.snail.stunned).toBeCloseTo(TUNING.orca.stunSeconds, 5);
+    expect(s.venom.reserve).toBe(TUNING.venom.max - TUNING.orca.venomLost);
+  });
+
+  it('pack coordination: once one member is chasing, a patrolling packmate is alerted toward the player', () => {
+    const s = createHunt(BLUESHARK, 4);
+    // Put the lead far away, patrolling, and never close enough to notice on its own this frame.
+    s.predator.pos = { x: 0, y: 0 };
+    s.predator.mode = 'patrol';
+    s.predator.awareness = 0;
+    // One packmate is already chasing (as if it spotted the player a moment ago).
+    const chaser = s.pack[0]!;
+    chaser.mode = 'chase';
+    const before = s.predator.awareness;
+    stepHunt(s, NO_INPUT, DT);
+    expect(s.predator.awareness).toBeGreaterThan(before);
+  });
+
+  it('a lone threat (no pack) has nothing to coordinate with: awareness only changes from its own stimulus', () => {
+    const s = createHunt(OCTOPUS, 4);
+    s.predator.pos = { x: 0, y: 0 };
+    s.predator.mode = 'patrol';
+    s.predator.awareness = 0;
+    stepHunt(s, NO_INPUT, DT);
+    // Far from the player and not moving: awareness should decay toward 0, not jump up.
+    expect(s.predator.awareness).toBeLessThanOrEqual(0.01);
   });
 });
 
