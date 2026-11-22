@@ -43,6 +43,9 @@ jobs:
       - name: Build RIDGERUNNER.
         working-directory: ridgerunner
         run: npm ci && npx vite build
+      - name: Build QUEENLESS
+        working-directory: queenless
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -54,6 +57,7 @@ jobs:
           cp -r starstruck/dist _site/starstruck
           cp -r heist/dist _site/heist
           cp -r ridgerunner/dist _site/ridgerunner
+          cp -r queenless/dist _site/queenless
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site

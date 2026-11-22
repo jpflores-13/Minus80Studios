@@ -12,6 +12,7 @@
 | [`starstruck/`](starstruck/)         | **STARSTRUCK.**: sensory exploration arcade (prototype)                                        | 8083     |
 | [`heist/`](heist/)                   | **HEIST.**: a stealth-action puzzle game (prototype)                                           | 8086     |
 | [`ridgerunner/`](ridgerunner/)       | **RIDGERUNNER.**: exploration and survival as a salamander crossing watersheds                | 8088     |
+| [`queenless/`](queenless/)           | **QUEENLESS**: a bumble bee colony reorganizes itself after its queen is gone                  | 8087     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 
