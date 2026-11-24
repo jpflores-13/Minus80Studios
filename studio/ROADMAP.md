@@ -36,6 +36,9 @@
 - [ ] Scientist conversations and written sign-off, so the placeholder "Meet the Scientist" sections across
       all six games can carry real names, bios and credit
 
+- [ ] MUCK LIFE: a human scientific review of `muck-life/docs/SCIENTIFIC_REVIEW.md`, final art from the
+      artist brief, and on-device playtesting on phones and tablets
+
 ## Phase 4: Expansion
 
 - [ ] Touch/iPad optimisation, arcade-cabinet build profile

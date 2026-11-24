@@ -14,6 +14,7 @@
 | [`ridgerunner/`](ridgerunner/)       | **RIDGERUNNER.**: exploration and survival as a salamander crossing watersheds                | 8088     |
 | [`queenless/`](queenless/)           | **QUEENLESS**: a bumble bee colony reorganizes itself after its queen is gone                  | 8087     |
 | [`antarctic-expedition/`](antarctic-expedition/) | **ANTARCTIC EXPEDITION**: underwater exploration and a microscopy discovery game    | 8089     |
+| [`muck-life/`](muck-life/)           | **MUCK LIFE**: arcade oxygen imaging around growing cattail roots in marsh mud                 | 8090     |
 
 Each game is an independent Phaser 4 + TypeScript + Vite project:
 

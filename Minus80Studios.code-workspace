@@ -1,14 +1,66 @@
 {
   "folders": [
-    { "name": "studio", "path": "studio" },
-    { "name": "snail-assassin", "path": "snail-assassin" },
-    { "name": "downstream", "path": "downstream" }
+    {
+      "name": "studio",
+      "path": "studio"
+    },
+    {
+      "name": "snail-assassin",
+      "path": "snail-assassin"
+    },
+    {
+      "name": "downstream",
+      "path": "downstream"
+    },
+    {
+      "name": "off-target",
+      "path": "off-target"
+    },
+    {
+      "name": "dr-anti-crispr",
+      "path": "dr-anti-crispr"
+    },
+    {
+      "name": "starstruck",
+      "path": "starstruck"
+    },
+    {
+      "name": "heist",
+      "path": "heist"
+    },
+    {
+      "name": "queenless",
+      "path": "queenless"
+    },
+    {
+      "name": "ridgerunner",
+      "path": "ridgerunner"
+    },
+    {
+      "name": "antarctic-expedition",
+      "path": "antarctic-expedition"
+    },
+    {
+      "name": "muck-life",
+      "path": "muck-life"
+    }
   ],
   "settings": {
-    "files.exclude": { "**/node_modules": true, "**/dist": true },
-    "search.exclude": { "**/node_modules": true, "**/dist": true, "**/package-lock.json": true }
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/dist": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/dist": true,
+      "**/package-lock.json": true
+    }
   },
   "extensions": {
-    "recommendations": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode", "vitest.explorer"]
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "vitest.explorer"
+    ]
   }
 }
