@@ -5,12 +5,12 @@ export const level3: LevelConfig = {
   id: 'level-3',
   number: 3,
   name: 'Mud Rush',
-  objective: { kind: 'combo', target: 6 },
+  objective: { kind: 'combo', target: 4 },
   timeLimit: 105,
   prompts: [
     {
       at: 'start',
-      text: 'Chain six bites without a miss or a long pause. Speed over caution, this time.',
+      text: 'Chain four bites without a miss or a long pause. Speed over caution, this time.',
     },
     { at: 'firstTouch', text: 'No time to double-check everything. Trust a strong, clear touch.' },
     { at: 'firstId', text: 'Soft and wriggly: food. Bite it and keep moving.' },
@@ -26,7 +26,7 @@ export const level3: LevelConfig = {
       text: 'That combo multiplier only grows if you keep landing bites quickly.',
     },
   ],
-  stars: [900, 1700, 2600],
+  stars: [900, 1500, 2300],
   map: [
     'OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO',
     'O..##..##..##..##..##..##..##..##..##..##l.##.o##O',
