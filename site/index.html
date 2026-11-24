@@ -6,7 +6,7 @@
     <title>Minus 80 Studios</title>
     <meta
       name="description"
-      content="Short games inspired by real science. Play Snail Assassin, Downstream!, OFF TARGET., DR. ANTI-CRISPR, STARSTRUCK. and HEIST. in your browser."
+      content="Short games inspired by real science. Play Snail Assassin, Downstream!, OFF TARGET., DR. ANTI-CRISPR, STARSTRUCK., HEIST., MUCK LIFE and more in your browser."
     />
     <style>
       * {
@@ -103,6 +103,14 @@
       a.game.mint {
         border-color: #65e3bd;
         background: #14232b;
+      }
+      a.game.mud {
+        border-color: #70dab8;
+        background: #28231f;
+      }
+      a.game.mud .play {
+        background: #70dab8;
+        color: #28231f;
       }
       a.game.mint .play {
         background: #65e3bd;
@@ -972,6 +980,87 @@
           </p>
           <p class="how" id="ae-how">
             Plays on computers (keyboard or gamepad) and on iPhone, iPad, and Android (touch).
+          </p>
+          <span class="play" aria-hidden="true">Play</span>
+        </div>
+      </a>
+
+      <a
+        class="game mud"
+        href="./muck-life/"
+        aria-labelledby="ml-title"
+        aria-describedby="ml-desc ml-how"
+      >
+        <!-- A marsh cross-section: cattails above the waterline, a rhizome running through dark
+             mud, and adventitious roots below it, each tip wrapped in a glowing oxygen pool, with a
+             cluster of fine lateral roots and a broad plume at lower left -->
+        <svg
+          viewBox="0 0 160 90"
+          shape-rendering="crispEdges"
+          role="img"
+          aria-label="Pixel art: cattails above a marsh, with roots in the mud below glowing where they release oxygen"
+        >
+          <rect width="160" height="90" fill="#28231f" />
+          <rect width="160" height="22" fill="#8fc3cf" />
+          <rect y="14" width="160" height="8" fill="#e9dcb4" opacity="0.7" />
+          <rect y="22" width="160" height="4" fill="#6b9a9e" />
+          <rect y="26" width="160" height="20" fill="#5b4839" />
+          <rect y="46" width="160" height="22" fill="#4a3a2e" />
+          <!-- cattails -->
+          <g fill="#688c55">
+            <polygon points="38,22 40,22 34,4" />
+            <polygon points="39,22 41,22 46,6" />
+            <polygon points="118,22 120,22 113,6" />
+            <polygon points="119,22 121,22 126,3" />
+          </g>
+          <rect x="39" y="2" width="2" height="9" rx="1" fill="#6b4428" />
+          <rect x="119" y="0" width="2" height="9" rx="1" fill="#6b4428" />
+          <!-- oxygen pools (imaging colours) -->
+          <g fill="#70dab8">
+            <circle cx="60" cy="56" r="9" opacity="0.25" />
+            <circle cx="60" cy="56" r="5" opacity="0.45" />
+            <circle cx="104" cy="66" r="9" opacity="0.25" />
+            <circle cx="104" cy="66" r="5" opacity="0.45" />
+            <ellipse cx="30" cy="62" rx="16" ry="10" opacity="0.22" />
+          </g>
+          <circle cx="60" cy="56" r="2" fill="#80dce3" />
+          <circle cx="104" cy="66" r="2" fill="#80dce3" />
+          <!-- rhizome with nodes, roots below -->
+          <rect x="14" y="31" width="132" height="3" fill="#c6ad84" />
+          <g fill="#9c7b52">
+            <rect x="44" y="30" width="1" height="5" />
+            <rect x="80" y="30" width="1" height="5" />
+            <rect x="116" y="30" width="1" height="5" />
+          </g>
+          <g stroke="#c6ad84" stroke-width="1.5" fill="none">
+            <path d="M58 34 Q57 46 60 56" />
+            <path d="M100 34 Q104 50 104 66" />
+            <path d="M28 34 Q27 46 30 60" />
+          </g>
+          <g stroke="#e9d9b6" stroke-width="0.6">
+            <line x1="29" y1="50" x2="20" y2="56" />
+            <line x1="29" y1="54" x2="39" y2="60" />
+            <line x1="30" y1="58" x2="22" y2="66" />
+            <line x1="30" y1="60" x2="38" y2="68" />
+          </g>
+          <!-- reticle -->
+          <g stroke="#f4e8ce" stroke-width="0.8" fill="none">
+            <circle cx="104" cy="66" r="7" />
+            <line x1="94" y1="66" x2="98" y2="66" />
+            <line x1="110" y1="66" x2="114" y2="66" />
+          </g>
+          <text x="126" y="84" font-size="6" fill="#e8bd72" font-family="Georgia, serif">O₂</text>
+        </svg>
+        <div class="info">
+          <h2 id="ml-title"><span class="sr-only">Play </span>MUCK LIFE</h2>
+          <p id="ml-desc">
+            It&rsquo;s a dirty job. Somebody&rsquo;s gotta oxygenate it. Chase glowing oxygen
+            pools around growing cattail roots in marsh mud, then discover why growth matters
+            more than sunlight. Includes the endless O&#8322; RUSH mode.
+          </p>
+          <p class="how" id="ml-how">
+            Plays on computers (mouse, keyboard or gamepad) and on iPhone, iPad, and Android
+            (touch).
           </p>
           <span class="play" aria-hidden="true">Play</span>
         </div>

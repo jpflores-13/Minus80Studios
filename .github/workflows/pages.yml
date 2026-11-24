@@ -49,6 +49,9 @@ jobs:
       - name: Build ANTARCTIC EXPEDITION
         working-directory: antarctic-expedition
         run: npm ci && npx vite build
+      - name: Build MUCK LIFE
+        working-directory: muck-life
+        run: npm ci && npx vite build
       - name: Assemble site
         run: |
           mkdir -p _site
@@ -62,6 +65,7 @@ jobs:
           cp -r ridgerunner/dist _site/ridgerunner
           cp -r queenless/dist _site/queenless
           cp -r antarctic-expedition/dist _site/antarctic-expedition
+          cp -r muck-life/dist _site/muck-life
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
