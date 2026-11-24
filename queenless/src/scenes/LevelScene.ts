@@ -16,7 +16,6 @@ import {
 } from '../systems/colony';
 import { createQueenlessState, stepQueenless, type QueenlessState } from '../systems/queenlessMode';
 import { announce } from '../ui/announce';
-import { TEXT_STYLES } from '../ui/text';
 
 /** Touch input shared with the HUD's on-screen stick and pulse button. */
 export const touchInput = { dx: 0, dy: 0, pulse: false };
@@ -49,10 +48,15 @@ export class LevelScene extends Phaser.Scene {
    *  to have no on-screen confirmation at all for a sighted player. */
   toastText = '';
   toastUntil = 0;
-  private introItems: Phaser.GameObjects.GameObject[] = [];
-  private introDismissed = false;
-  private introShownAt = 0;
-  private dismissIntro = (): void => {};
+  /** The on-screen intro panel's content. HudScene draws it: this scene's camera is zoomed 2x,
+   * and a scroll-fixed panel drawn here would be scaled up around the screen centre and pushed
+   * mostly off-screen (the bug that made The Daily Buzz look mis-sized). */
+  intro: { title: string; lines: string[]; legend: string[]; firstLevel: boolean } = {
+    title: '',
+    lines: [],
+    legend: [],
+    firstLevel: false,
+  };
 
   constructor() {
     super('Level');
@@ -68,8 +72,6 @@ export class LevelScene extends Phaser.Scene {
     this.siteSprites = new Map();
     this.toastText = '';
     this.toastUntil = 0;
-    this.introItems = [];
-    this.introDismissed = false;
     touchInput.dx = 0;
     touchInput.dy = 0;
     touchInput.pulse = false;
@@ -109,6 +111,7 @@ export class LevelScene extends Phaser.Scene {
 
     this.fx = this.add.graphics().setDepth(20);
     this.buildInput();
+    this.intro = this.buildIntro();
     this.scene.launch('Hud', { level: this });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.scene.stop('Hud');
@@ -116,90 +119,32 @@ export class LevelScene extends Phaser.Scene {
     });
     sound.playSong(this.queenlessMode ? 'colony' : 'title');
 
-    const introTitle = this.queenlessMode ? 'QUEENLESS MODE' : this.level!.name.toUpperCase();
-    const introLines = this.queenlessMode
-      ? ['No queen from the start, and it only gets harder.']
-      : this.level!.intro;
-    announce(`${introTitle}. ${introLines.join(' ')}`);
-    this.showIntroOverlay(introTitle, introLines);
+    announce(`${this.intro.title}. ${this.intro.lines.join(' ')} ${this.intro.legend.join('. ')}`);
   }
 
   /**
-   * The per-level intro text used to go ONLY to announce()'s screen-reader-only live region —
-   * a sighted player never saw a word of it, including the very first level's "walk onto a
-   * flower to gather nectar" instruction. This shows it on screen too, non-blocking (play
-   * carries on underneath it), for a fixed read-time plus a grace period during which the
-   * first key press or tap dismisses it early. Level 1 also gets a short icon key, since it's
-   * the only level a brand-new player sees before they've learned what a flower, a brood
-   * cell, a debris pile, or the honeypot actually looks like.
+   * The intro panel's text. Level 1 also gets an icon key, built from the kinds of site that are
+   * actually on its map (it used to list brood cells and debris, which Level 1 doesn't have).
    */
-  private showIntroOverlay(title: string, lines: string[]): void {
-    const panelX = 20;
-    const panelY = 150;
-    const panelW = 480;
-    const isFirstLevel = !this.queenlessMode && this.level?.id === 'level-1';
-
-    const bg = this.add.graphics().setDepth(70).setScrollFactor(0);
-    const titleText = this.add
-      .text(panelX + 16, panelY + 12, title, { ...TEXT_STYLES.hud, fontSize: '19px' })
-      .setDepth(71)
-      .setScrollFactor(0);
-    const bodyText = this.add
-      .text(panelX + 16, titleText.y + titleText.height + 8, lines.join('\n\n'), {
-        ...TEXT_STYLES.small,
-        wordWrap: { width: panelW - 32 },
-        lineSpacing: 4,
-      })
-      .setDepth(71)
-      .setScrollFactor(0);
-    this.introItems = [bg, titleText, bodyText];
-
-    let legendBottom = bodyText.y + bodyText.height;
-    if (isFirstLevel) {
-      const legendText = this.add
-        .text(
-          panelX + 16,
-          legendBottom + 10,
-          'FLOWER: walk on to gather nectar\n' +
-            'BROOD CELL: stand on it to tend the brood\n' +
-            'DEBRIS: stand on it to clear the mess\n' +
-            'HONEYPOT: bring nectar here to deliver it',
-          { ...TEXT_STYLES.small, fontSize: '14px', color: PALETTE.textMoss, lineSpacing: 4 },
-        )
-        .setDepth(71)
-        .setScrollFactor(0);
-      this.introItems.push(legendText);
-      legendBottom = legendText.y + legendText.height;
-    }
-
-    const panelH = legendBottom + 14 - panelY;
-    bg.fillStyle(0x1a120a, 0.82).fillRoundedRect(panelX, panelY, panelW, panelH, 10);
-    bg.lineStyle(2, PALETTE.honey, 0.7).strokeRoundedRect(panelX, panelY, panelW, panelH, 10);
-
-    this.introShownAt = this.time.now;
-    const SKIP_GRACE_MS = 1200;
-    const AUTO_DISMISS_MS = isFirstLevel ? 12000 : 7500;
-    const kb = this.input.keyboard;
-    const onSkipInput = () => {
-      if (this.time.now - this.introShownAt > SKIP_GRACE_MS) this.dismissIntro();
+  private buildIntro(): LevelScene['intro'] {
+    const title = this.queenlessMode ? 'QUEENLESS MODE' : this.level!.name.toUpperCase();
+    const lines = this.queenlessMode
+      ? ['No queen from the start, and it only gets harder.']
+      : this.level!.intro;
+    const firstLevel = !this.queenlessMode && this.level?.id === 'level-1';
+    const KEY: Record<string, string> = {
+      flower: 'FLOWER: walk onto it to gather nectar',
+      storage: 'HONEYPOT: bring nectar here to deliver it',
+      broodCell: 'BROOD CELL: stand on it to tend the brood',
+      debris: 'DEBRIS: stand on it to clear the mess',
     };
-    kb?.on('keydown', onSkipInput);
-    this.input.on('pointerdown', onSkipInput);
-    this.time.delayedCall(AUTO_DISMISS_MS, () => this.dismissIntro());
-    this.dismissIntro = () => {
-      if (this.introDismissed) return;
-      this.introDismissed = true;
-      kb?.off('keydown', onSkipInput);
-      this.input.off('pointerdown', onSkipInput);
-      const items = this.introItems;
-      this.introItems = [];
-      this.tweens.add({
-        targets: items,
-        alpha: 0,
-        duration: 350,
-        onComplete: () => items.forEach((o) => o.destroy()),
-      });
-    };
+    const present = new Set(this.colony.sites.map((x) => x.kind));
+    const legend = firstLevel
+      ? (['flower', 'storage', 'broodCell', 'debris'] as const)
+          .filter((k) => present.has(k))
+          .map((k) => KEY[k]!)
+      : [];
+    return { title, lines, legend, firstLevel };
   }
 
   private characterFor(w: Worker) {

@@ -9,8 +9,8 @@ export const level1: LevelConfig = {
   name: 'The Daily Buzz',
   tagline: 'An ordinary day, for now.',
   intro: [
-    'Move with the arrows, WASD, or drag. Walk onto a flower to gather nectar.',
-    'Carry it back to the honeypot to deliver it. That’s the whole job, today.',
+    'GOAL: keep the colony’s FOOD, BROOD and NEST bars (top left) high until the timer runs out. The fuller they stay, the more stars.',
+    'Move with the arrows, WASD, or drag. Walk onto a flower to gather nectar, then carry it back to the honeypot to deliver it. That’s the whole job, today.',
   ],
   buzzPulseEnabled: false,
   colony: {

@@ -86,6 +86,85 @@ export class HudScene extends Phaser.Scene {
     const pause = new Button(this, width - 50, height - 50, 70, 56, '❚❚', () => this.level.pause());
     pause.bg.setDepth(60);
     pause.label.setDepth(61);
+    this.showIntro();
+  }
+
+  /**
+   * The level's intro text, on screen and not only for screen readers. Non-blocking (play
+   * carries on underneath), for a fixed read time plus a grace period after which the first
+   * key press or tap dismisses it early. Drawn here, at screen resolution, rather than in the
+   * zoomed LevelScene.
+   */
+  private showIntro(): void {
+    const { title, lines, legend, firstLevel } = this.level.intro;
+    if (!title) return;
+    const panelX = 20;
+    const panelY = 150;
+    const panelW = 480;
+    const bg = this.add.graphics().setDepth(70);
+    const titleText = this.add
+      .text(panelX + 16, panelY + 12, title, { ...TEXT_STYLES.hud, fontSize: '19px' })
+      .setDepth(71);
+    const bodyText = this.add
+      .text(panelX + 16, titleText.y + titleText.height + 8, lines.join('\n\n'), {
+        ...TEXT_STYLES.small,
+        wordWrap: { width: panelW - 32 },
+        lineSpacing: 4,
+      })
+      .setDepth(71);
+    const items: Phaser.GameObjects.GameObject[] = [bg, titleText, bodyText];
+    let bottom = bodyText.y + bodyText.height;
+    if (legend.length) {
+      const legendText = this.add
+        .text(panelX + 16, bottom + 10, legend.join('\n'), {
+          ...TEXT_STYLES.small,
+          fontSize: '14px',
+          color: PALETTE.textMoss,
+          lineSpacing: 4,
+        })
+        .setDepth(71);
+      items.push(legendText);
+      bottom = legendText.y + legendText.height;
+    }
+    const skipHint = this.add
+      .text(panelX + 16, bottom + 10, 'Press any key or tap to close', {
+        ...TEXT_STYLES.small,
+        fontSize: '12px',
+        color: PALETTE.textDim,
+      })
+      .setDepth(71);
+    items.push(skipHint);
+    bottom = skipHint.y + skipHint.height;
+    const panelH = bottom + 14 - panelY;
+    bg.fillStyle(0x1a120a, 0.82).fillRoundedRect(panelX, panelY, panelW, panelH, 10);
+    bg.lineStyle(2, PALETTE.honey, 0.7).strokeRoundedRect(panelX, panelY, panelW, panelH, 10);
+
+    const shownAt = this.time.now;
+    const SKIP_GRACE_MS = 1200;
+    let dismissed = false;
+    const kb = this.input.keyboard;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
+      kb?.off('keydown', onSkip);
+      this.input.off('pointerdown', onSkip);
+      this.tweens.add({
+        targets: items,
+        alpha: 0,
+        duration: 350,
+        onComplete: () => items.forEach((o) => o.destroy()),
+      });
+    };
+    const onSkip = () => {
+      if (this.time.now - shownAt > SKIP_GRACE_MS) dismiss();
+    };
+    kb?.on('keydown', onSkip);
+    this.input.on('pointerdown', onSkip);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      kb?.off('keydown', onSkip);
+      this.input.off('pointerdown', onSkip);
+    });
+    this.time.delayedCall(firstLevel ? 14000 : 7500, dismiss);
   }
 
   private buildTouch(): void {

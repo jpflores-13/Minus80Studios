@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- The level intro panel (The Daily Buzz's instructions and icon key) was drawn inside the 2x-zoomed
+  level camera, so it came out oversized and mostly off-screen. It's now drawn by the HUD at
+  screen resolution, with a "press any key or tap to close" hint.
+- The Daily Buzz now states its goal (keep the FOOD, BROOD and NEST bars high until time runs out),
+  and its icon key lists only what's on its map (no brood cells or debris until Level 2).
+
 ### Added
 
 - A small minimap in the HUD's top-right corner, covering the whole playable area (most of
