@@ -6,6 +6,7 @@ export type Tile = 'stream' | 'floor' | 'moss' | 'log' | 'clearing' | 'barrier';
 /** One character per 32px tile. See levels/types.ts for the full map key. */
 export const TILE_CHARS: Record<string, Tile> = {
   '~': 'stream',
+  G: 'stream',
   '#': 'floor',
   M: 'moss',
   L: 'log',

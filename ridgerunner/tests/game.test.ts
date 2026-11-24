@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { createGame, stepGame, NO_INPUT, TUNING, type GameState } from '../src/systems/game';
+import {
+  createGame,
+  denPhase,
+  stepGame,
+  NO_INPUT,
+  PREDATORS,
+  TUNING,
+  type GameState,
+} from '../src/systems/game';
 import { parseLandscape, TILE } from '../src/systems/network';
 import type { LevelConfig } from '../src/levels/types';
 
@@ -130,5 +138,109 @@ describe('watershed crossings', () => {
     const s = createGame(tiny(['XXXXX', 'XP~EX', 'XXXXX']));
     expect(s.watershedCrossings).toBe(0);
     expect(s.visitedWatersheds.size).toBe(s.startWatershed === null ? 0 : 1);
+  });
+});
+
+describe('predator dens', () => {
+  const denLevel: LevelConfig = {
+    id: 'den-test',
+    number: 99,
+    name: 'Den test',
+    tagline: '',
+    intro: [],
+    timeLimit: 60,
+    rain: [],
+    stars: [1, 2, 3],
+    map: ['XXXXXXXXXX', 'XPS.....EX', 'X........X', 'XXXXXXXXXX'],
+  };
+
+  it('parses S as a den on plain floor', () => {
+    const s = createGame(denLevel);
+    expect(s.land.dens).toEqual([{ tx: 2, ty: 1, kind: 'snake' }]);
+    expect(s.land.tiles[1 * 10 + 2]).toBe('floor');
+  });
+
+  it('cycles rest, warn, strike', () => {
+    const s = createGame(denLevel);
+    expect(denPhase(s, 0, 0).phase).toBe('rest');
+    const p = PREDATORS.snake;
+    expect(denPhase(s, 0, p.rest + 0.1).phase).toBe('warn');
+    expect(denPhase(s, 0, p.rest + p.warn + 0.1).phase).toBe('strike');
+  });
+
+  it('catches Moss standing in reach during a strike, and warns first', () => {
+    const s = createGame(denLevel); // Moss starts one tile from the den, inside its reach
+    const events: string[] = [];
+    for (let t = 0; t < 10 && s.status === 'playing'; t += 1 / 60)
+      events.push(...stepGame(s, NO_INPUT, 1 / 60).map((e) => e.type));
+    expect(s.status).toBe('lost');
+    expect(s.lostReason).toBe('caught');
+    expect(s.caughtBy).toBe('snake');
+    expect(events.indexOf('predatorWarn')).toBeGreaterThanOrEqual(0);
+    expect(events.indexOf('predatorWarn')).toBeLessThan(events.indexOf('caught'));
+  });
+
+  it('leaves Moss alone outside its reach', () => {
+    const s = createGame(denLevel);
+    s.moss.y = 2 * TILE + TILE / 2;
+    s.moss.x = 7 * TILE + TILE / 2; // four tiles away
+    for (let t = 0; t < 10; t += 1 / 60) stepGame(s, NO_INPUT, 1 / 60);
+    expect(s.lostReason).not.toBe('caught');
+  });
+
+  /** Steps until the den first starts a strike, returning the events seen. */
+  const untilStrike = (s: GameState): string[] => {
+    const seen: string[] = [];
+    while (s.status === 'playing' && denPhase(s, 0).phase !== 'warn')
+      seen.push(...stepGame(s, NO_INPUT, 1 / 60).map((e) => e.type));
+    while (s.status === 'playing' && denPhase(s, 0).phase === 'warn')
+      seen.push(...stepGame(s, NO_INPUT, 1 / 60).map((e) => e.type));
+    return seen;
+  };
+
+  it('a tail raise timed during the warning fends the strike off', () => {
+    const s = createGame(denLevel);
+    while (denPhase(s, 0).phase !== 'warn') stepGame(s, NO_INPUT, 1 / 60);
+    // raise the tail just before the strike lands
+    const p = PREDATORS.snake;
+    while (denPhase(s, 0).into < p.warn - 0.2) stepGame(s, NO_INPUT, 1 / 60);
+    const ev = stepGame(s, { dx: 0, dy: 0, defend: true }, 1 / 60).map((e) => e.type);
+    expect(ev).toContain('defend');
+    const later: string[] = [];
+    for (let t = 0; t < p.strike + 0.4; t += 1 / 60)
+      later.push(...stepGame(s, NO_INPUT, 1 / 60).map((e) => e.type));
+    expect(later).toContain('deterred');
+    expect(s.status).toBe('playing');
+  });
+
+  it('the tail raise holds Moss still and has a cooldown', () => {
+    const s = createGame(denLevel);
+    s.land.dens = [];
+    const x0 = s.moss.x;
+    stepGame(s, { dx: 0, dy: 1, defend: true }, 1 / 60);
+    expect(s.moss.x).toBe(x0);
+    expect(s.defence.cooldown).toBeGreaterThan(0);
+    stepGame(s, { dx: 0, dy: 0, defend: true }, 1 / 60); // too soon: ignored
+    expect(s.defence.timer).toBeLessThan(TUNING.defendSeconds);
+  });
+
+  it('a tail raise mistimed (long before the strike) does not save Moss', () => {
+    const s = createGame(denLevel);
+    stepGame(s, { dx: 0, dy: 0, defend: true }, 1 / 60);
+    untilStrike(s);
+    for (let t = 0; t < 1 && s.status === 'playing'; t += 1 / 60) stepGame(s, NO_INPUT, 1 / 60);
+    expect(s.caughtBy).toBe('snake');
+  });
+
+  it('parses G as a giant salamander in a stream pool that is still part of the watershed', () => {
+    const s = createGame({
+      ...denLevel,
+      map: ['XXXXXXXXXX', 'XP~G~~~.EX', 'X........X', 'XXXXXXXXXX'],
+    });
+    expect(s.land.dens).toEqual([{ tx: 3, ty: 1, kind: 'giant' }]);
+    expect(s.land.tiles[1 * 10 + 3]).toBe('stream');
+    expect(s.land.watershedCount).toBe(1);
+    for (let t = 0; t < 10 && s.status === 'playing'; t += 1 / 60) stepGame(s, NO_INPUT, 1 / 60);
+    expect(s.caughtBy).toBe('giant');
   });
 });

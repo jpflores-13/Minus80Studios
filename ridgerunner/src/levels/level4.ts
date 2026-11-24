@@ -21,7 +21,7 @@ export const level4: LevelConfig = {
   stars: [450, 680, 950],
   map: [
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-    'X..........................................X',
+    'X.............................S............X',
     'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
     'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
     'X.CCCCCCCCCCC.CCCCCCCCCCC.CCCCCCCCCCC......X',
@@ -38,7 +38,7 @@ export const level4: LevelConfig = {
     'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
     'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
     'X.LLLLLLLLLLL.LLLLLLLLLLL.LLLLLLLLLLL......X',
-    'X..........................................X',
+    'X..................S.......................X',
     'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
   ],
 };

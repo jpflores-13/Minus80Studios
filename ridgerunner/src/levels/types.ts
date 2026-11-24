@@ -4,6 +4,8 @@
 //   C  exposed clearing (drains fast)  X  barrier (impassable: a road, a river too big to cross)
 //   .  plain ground (same as forest floor)
 //   P  start   E  destination (a neighbouring population's habitat)
+//   S  garter snake den on forest floor: rests, rears up (warning), then strikes within ~1.5 tiles
+//   G  Pacific giant salamander lurking in a stream pool (the tile is stream): slower, longer reach
 
 export interface RainEvent {
   /** Seconds into the level. */

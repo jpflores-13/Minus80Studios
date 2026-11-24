@@ -61,6 +61,39 @@ are never claimed otherwise.
   successful reproduction after dispersal, not just arrival; the ending says this directly.
 - That every road, clearing, or landscape change affects connectivity identically. Real landscape
   resistance depends on the specific species and site.
+- **Anything about predation rates or outcomes.** The predators (below) are hazards on a fixed
+  rest → warning → strike rhythm, and their reach, timing and placement are gameplay balance. The
+  game does not claim how often torrent salamanders are eaten, that predation is higher away from
+  water, or that a raised tail actually stops a snake or a giant salamander.
+
+## Predators and the tail raise
+
+What the game shows: a **garter snake** den on land (levels 3–5), a **Pacific giant salamander**
+lurking in a stream pool (level 5), and a **tail-raise** defence that fends off one strike if timed
+just before it lands. In-game text only names them; it makes no predation claims.
+
+- **Checked (full text read, 2026-11-24):** Blaustein, Beatty, Olson & Storm (1995), _The biology
+  of amphibians and reptiles in old-growth forests in the Pacific Northwest_, USDA Forest Service
+  Gen. Tech. Rep. PNW-GTR-337 (https://www.fs.usda.gov/pnw/pubs/pnw_gtr337.pdf). It supports:
+  - Metamorphosed _Dicamptodon_ are described as voracious predators that eat many kinds of
+    vertebrates; larvae live in streams, ponds and lakes and eat fish, tadpoles and each other.
+  - Western aquatic garter snakes (_Thamnophis couchii_) may be important predators of larval
+    _Dicamptodon_ in northwestern California streams (i.e. garter snakes eat salamanders; this is
+    not about _Rhyacotriton_).
+  - Torrent salamanders are seldom more than 1 m from free-running water, are only occasionally
+    found a few metres away after heavy rain, and tolerate less body-water loss than other
+    salamanders (19.4% vs 29.0–32.9%). This backs the moisture mechanic's premise, not its numbers.
+  - **It does not** name predators of _Rhyacotriton_ or describe its defensive behaviour.
+- **NOT yet checked — needs a human:** AmphibiaWeb's _R. cascadae_ account
+  (https://amphibiaweb.org/species/4232) reportedly says natural predators are **not documented**,
+  but that _Dicamptodon_ (larvae and adults) and garter snakes are **probably** important, and that
+  torrent salamanders respond to attack by coiling and raising and undulating a tail with poison
+  glands. We only saw this through search-result summaries; the page sits behind a bot check our
+  tools can't (and shouldn't) pass. **Before release, open the page in a browser, confirm both
+  claims and the account's author/date, and record them here.** If it doesn't say this, rename or
+  rework the predators and the tail raise.
+- **Deliberately not used:** a study reporting that giant salamander larvae often reject southern
+  torrent salamander (_R. variegatus_) larvae as distasteful. Different species and life stage.
 
 ## Backdrop / set-dressing notes
 

@@ -29,7 +29,15 @@ export class ResultsScene extends Phaser.Scene {
     addCenteredText(
       this,
       90,
-      won ? 'ACROSS THE DIVIDE' : s.lostReason === 'dry' ? 'TOO DRY TO GO ON' : 'OUT OF TIME',
+      won
+        ? 'ACROSS THE DIVIDE'
+        : s.lostReason === 'dry'
+          ? 'TOO DRY TO GO ON'
+          : s.lostReason === 'caught'
+            ? s.caughtBy === 'giant'
+              ? 'CAUGHT BY A GIANT SALAMANDER'
+              : 'CAUGHT BY A GARTER SNAKE'
+            : 'OUT OF TIME',
       { ...TEXT_STYLES.title, color: won ? PALETTE.textGold : PALETTE.textTerracotta },
     );
     if (won)

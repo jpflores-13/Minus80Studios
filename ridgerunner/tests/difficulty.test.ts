@@ -30,6 +30,11 @@ function findPath(land: Landscape, weighted: boolean): { tx: number; ty: number 
 
   const tileCost = (kind: Tile): number =>
     weighted ? 1 + Math.max(0, -TERRAIN[kind].moistureRate) * 0.12 : 1;
+  // Both bots steer well clear of snake dens (a 5x5 tile block around each), the way any
+  // player who can see the den would. They never try to time a strike, so a level that
+  // forced passing through a den's reach would fail here.
+  const nearDen = (tx: number, ty: number): boolean =>
+    land.dens.some((d) => Math.abs(d.tx - tx) <= 2 && Math.abs(d.ty - ty) <= 2);
 
   for (;;) {
     let u = -1;
@@ -56,7 +61,7 @@ function findPath(land: Landscape, weighted: boolean): { tx: number; ty: number 
       const v = vy * land.cols + vx;
       const kind = land.tiles[v] ?? 'barrier';
       if (!TERRAIN[kind].passable) continue;
-      const cand = (dist[u] as number) + tileCost(kind);
+      const cand = (dist[u] as number) + tileCost(kind) + (nearDen(vx, vy) ? 1000 : 0);
       if (cand < (dist[v] as number)) {
         dist[v] = cand;
         prev[v] = u;

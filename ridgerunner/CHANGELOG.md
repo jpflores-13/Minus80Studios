@@ -6,6 +6,17 @@ All notable changes to this project. Format loosely follows [Keep a Changelog](h
 
 ### Added
 
+- Predators. Garter snake dens (`S`) on the overland routes of levels 3–5, and a Pacific giant
+  salamander (`G`) lurking in level 5's last pool. Each one rests, shows a "!" warning, then strikes
+  within its outlined reach. Getting caught ends the run ("CAUGHT BY A GARTER SNAKE" / "...GIANT
+  SALAMANDER"), and easy mode stretches the warning. The difficulty bots route around them, and the
+  star calibration still holds.
+- Tail raise (SPACE or E, gamepad A, or the TAIL touch button), modelled on a torrent salamander's
+  defence posture. Moss holds still with tail raised for 0.7s, fending off a strike that lands in
+  that window, then needs 3.5s to recover. The HUD shows whether it's ready.
+- An on-screen intro panel for each level. Level intros used to reach only screen readers.
+- `docs/SCIENCE.md`: a predators section with what's checked (PNW-GTR-337) and what still needs a
+  human (the AmphibiaWeb predator and defence lines).
 - A painted backdrop (ridges, a tree line, a stream band, drifting fireflies) behind Title,
   Intro, Level Select and Settings, instead of a flat colour fill.
 - Richer tile art: two stable-by-position variants each for forest floor, moss patches and

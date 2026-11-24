@@ -12,6 +12,14 @@ export interface Spot {
   ty: number;
 }
 
+/** A predator that waits in one place: a garter snake's den on land ('S'), or a Pacific giant
+ * salamander lurking in a stream pool ('G'). */
+export type PredatorKind = 'snake' | 'giant';
+
+export interface Den extends Spot {
+  kind: PredatorKind;
+}
+
 export interface Landscape {
   cols: number;
   rows: number;
@@ -22,6 +30,9 @@ export interface Landscape {
   watershedCount: number;
   start: Spot;
   destination: Spot;
+  /** Predator dens: 'S' (garter snake, on forest floor) and 'G' (giant salamander, in a
+   * stream pool, so the tile underneath stays stream and part of its watershed). */
+  dens: Den[];
 }
 
 function index(cols: number, tx: number, ty: number): number {
@@ -34,12 +45,15 @@ export function parseLandscape(map: string[]): Landscape {
   const tiles: Tile[] = [];
   let start: Spot = { tx: 1, ty: 1 };
   let destination: Spot = { tx: 1, ty: 1 };
+  const dens: Den[] = [];
   map.forEach((row, ty) => {
     for (let tx = 0; tx < cols; tx++) {
       const ch = row[tx] ?? '#';
       tiles.push(TILE_CHARS[ch] ?? 'floor');
       if (ch === 'P') start = { tx, ty };
       if (ch === 'E') destination = { tx, ty };
+      if (ch === 'S') dens.push({ tx, ty, kind: 'snake' });
+      if (ch === 'G') dens.push({ tx, ty, kind: 'giant' });
     }
   });
 
@@ -73,7 +87,7 @@ export function parseLandscape(map: string[]): Landscape {
     }
   }
 
-  return { cols, rows, tiles, watershed, watershedCount: nextId, start, destination };
+  return { cols, rows, tiles, watershed, watershedCount: nextId, start, destination, dens };
 }
 
 export function tileAt(land: Landscape, tx: number, ty: number): Tile {
