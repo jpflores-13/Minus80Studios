@@ -1,0 +1,41 @@
+asset_id,purpose,current_source,status,dimensions_px_at_1x,format,animation,frames,transparency,anchor,destination_path,integration
+cattail_ramet,Aboveground cattail plant (leaves),procedural Aboveground.cattail,placeholder,120x160,PNG sprite sheet,leaf sway loop,12,yes,bottom-center (base at y=178),public/art/cattail_ramet.png,Aboveground.draw: one per plant.ramets entry; scale by maturity
+cattail_spike,Brown flower spike (title/opening only),procedural Aboveground.cattail,placeholder,16x60,PNG,sway with ramet,12,yes,bottom-center,public/art/cattail_spike.png,Only when flowerSpikes=true
+sky_day_night,Sky gradient day and night,procedural Aboveground.draw,placeholder,1280x160,PNG x2 (day/night),crossfade by daylight 0-1,0,no,top-left,public/art/sky_day.png; sky_night.png,Alpha-blend by session.light
+sun_moon,Sun and moon,procedural,placeholder,64x64,PNG,moon twinkle optional,1,yes,center,public/art/sun.png; moon.png,Sun at (470;70); moon at (820;70)
+marsh_grass,Distant marsh grasses band,procedural,placeholder,1280x40 tileable,PNG,sway loop,8,yes,bottom-left at y=162,public/art/marsh_grass.png,Tiled horizontally
+water_surface,Water line over sediment,procedural,placeholder,1280x24 tileable,PNG,shimmer loop,8,yes,top-left at y=158,public/art/water.png,Tiled
+sediment_layers,Belowground sediment background,procedural drawSediment,placeholder,1280x544,PNG,none,1,no,top-left at y=180,public/art/sediment.png,Replace drawSediment
+sediment_particles,Grain and organic fleck overlay,procedural drawSediment,placeholder,512x512 tileable,PNG,none,1,yes,top-left,public/art/grains.png,Overlay at depth 3
+rhizome_segment,Rhizome stem texture along path,procedural RootRenderer,placeholder,32x14 tileable,PNG,none,1,yes,left-center,public/art/rhizome_seg.png,Drawn along polyline; tint young->mature
+rhizome_node,Rhizome node ring + scale leaf,procedural,placeholder,20x24,PNG,none,1,yes,center on node,public/art/rhizome_node.png,Every ~130 px along rhizome
+rhizome_apex,Growing rhizome apex,procedural,placeholder,24x16,PNG,slow pulse,4,yes,left-center (rotated to heading),public/art/rhizome_apex.png,Only while seg.growing
+adventitious_segment,Adventitious root texture,procedural,placeholder,16x6 tileable,PNG,none,1,yes,left-center,public/art/adv_seg.png,Taper width 0.65-1.0 along length
+root_tip,Root cap at growing tip,procedural,placeholder,10x12,PNG,none,1,yes,center,public/art/root_tip.png,Only while growing
+lateral_segment,Fine lateral root texture,procedural,placeholder,8x3 tileable,PNG,none,1,yes,left-center,public/art/lat_seg.png,Thin; many instances
+optode_heatmap,Oxygen imaging overlay,procedural Heatmap (data),keep procedural,80x34 scaled to 1280x544,canvas texture,per frame,n/a,yes,top-left at y=180,n/a,Data-driven; do not replace with art
+optode_grain,Optional sensor-film texture over heatmap,none yet,new,1280x544,PNG,none,1,yes (10-20%),top-left,public/art/optode_grain.png,Overlay at depth 5.5 in imaging view
+reticle,Imaging reticle,procedural PlayScene.drawReticle,placeholder,80x80,PNG sprite sheet,idle/locked/ROI states,3,yes,center,public/art/reticle.png,Follow pointer/keys
+capture_ring,Capture pulse ring,procedural drawFx,placeholder,160x160,PNG sprite sheet,expand+fade,10,yes,center,public/art/capture_ring.png,0.7 s
+shutter_brackets,Camera-shutter corner flash,procedural drawFx,placeholder,96x96,PNG,flash,4,yes,center,public/art/shutter.png,0.15 s
+observation_flag,Observation marker flag,procedural drawMarkers,placeholder,24x32,PNG,fade,1,yes,bottom-left at pool,public/art/flag.png,5 s lifetime
+documented_badge,Check badge on documented pools,procedural drawOverlay,placeholder,20x20,SVG/PNG,none,1,yes,center,public/art/check.png,Color-independent cue; must keep
+signal_outline,Dashed region outline,procedural drawOverlay,placeholder,procedural,n/a,slow rotate,n/a,yes,center,n/a,Keep procedural (radius varies)
+scan_marker,Optode Scan highlight,procedural drawOverlay,placeholder,64x80,PNG,pulse,6,yes,center,public/art/scan.png,During scan only
+artifact_glint,Sediment grain glint distractor,procedural drawDistractors,placeholder,24x24,PNG,fade in/out,6,yes,center,public/art/artifact_glint.png,Must look unlike a plume
+artifact_fluor,Non-oxygen fluorescence distractor,procedural,placeholder,28x36,PNG,flicker,6,yes,center,public/art/artifact_fluor.png,Diamond silhouette
+artifact_noise,Imaging noise distractor,procedural,placeholder,48x48,PNG,speckle,6,yes,center,public/art/artifact_noise.png,Pixel speckle
+roi_window,ROI box + sparkline panel,procedural drawOverlay,placeholder,24x24 + 92x36 panel,PNG 9-slice,none,1,yes,center,public/art/roi.png,Sparkline stays procedural
+chem_glyphs,Chemistry overlay glyphs (◎ oxic / ■ anoxic),procedural,placeholder,12x12 each,SVG,none,1,yes,center,public/art/chem_oxic.svg; chem_anoxic.svg,Shapes must stay distinct
+ui_icons,Toolbar icons (view; scan; threshold; lapse; ROI; chem; pause),text labels,new,48x48 each,SVG,none,1,yes,center,public/art/icons/*.svg,Add beside button labels; keep text
+ui_button,Button panel + focus ring,procedural Button,placeholder,9-slice 48x48,PNG,hover/focus,3,yes,center,public/art/button.png,Phaser NineSlice
+logo_muck_life,MUCK LIFE wordmark,procedural render/logo.ts,placeholder,1200x360,SVG + PNG,optional root-grow intro,24,yes,center,public/art/logo.svg,Title and opening
+logo_o2_rush,O₂ RUSH sub-logo,procedural,placeholder,600x140,SVG + PNG,none,1,yes,center,public/art/logo_rush.svg,Rush select
+title_screen,Title key art behind menu,procedural live sim,placeholder,1280x720,PNG,parallax optional,1,no,top-left,public/art/title_bg.png,Optional; live sim can stay
+arcade_thumbnail,Landing-page card art,inline SVG in site/index.html,placeholder,160x90 (deliver 640x360),SVG or PNG,none,1,no,top-left,site/index.html,Replace inline SVG
+discovery_illustrations,Seven ending illustrations,procedural render/scienceArt.ts,placeholder,340x300 each,PNG,subtle loop optional,1-8,yes,center,public/art/discovery_*.png,EndingScene panels 1-7
+rhizobox_diagram,Rhizobox + optode + camera explainer,procedural drawRhizobox,placeholder,420x360,SVG,none,1,yes,top-left,public/art/rhizobox.svg,Ending + labs; original drawing only
+promo_key_art,Promotional key art,none yet,new,1920x1080 and 1080x1350,PNG,none,1,no,n/a,studio/branding/muck-life/,Marketing only
+promo_social,Social card,none yet,new,1200x630,PNG,none,1,no,n/a,studio/branding/muck-life/,Marketing only
+favicon,Browser icon,public/favicon.svg,shipped (original),64x64,SVG,none,1,yes,n/a,public/favicon.svg,Done
+audio_all,Music; SFX; ambience,src/audio/Sound.ts (Web Audio synthesis),shipped (original),n/a,synthesized,n/a,n/a,n/a,n/a,n/a,No audio files; replacements must be original or licensed and logged in CREDITS.md

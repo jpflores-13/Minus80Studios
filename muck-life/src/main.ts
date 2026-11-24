@@ -26,9 +26,11 @@ import {
   TopicScene,
 } from './scenes/ScienceScenes';
 import { TitleScene } from './scenes/TitleScene';
+import { installKeyDedupe } from './ui/keys';
 import { installTextScaling } from './ui/textScaling';
 
 installTextScaling(textScale);
+installKeyDedupe();
 
 const game = new Phaser.Game(
   createGameConfig('game-container', [
@@ -55,6 +57,8 @@ const game = new Phaser.Game(
     CreditsScene,
   ]),
 );
+
+if (import.meta.env.DEV) (window as unknown as { __game?: Phaser.Game }).__game = game;
 
 game.events.once(Phaser.Core.Events.READY, () => {
   game.canvas.setAttribute('role', 'application');
